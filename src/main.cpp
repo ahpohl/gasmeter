@@ -14,6 +14,8 @@ int main(int argc, char** argv)
   MAG3110 mySensor;
   mySensor.setDebug();
   mySensor.initialize("/dev/i2c-1");
+  
+  /*
   mySensor.calibrate();
   
   cout << "Raw mode" << endl;
@@ -39,11 +41,15 @@ int main(int argc, char** argv)
   
   int temp = mySensor.getTemperature();
   cout << "Temperature: " << temp << "°C" << endl;
- 
+  */
+
+  mySensor.reset(); 
   mySensor.setDR_OS(MAG3110::MAG3110_DR_OS_10_128);
   uint8_t dros = mySensor.getDR_OS();
-  cout << hex << "DR_OS setting: 0x" << dros << endl;
+  cout << "DR_OS setting: " << hex << setfill('0') << setw(2) 
+    << showbase << dros << endl;
  
+  /*
   ofstream file;
   file.open("mag.txt", ios::app);
   time_t timestamp;
@@ -64,6 +70,7 @@ int main(int argc, char** argv)
   }
 
   file.close();
+  */
 
   return 0;
 }
