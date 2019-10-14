@@ -2,3 +2,4 @@ gasmeter
 *.png
 *.txt
 *.o
+*.d
