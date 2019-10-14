@@ -107,6 +107,7 @@ public:
   void setRawMode(bool const t_raw);
   void triggerMeasurement(void);
   void setDR_OS(uint8_t const t_DROS);
+  void getDR_OS(void) const;
   void calibrate(void);
   void writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const;
   void setOffset(int const& t_xoff, int const& t_yoff, 

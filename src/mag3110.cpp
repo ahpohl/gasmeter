@@ -306,6 +306,12 @@ void MAG3110::setDR_OS(uint8_t const t_DROS)
   }
 }
 
+void MAG3110::getDR_OS(void) const
+{
+  uint8_t reg = readRegister(MAG3110_CTRL_REG1);
+  return (reg & 0xF8);
+}
+
 void MAG3110::setRawMode(bool const t_raw)
 {
   if (t_raw) {
