@@ -71,12 +71,10 @@ public:
   static uint8_t const MAG3110_FAST_READ;
   static uint8_t const MAG3110_TRIGGER_MEASUREMENT;
   static uint8_t const MAG3110_ACTIVE_MODE;
-  static uint8_t const MAG3110_STANDBY_MODE;
 
   // CTRL_REG2 Settings
   static uint8_t const MAG3110_AUTO_MRST_EN;
   static uint8_t const MAG3110_RAW_MODE;
-  static uint8_t const MAG3110_NORMAL_MODE;
   static uint8_t const MAG3110_MAG_RST;
 
   // SYSMOD Readings
@@ -88,6 +86,16 @@ public:
   static uint8_t const MAG3110_X_AXIS;
   static uint8_t const MAG3110_Y_AXIS;
   static uint8_t const MAG3110_Z_AXIS;
+
+  // DR_STATUS readings
+  static uint8_t const MAG3110_DR_STATUS_XDR;
+  static uint8_t const MAG3110_DR_STATUS_YDR;
+  static uint8_t const MAG3110_DR_STATUS_ZDR;
+  static uint8_t const MAG3110_DR_STATUS_XYZDR;
+  static uint8_t const MAG3110_DR_STATUS_XOW;
+  static uint8_t const MAG3110_DR_STATUS_YOW;
+  static uint8_t const MAG3110_DR_STATUS_ZOW;
+  static uint8_t const MAG3110_DR_STATUS_XYZOW;
 
   MAG3110(void);
   ~MAG3110(void);

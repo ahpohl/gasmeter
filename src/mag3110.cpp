@@ -81,12 +81,10 @@ uint8_t const MAG3110::MAG3110_DR_OS_0_08_128 = 0xF8;
 uint8_t const MAG3110::MAG3110_FAST_READ = 			     0x04;
 uint8_t const MAG3110::MAG3110_TRIGGER_MEASUREMENT = 0x02;
 uint8_t const MAG3110::MAG3110_ACTIVE_MODE =			   0x01;
-uint8_t const MAG3110::MAG3110_STANDBY_MODE =		     0x00;
 
 // CTRL_REG2 Settings
 uint8_t const MAG3110::MAG3110_AUTO_MRST_EN = 0x80;
 uint8_t const MAG3110::MAG3110_RAW_MODE = 	  0x20;
-uint8_t const MAG3110::MAG3110_NORMAL_MODE =	0x00;
 uint8_t const MAG3110::MAG3110_MAG_RST =		  0x10;
 
 // SYSMOD Readings
@@ -98,6 +96,16 @@ uint8_t const MAG3110::MAG3110_SYSMOD_ACTIVE	=	   0x02;
 uint8_t const MAG3110::MAG3110_X_AXIS = 0x01;
 uint8_t const MAG3110::MAG3110_Y_AXIS = 0x03;
 uint8_t const MAG3110::MAG3110_Z_AXIS = 0x05;
+
+// DR_STATUS readings
+uint8_t const MAG3110::MAG3110_DR_STATUS_XDR =   0x01;
+uint8_t const MAG3110::MAG3110_DR_STATUS_YDR =   0x02;   
+uint8_t const MAG3110::MAG3110_DR_STATUS_ZDR =   0x04;
+uint8_t const MAG3110::MAG3110_DR_STATUS_XYZDR = 0x08;
+uint8_t const MAG3110::MAG3110_DR_STATUS_XOW =   0x10;
+uint8_t const MAG3110::MAG3110_DR_STATUS_YOW =   0x20;
+uint8_t const MAG3110::MAG3110_DR_STATUS_ZOW =   0x40;
+uint8_t const MAG3110::MAG3110_DR_STATUS_XYZOW = 0x80;
 
 MAG3110::MAG3110(void)
 {
@@ -169,7 +177,7 @@ void MAG3110::standby(void)
 {
   m_activeMode = false;
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
-  writeRegister(MAG3110_CTRL_REG1, (reg & ~(0x03)));
+  writeRegister(MAG3110_CTRL_REG1, reg & ~(0x01));
 }
 
 void MAG3110::start(void)
@@ -221,9 +229,8 @@ void MAG3110::getOffset(int* t_xoff, int* t_yoff, int* t_zoff) const
 
 void MAG3110::reset(void)
 {
-  standby();
   writeRegister(MAG3110_CTRL_REG1, 0x00);
-  writeRegister(MAG3110_CTRL_REG2, 0x80);
+  writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN);
   writeOffset(MAG3110_X_AXIS, 0);
   writeOffset(MAG3110_Y_AXIS, 0);
   writeOffset(MAG3110_Z_AXIS, 0);
@@ -255,6 +262,7 @@ void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
     if ((res = read(m_fd, &val[i], LEN)) != LEN) {
       throw runtime_error(string("readMag: Failed to read from the i2c bus (")
         + to_string(res) + ")");
+    this_thread::sleep_for(chrono::microseconds(2));
     }
   }
   *t_x = static_cast<int16_t>(((val[0] & 0xFF) << 8) | (val[1] & 0xFF));
@@ -279,7 +287,8 @@ double MAG3110::getMagnitude(double const& t_x, double const& t_y,
 
 bool MAG3110::dataReady(void) const
 {
-  return ((readRegister(MAG3110_DR_STATUS) & 0x08) >> 3);
+  uint8_t reg = readRegister(MAG3110_DR_STATUS);
+  return ((reg & MAG3110_DR_STATUS_XYZDR) >> 3);
 }
 
 void MAG3110::setDR_OS(uint8_t const t_DROS)
@@ -289,8 +298,8 @@ void MAG3110::setDR_OS(uint8_t const t_DROS)
     standby();
   }
   this_thread::sleep_for(chrono::milliseconds(100));
-  uint8_t reg = readRegister(MAG3110_CTRL_REG1) & 0x07;
-  writeRegister(MAG3110_CTRL_REG1, (reg | t_DROS));
+  uint8_t reg = readRegister(MAG3110_CTRL_REG1);
+  writeRegister(MAG3110_CTRL_REG1, (reg & 0x07) | t_DROS);
   this_thread::sleep_for(chrono::milliseconds(100));
   if (wasActive) {
     start();
@@ -360,7 +369,7 @@ double MAG3110::getHeading(void)
 void MAG3110::triggerMeasurement(void)
 {	
 	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
-	writeRegister(MAG3110_CTRL_REG1, (reg | 0x02));
+	writeRegister(MAG3110_CTRL_REG1, reg | (0x01 << 1));
 }
 
 bool MAG3110::isActive(void) const

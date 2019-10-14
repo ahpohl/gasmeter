@@ -30,7 +30,6 @@ int main(int argc, char** argv)
   this_thread::sleep_for(chrono::milliseconds(100));
   mySensor.readMag(&x, &y, &z);
   mySensor.displayMag(x, y, z);
-  
 
   if (mySensor.isCalibrated()) {
     double heading = mySensor.getHeading();
@@ -40,14 +39,20 @@ int main(int argc, char** argv)
   
   int temp = mySensor.getTemperature();
   cout << "Temperature: " << temp << "°C" << endl;
-  
+ 
+  mySensor.setDR_OS(MAG3110::MAG3110_DR_OS_10_128);
+ 
   ofstream file;
   file.open("mag.txt", ios::app);
   time_t timestamp;
+  mySensor.standby();
 
   while (true) {
+    mySensor.triggerMeasurement();
     int x, y, z;
-    mySensor.readMag(&x, &y, &z);
+    if (mySensor.dataReady()) {
+      mySensor.readMag2(&x, &y, &z);
+    }
     double mag = mySensor.getMagnitude(x, y, z);
     mySensor.displayMag(x, y, z, mag);
     timestamp = time(nullptr);

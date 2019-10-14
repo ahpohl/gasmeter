@@ -5,7 +5,7 @@ set xdata time
 set timefmt "%s"
 set format x "%H:%M"
 set xlabel "Time (hh:mm)"
-set ylabel "Magnetic field (10^{-5} T)"
+set ylabel "Magnetic field (10^{-7} T)"
 set key top left
 set grid
 #set xrange ["09:30":"09:35"]
