@@ -41,6 +41,8 @@ int main(int argc, char** argv)
   cout << "Temperature: " << temp << "°C" << endl;
  
   mySensor.setDR_OS(MAG3110::MAG3110_DR_OS_10_128);
+  uint8_t dros = mySensor.getDR_OS();
+  cout << hex << "DR_OS setting: 0x" << dros << endl;
  
   ofstream file;
   file.open("mag.txt", ios::app);
