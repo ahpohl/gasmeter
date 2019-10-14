@@ -107,7 +107,6 @@ public:
   void setRawMode(bool const t_raw);
   void triggerMeasurement(void);
   void setDR_OS(uint8_t const t_DROS);
-  void getDR_OS(void) const;
   void calibrate(void);
   void writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const;
   void setOffset(int const& t_xoff, int const& t_yoff, 
@@ -126,6 +125,7 @@ public:
   bool dataReady(void) const;  
   uint8_t getSysMode(void) const;
   uint8_t readRegister(uint8_t const& t_addr) const;
+  uint8_t getDR_OS(void) const;
   int readAxis(uint8_t const& t_axis) const;
   int readOffset(uint8_t const& t_axis) const;
   int getTemperature(void) const;
