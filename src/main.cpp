@@ -14,10 +14,9 @@ int main(int argc, char** argv)
   MAG3110 mySensor;
   mySensor.setDebug();
   mySensor.initialize("/dev/i2c-1");
-  
-  /*
-  mySensor.calibrate();
-  
+  //mySensor.calibrate();
+
+  /*  
   cout << "Raw mode" << endl;
   mySensor.setRawMode(true);
   
@@ -55,6 +54,8 @@ int main(int argc, char** argv)
   cout << "DR_OS setting: " << static_cast<int>(dr_os) << endl;
 
   int x, y, z;
+
+  /*
   mySensor.readMag(&x, &y, &z);
   mySensor.displayMag(x, y, z); 
 
@@ -72,29 +73,28 @@ int main(int argc, char** argv)
   }
   mySensor.readMag(&x, &y, &z);
   mySensor.displayMag(x, y, z);
+  */
 
-  /*
   ofstream file;
   file.open("mag.txt", ios::app);
   time_t timestamp;
-  mySensor.standby();
+  double mag;
 
   while (true) {
     mySensor.triggerMeasurement();
-    int x, y, z;
     if (mySensor.dataReady()) {
-      mySensor.readMag2(&x, &y, &z);
+      mySensor.readMag(&x, &y, &z);
+      mag = mySensor.getMagnitude(x, y, z);
+      mySensor.displayMag(x, y, z, mag);
+      timestamp = time(nullptr);
+      file << timestamp << "," << x << "," << y << "," << z 
+        << "," << mag << endl;
+    } else {
+      cout << "No data available" << endl;
     }
-    double mag = mySensor.getMagnitude(x, y, z);
-    mySensor.displayMag(x, y, z, mag);
-    timestamp = time(nullptr);
-    file << timestamp << "," << x << "," << y << "," << z 
-      << "," << mag << endl;
     sleep(1);
   }
-
   file.close();
-  */
 
   return 0;
 }

@@ -340,8 +340,9 @@ void MAG3110::calibrate(void)
   setOffset((xmin+xmax)/2, (ymin+ymax)/2, (zmin+zmax)/2);
 	m_xscale = 1.0 / (xmax - xmin);
 	m_yscale = 1.0 / (ymax - ymin);
-	setRawMode(false);
   m_calibrated = true;
+  setRawMode(false);
+  standby();
 }
 
 double MAG3110::getHeading(void)
