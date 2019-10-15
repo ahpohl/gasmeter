@@ -140,7 +140,6 @@ void MAG3110::initialize(const char* t_bus)
 		throw runtime_error(string("Failed to find MAG3110 connected (") 
       + to_string(rsp) + ")");
 	}
-  reset();
   if (m_debug) {
     cout << "Initialization successful" << endl;
   }
@@ -171,6 +170,7 @@ void MAG3110::writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const
   if ((res = write(m_fd, data, LEN)) != LEN) {
     throw runtime_error(string("writeRegister: Failed to write to the i2c bus (") + to_string(res) + ")");
   }
+  this_thread::sleep_for(chrono::microseconds(2)); 
 }
 
 void MAG3110::standby(void)
@@ -190,7 +190,6 @@ int MAG3110::readAxis(uint8_t const& t_axis) const
   uint8_t msbAddr = t_axis;
   uint8_t lsbAddr = t_axis + 0x01;
   uint8_t msb = readRegister(msbAddr);
-  this_thread::sleep_for(chrono::microseconds(2));
   uint8_t lsb = readRegister(lsbAddr);
   return static_cast<int16_t>((lsb & 0xFF) | ((msb & 0xFF) << 8));
 }
@@ -201,7 +200,6 @@ void MAG3110::writeOffset(uint8_t const& t_axis, int const& t_offset) const
   uint8_t msbAddr = t_axis + 0x08;
   uint8_t lsbAddr = msbAddr + 0x01;
   writeRegister(msbAddr, static_cast<uint8_t>((t_offset >> 7) & 0xFF));
-  this_thread::sleep_for(chrono::milliseconds(15));
   writeRegister(lsbAddr, static_cast<uint8_t>((t_offset << 1) & 0xFF));
 }
 
@@ -258,7 +256,6 @@ void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
     if ((res = read(m_fd, &val[i], LEN)) != LEN) {
       throw runtime_error(string("readMag: Failed to read from the i2c bus (")
         + to_string(res) + ")");
-    this_thread::sleep_for(chrono::microseconds(2));
     }
   }
   *t_x = static_cast<int16_t>(((val[0] & 0xFF) << 8) | (val[1] & 0xFF));
@@ -289,17 +286,9 @@ bool MAG3110::dataReady(void) const
 
 void MAG3110::setDR_OS(uint8_t const t_DROS)
 {
-  bool wasActive = isActive();
-  if (wasActive) {
-    standby();
-  }
-  this_thread::sleep_for(chrono::milliseconds(100));
+  standby();
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
-  writeRegister(MAG3110_CTRL_REG1, (reg & 0x07) | t_DROS);
-  this_thread::sleep_for(chrono::milliseconds(100));
-  if (wasActive) {
-    start();
-  }
+  writeRegister(MAG3110_CTRL_REG1, (reg & 0x07) | t_DROS);  
 }
 
 uint8_t MAG3110::getDR_OS(void) const
@@ -315,23 +304,20 @@ void MAG3110::setRawMode(bool const t_raw)
   } else {
     writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN & ~(0x01 << 5));
   }
-  this_thread::sleep_for(chrono::milliseconds(100));
 }
 
 void MAG3110::calibrate(void)
 {
   setDR_OS(MAG3110_DR_OS_80_16);
-  if (!isActive()) { 
-    start();
-  }
-  int x, y, z;
   setRawMode(true);
+  int x, y, z;
   int xmin = INT16_MAX, xmax = INT16_MIN;
   int ymin = INT16_MAX, ymax = INT16_MIN;
   int zmin = INT16_MAX, zmax = INT16_MIN;
   bool changed;
-  auto start = chrono::system_clock::now();
-  chrono::high_resolution_clock::time_point end;
+  auto start_calib = chrono::system_clock::now();
+  chrono::high_resolution_clock::time_point end_calib;
+  start();
   do {
     changed = false;
     readMag(&x, &y, &z);
@@ -347,11 +333,10 @@ void MAG3110::calibrate(void)
         << ", z: " << zmin << " < " << z << " < " << zmax << endl;
     }
     if (changed) {
-      start = chrono::system_clock::now();
+      start_calib = chrono::system_clock::now();
     }
-    end = chrono::system_clock::now();
-  } while (chrono::duration_cast<chrono::milliseconds>(end - start).count() 
-    < CALIBRATION_TIMEOUT);
+    end_calib = chrono::system_clock::now();
+  } while (chrono::duration_cast<chrono::milliseconds>(end_calib - start_calib).count() < CALIBRATION_TIMEOUT);
   setOffset((xmin+xmax)/2, (ymin+ymax)/2, (zmin+zmax)/2);
 	m_xscale = 1.0 / (xmax - xmin);
 	m_yscale = 1.0 / (ymax - ymin);
@@ -370,6 +355,7 @@ void MAG3110::triggerMeasurement(void)
 {	
 	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
 	writeRegister(MAG3110_CTRL_REG1, reg | (0x01 << 1));
+  delay();
 }
 
 bool MAG3110::isActive(void) const
@@ -414,4 +400,51 @@ void MAG3110::displayMag(int const& t_x, int const& t_y, int const& t_z,
     << ", y: " << setw(6) << t_y
     << ", z: " << setw(6) << t_z
     << ", <B>: " << setw(6) << fixed << setprecision(0) << t_mag << endl;
+}
+
+void MAG3110::delay(void) const
+{
+  int delay = 0; // ms
+  uint8_t dr_os = getDR_OS();
+  if (dr_os == MAG3110_DR_OS_80_16) {
+    delay = 13; // 80 Hz
+  } else if ((dr_os == MAG3110_DR_OS_40_32) || 
+      (dr_os == MAG3110_DR_OS_40_16)) {
+    delay = 25; // 40 Hz
+  } else if ((dr_os == MAG3110_DR_OS_20_64) || 
+      (dr_os == MAG3110_DR_OS_20_32) || (dr_os == MAG3110_DR_OS_20_16)) {
+    delay = 50; // 20 Hz
+  } else if ((dr_os == MAG3110_DR_OS_10_128) || 
+      (dr_os == MAG3110_DR_OS_10_64) || (dr_os == MAG3110_DR_OS_10_32) || 
+      (dr_os == MAG3110_DR_OS_10_16)) {
+    delay = 100; // 10 Hz
+  } else if ((dr_os == MAG3110_DR_OS_5_128) || 
+      (dr_os == MAG3110_DR_OS_5_64) || (dr_os == MAG3110_DR_OS_5_32) || 
+      (dr_os == MAG3110_DR_OS_5_16)) {
+    delay = 200; // 5 Hz
+  } else if ((dr_os == MAG3110_DR_OS_2_5_128) || 
+      (dr_os == MAG3110_DR_OS_2_5_64) || (dr_os == MAG3110_DR_OS_2_5_32) || 
+      (dr_os == MAG3110_DR_OS_2_5_16)) {
+    delay = 400; // 2.5 Hz
+  } else if ((dr_os == MAG3110_DR_OS_1_25_128) || 
+      (dr_os == MAG3110_DR_OS_1_25_64) || (dr_os == MAG3110_DR_OS_1_25_32) || 
+      (dr_os == MAG3110_DR_OS_1_25_16)) {
+    delay = 800; // 1.25 Hz
+  } else if ((dr_os == MAG3110_DR_OS_0_63_128) || 
+      (dr_os == MAG3110_DR_OS_0_63_64) || (dr_os == MAG3110_DR_OS_0_63_32) || 
+      (dr_os == MAG3110_DR_OS_0_63_16)) {
+    delay = 1600; // 0.63 Hz
+  } else if ((dr_os == MAG3110_DR_OS_0_31_128) || 
+      (dr_os == MAG3110_DR_OS_0_31_64) || (dr_os == MAG3110_DR_OS_0_31_32)) {
+    delay = 3200; // 0.31 Hz
+  } else if ((dr_os == MAG3110_DR_OS_0_16_128) || 
+      (dr_os == MAG3110_DR_OS_0_16_64)) {
+    delay = 6400; // 0.16 Hz
+  } else if (dr_os == MAG3110_DR_OS_0_08_128) {
+    delay = 12800; // 0.08 Hz
+  } else {
+    throw runtime_error(string("delay(): unknown DR_OS setting (") 
+      + to_string(dr_os) + ")");
+  }
+  this_thread::sleep_for(chrono::milliseconds(delay));
 }

@@ -54,7 +54,24 @@ int main(int argc, char** argv)
   uint8_t dr_os = mySensor.getDR_OS();
   cout << "DR_OS setting: " << static_cast<int>(dr_os) << endl;
 
-  
+  int x, y, z;
+  mySensor.readMag(&x, &y, &z);
+  mySensor.displayMag(x, y, z); 
+
+  if (mySensor.dataReady()) {
+    cout << "New data available" << endl;
+  } else {
+    cout << "No data available" << endl;
+  }
+
+  mySensor.triggerMeasurement();
+  if (mySensor.dataReady()) {
+    cout << "New data available" << endl;
+  } else {
+    cout << "No data available" << endl;
+  }
+  mySensor.readMag(&x, &y, &z);
+  mySensor.displayMag(x, y, z);
 
   /*
   ofstream file;

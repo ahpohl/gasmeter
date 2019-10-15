@@ -119,6 +119,7 @@ public:
   void displayMag(int const& t_x, int const& t_y, int const& t_z) const;
   void displayMag(int const& t_x, int const& t_y, int const& t_z, 
     double const& t_mag) const;
+  void delay(void) const;
   bool isActive(void) const;
   bool isRaw(void) const;
   bool isCalibrated(void) const;
