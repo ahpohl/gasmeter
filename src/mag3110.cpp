@@ -175,14 +175,12 @@ void MAG3110::writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const
 
 void MAG3110::standby(void)
 {
-  m_activeMode = false;
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
   writeRegister(MAG3110_CTRL_REG1, reg & ~(0x01));
 }
 
 void MAG3110::start(void)
 {
-  m_activeMode = true;
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
   writeRegister(MAG3110_CTRL_REG1, (reg | MAG3110_ACTIVE_MODE));
 }
@@ -234,8 +232,6 @@ void MAG3110::reset(void)
   writeOffset(MAG3110_X_AXIS, 0);
   writeOffset(MAG3110_Y_AXIS, 0);
   writeOffset(MAG3110_Z_AXIS, 0);
-  m_activeMode = false;
-  m_rawMode = false;
   m_calibrated = false;
 }
 
@@ -293,8 +289,8 @@ bool MAG3110::dataReady(void) const
 
 void MAG3110::setDR_OS(uint8_t const t_DROS)
 {
-  bool wasActive = m_activeMode;
-  if (m_activeMode) {
+  bool wasActive = isActive();
+  if (wasActive) {
     standby();
   }
   this_thread::sleep_for(chrono::milliseconds(100));
@@ -315,10 +311,8 @@ uint8_t MAG3110::getDR_OS(void) const
 void MAG3110::setRawMode(bool const t_raw)
 {
   if (t_raw) {
-    m_rawMode = true;
     writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN | (0x01 << 5));
   } else {
-    m_rawMode = false;
     writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN & ~(0x01 << 5));
   }
   this_thread::sleep_for(chrono::milliseconds(100));
@@ -327,7 +321,7 @@ void MAG3110::setRawMode(bool const t_raw)
 void MAG3110::calibrate(void)
 {
   setDR_OS(MAG3110_DR_OS_80_16);
-  if (!m_activeMode) { 
+  if (!isActive()) { 
     start();
   }
   int x, y, z;
@@ -380,12 +374,14 @@ void MAG3110::triggerMeasurement(void)
 
 bool MAG3110::isActive(void) const
 {
-	return m_activeMode;
+	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
+  return (reg & MAG3110_ACTIVE_MODE);
 }
 
 bool MAG3110::isRaw(void) const
 {
-	return m_rawMode;
+	uint8_t reg = readRegister(MAG3110_CTRL_REG2);
+  return ((reg & MAG3110_RAW_MODE) >> 5);
 }
 
 bool MAG3110::isCalibrated(void) const

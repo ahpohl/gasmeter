@@ -135,8 +135,6 @@ public:
 
 private:
   bool m_debug;
-  bool m_activeMode;
-  bool m_rawMode;
   bool m_calibrated;
   int m_fd;
   int m_timeLastChange;
