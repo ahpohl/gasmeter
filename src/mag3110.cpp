@@ -183,6 +183,7 @@ void MAG3110::start(void)
 {
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
   writeRegister(MAG3110_CTRL_REG1, (reg | MAG3110_ACTIVE_MODE));
+  delay();
 }
 
 int MAG3110::readAxis(uint8_t const& t_axis) const
@@ -214,6 +215,7 @@ void MAG3110::setOffset(int const& t_xoff, int const&  t_yoff,
   writeOffset(MAG3110_X_AXIS, t_xoff);
   writeOffset(MAG3110_Y_AXIS, t_yoff);
   writeOffset(MAG3110_Z_AXIS, t_zoff);
+  delay();
 }
 
 void MAG3110::getOffset(int* t_xoff, int* t_yoff, int* t_zoff) const
@@ -227,25 +229,23 @@ void MAG3110::reset(void)
 {
   writeRegister(MAG3110_CTRL_REG1, 0x00);
   writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN);
-  writeOffset(MAG3110_X_AXIS, 0);
-  writeOffset(MAG3110_Y_AXIS, 0);
-  writeOffset(MAG3110_Z_AXIS, 0);
+  setOffset(0, 0, 0);
   m_calibrated = false;
 }
 
-void MAG3110::readMag2(int* t_x, int* t_y, int* t_z) const
+void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
 {
   *t_x = readAxis(MAG3110_X_AXIS);
   *t_y = readAxis(MAG3110_Y_AXIS);
   *t_z = readAxis(MAG3110_Z_AXIS);
 }
 
-void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
+void MAG3110::getMag(int* t_x, int* t_y, int* t_z) const
 {
   int res;
   const int LEN = 1;
   if ((res = write(m_fd, &MAG3110_OUT_X_MSB, LEN)) != LEN) {
-    throw runtime_error(string("readMag: Failed to write to the i2c bus (") 
+    throw runtime_error(string("getMag: Failed to write to the i2c bus (") 
       + to_string(res) + ")");
   }
   this_thread::sleep_for(chrono::microseconds(2));
@@ -254,7 +254,7 @@ void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
   for (uint8_t i = 0; i < BYTES; ++i)
   { 
     if ((res = read(m_fd, &val[i], LEN)) != LEN) {
-      throw runtime_error(string("readMag: Failed to read from the i2c bus (")
+      throw runtime_error(string("getMag: Failed to read from the i2c bus (")
         + to_string(res) + ")");
     }
   }
@@ -266,7 +266,7 @@ void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
 void MAG3110::readMicroTesla(double* t_x, double* t_y, double* t_z) const
 {
 	int x, y, z;
-	readMag(&x, &y, &z);
+	getMag(&x, &y, &z);
 	*t_x = x * 0.1f;
 	*t_y = y * 0.1f;
 	*t_z = z * 0.1f;
@@ -288,7 +288,8 @@ void MAG3110::setDR_OS(uint8_t const t_DROS)
 {
   standby();
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
-  writeRegister(MAG3110_CTRL_REG1, (reg & 0x07) | t_DROS);  
+  writeRegister(MAG3110_CTRL_REG1, (reg & 0x07) | t_DROS);
+  delay();
 }
 
 uint8_t MAG3110::getDR_OS(void) const
@@ -304,6 +305,7 @@ void MAG3110::setRawMode(bool const t_raw)
   } else {
     writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN & ~(0x01 << 5));
   }
+  delay();
 }
 
 void MAG3110::calibrate(void)
@@ -317,10 +319,10 @@ void MAG3110::calibrate(void)
   bool changed;
   auto start_calib = chrono::system_clock::now();
   chrono::high_resolution_clock::time_point end_calib;
-  start();
   do {
     changed = false;
-    readMag(&x, &y, &z);
+    triggerMeasurement();
+    getMag(&x, &y, &z);
 	  if (x < xmin) { xmin = x; changed = true; }
     if (x > xmax) { xmax = x; changed = true; }
     if (y < ymin) { ymin = y; changed = true; }
@@ -342,13 +344,12 @@ void MAG3110::calibrate(void)
 	m_yscale = 1.0 / (ymax - ymin);
   m_calibrated = true;
   setRawMode(false);
-  standby();
 }
 
 double MAG3110::getHeading(void)
 {
 	int x, y, z;
-	readMag(&x, &y, &z);
+	getMag(&x, &y, &z);
 	return (atan2(-y*m_yscale, x*m_xscale) * DEG_PER_RAD);
 }
 

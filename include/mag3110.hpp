@@ -113,8 +113,8 @@ public:
     int const& t_zoff) const;
   void writeOffset(uint8_t const& t_axis, int const& t_offset) const;
   void getOffset(int* t_xoff, int* t_yoff, int* t_zoff) const; 
-  void readMag(int* t_x, int* t_y, int* t_z) const;
-  void readMag2(int* t_x, int* t_y, int* t_z) const; 
+  void getMag(int* t_x, int* t_y, int* t_z) const;
+  void readMag(int* t_x, int* t_y, int* t_z) const; 
   void readMicroTesla(double* t_x, double* t_y, double* t_z) const;
   void displayMag(int const& t_x, int const& t_y, int const& t_z) const;
   void displayMag(int const& t_x, int const& t_y, int const& t_z, 
