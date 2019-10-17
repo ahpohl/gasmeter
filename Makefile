@@ -9,7 +9,7 @@
 CPP = g++
 
 # define any compile-time flags
-CPPFLAGS = -Wall -g -std=c++11 -pthread -MP -MD
+CPPFLAGS = -Wall -g -std=c++11 -pthread
 
 # define any directories containing header files other than /usr/include
 #

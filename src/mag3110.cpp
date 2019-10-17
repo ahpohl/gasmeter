@@ -235,7 +235,7 @@ void MAG3110::reset(void)
 
 void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
 {
-  this_thread::sleep_for(chrono::microseconds(m_delay));  
+  this_thread::sleep_for(chrono::milliseconds(m_delay));  
   *t_x = readAxis(MAG3110_X_AXIS);
   *t_y = readAxis(MAG3110_Y_AXIS);
   *t_z = readAxis(MAG3110_Z_AXIS);
@@ -243,7 +243,7 @@ void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
 
 void MAG3110::getMag(int* t_x, int* t_y, int* t_z) const
 {
-  this_thread::sleep_for(chrono::microseconds(m_delay));
+  this_thread::sleep_for(chrono::milliseconds(m_delay));
   int res;
   const int LEN = 1;
   if ((res = write(m_fd, &MAG3110_OUT_X_MSB, LEN)) != LEN) {
