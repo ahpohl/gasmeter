@@ -38,7 +38,7 @@ int main(int argc, char** argv)
   int temp = mySensor.getTemperature();
   cout << "Temperature: " << temp << "°C" << endl;
 
-  mySensor.setDR_OS(MAG3110::MAG3110_DR_OS_10_128);
+  mySensor.setDR_OS(MAG3110::MAG3110_DR_OS_1_25_128);
   uint8_t dr_os = mySensor.getDR_OS();
   cout << "DR_OS setting: " << static_cast<int>(dr_os) << endl;
 
@@ -61,7 +61,6 @@ int main(int argc, char** argv)
     timestamp = time(nullptr);
     file << timestamp << "," << x << "," << y << "," << z 
       << "," << mag << endl;
-    this_thread::sleep_for(chrono::seconds(1));
   }
   file.close();
 

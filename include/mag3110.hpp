@@ -119,7 +119,7 @@ public:
   void displayMag(int const& t_x, int const& t_y, int const& t_z) const;
   void displayMag(int const& t_x, int const& t_y, int const& t_z, 
     double const& t_mag) const;
-  void delay(void) const;
+  void setDelay(uint8_t t_DROS);
   bool isActive(void) const;
   bool isRaw(void) const;
   bool isCalibrated(void) const;
@@ -139,6 +139,7 @@ private:
   bool m_calibrated;
   int m_fd;
   int m_timeLastChange;
+  int m_delay;
   double m_xscale;
   double m_yscale;
 };

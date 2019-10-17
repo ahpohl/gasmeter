@@ -112,6 +112,7 @@ MAG3110::MAG3110(void)
   m_debug = false;
 	m_xscale = 0.0f;
 	m_yscale = 0.0f;
+  m_delay = 0;
 }
 
 MAG3110::~MAG3110(void)
@@ -183,7 +184,6 @@ void MAG3110::start(void)
 {
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
   writeRegister(MAG3110_CTRL_REG1, (reg | MAG3110_ACTIVE_MODE));
-  delay();
 }
 
 int MAG3110::readAxis(uint8_t const& t_axis) const
@@ -215,7 +215,6 @@ void MAG3110::setOffset(int const& t_xoff, int const&  t_yoff,
   writeOffset(MAG3110_X_AXIS, t_xoff);
   writeOffset(MAG3110_Y_AXIS, t_yoff);
   writeOffset(MAG3110_Z_AXIS, t_zoff);
-  delay();
 }
 
 void MAG3110::getOffset(int* t_xoff, int* t_yoff, int* t_zoff) const
@@ -231,10 +230,12 @@ void MAG3110::reset(void)
   writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN);
   setOffset(0, 0, 0);
   m_calibrated = false;
+  setDelay(MAG3110_DR_OS_80_16);
 }
 
 void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
 {
+  this_thread::sleep_for(chrono::microseconds(m_delay));  
   *t_x = readAxis(MAG3110_X_AXIS);
   *t_y = readAxis(MAG3110_Y_AXIS);
   *t_z = readAxis(MAG3110_Z_AXIS);
@@ -242,6 +243,7 @@ void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
 
 void MAG3110::getMag(int* t_x, int* t_y, int* t_z) const
 {
+  this_thread::sleep_for(chrono::microseconds(m_delay));
   int res;
   const int LEN = 1;
   if ((res = write(m_fd, &MAG3110_OUT_X_MSB, LEN)) != LEN) {
@@ -289,7 +291,7 @@ void MAG3110::setDR_OS(uint8_t const t_DROS)
   standby();
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
   writeRegister(MAG3110_CTRL_REG1, (reg & 0x07) | t_DROS);
-  delay();
+  setDelay(t_DROS);
 }
 
 uint8_t MAG3110::getDR_OS(void) const
@@ -305,7 +307,6 @@ void MAG3110::setRawMode(bool const t_raw)
   } else {
     writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN & ~(0x01 << 5));
   }
-  delay();
 }
 
 void MAG3110::calibrate(void)
@@ -357,7 +358,6 @@ void MAG3110::triggerMeasurement(void)
 {	
 	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
 	writeRegister(MAG3110_CTRL_REG1, reg | (0x01 << 1));
-  delay();
 }
 
 bool MAG3110::isActive(void) const
@@ -404,49 +404,46 @@ void MAG3110::displayMag(int const& t_x, int const& t_y, int const& t_z,
     << ", <B>: " << setw(6) << fixed << setprecision(0) << t_mag << endl;
 }
 
-void MAG3110::delay(void) const
+void MAG3110::setDelay(uint8_t t_DROS)
 {
-  int delay = 0; // ms
-  uint8_t dr_os = getDR_OS();
-  if (dr_os == MAG3110_DR_OS_80_16) {
-    delay = 13; // 80 Hz
-  } else if ((dr_os == MAG3110_DR_OS_40_32) || 
-      (dr_os == MAG3110_DR_OS_40_16)) {
-    delay = 25; // 40 Hz
-  } else if ((dr_os == MAG3110_DR_OS_20_64) || 
-      (dr_os == MAG3110_DR_OS_20_32) || (dr_os == MAG3110_DR_OS_20_16)) {
-    delay = 50; // 20 Hz
-  } else if ((dr_os == MAG3110_DR_OS_10_128) || 
-      (dr_os == MAG3110_DR_OS_10_64) || (dr_os == MAG3110_DR_OS_10_32) || 
-      (dr_os == MAG3110_DR_OS_10_16)) {
-    delay = 100; // 10 Hz
-  } else if ((dr_os == MAG3110_DR_OS_5_128) || 
-      (dr_os == MAG3110_DR_OS_5_64) || (dr_os == MAG3110_DR_OS_5_32) || 
-      (dr_os == MAG3110_DR_OS_5_16)) {
-    delay = 200; // 5 Hz
-  } else if ((dr_os == MAG3110_DR_OS_2_5_128) || 
-      (dr_os == MAG3110_DR_OS_2_5_64) || (dr_os == MAG3110_DR_OS_2_5_32) || 
-      (dr_os == MAG3110_DR_OS_2_5_16)) {
-    delay = 400; // 2.5 Hz
-  } else if ((dr_os == MAG3110_DR_OS_1_25_128) || 
-      (dr_os == MAG3110_DR_OS_1_25_64) || (dr_os == MAG3110_DR_OS_1_25_32) || 
-      (dr_os == MAG3110_DR_OS_1_25_16)) {
-    delay = 800; // 1.25 Hz
-  } else if ((dr_os == MAG3110_DR_OS_0_63_128) || 
-      (dr_os == MAG3110_DR_OS_0_63_64) || (dr_os == MAG3110_DR_OS_0_63_32) || 
-      (dr_os == MAG3110_DR_OS_0_63_16)) {
-    delay = 1600; // 0.63 Hz
-  } else if ((dr_os == MAG3110_DR_OS_0_31_128) || 
-      (dr_os == MAG3110_DR_OS_0_31_64) || (dr_os == MAG3110_DR_OS_0_31_32)) {
-    delay = 3200; // 0.31 Hz
-  } else if ((dr_os == MAG3110_DR_OS_0_16_128) || 
-      (dr_os == MAG3110_DR_OS_0_16_64)) {
-    delay = 6400; // 0.16 Hz
-  } else if (dr_os == MAG3110_DR_OS_0_08_128) {
-    delay = 12800; // 0.08 Hz
+  if (t_DROS == MAG3110_DR_OS_80_16) {
+    m_delay = 13; // 80 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_40_32) || 
+      (t_DROS == MAG3110_DR_OS_40_16)) {
+    m_delay = 25; // 40 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_20_64) || 
+      (t_DROS == MAG3110_DR_OS_20_32) || (t_DROS == MAG3110_DR_OS_20_16)) {
+    m_delay = 50; // 20 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_10_128) || 
+      (t_DROS == MAG3110_DR_OS_10_64) || (t_DROS == MAG3110_DR_OS_10_32) || 
+      (t_DROS == MAG3110_DR_OS_10_16)) {
+    m_delay = 100; // 10 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_5_128) || 
+      (t_DROS == MAG3110_DR_OS_5_64) || (t_DROS == MAG3110_DR_OS_5_32) || 
+      (t_DROS == MAG3110_DR_OS_5_16)) {
+    m_delay = 200; // 5 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_2_5_128) || 
+      (t_DROS == MAG3110_DR_OS_2_5_64) || (t_DROS == MAG3110_DR_OS_2_5_32) || 
+      (t_DROS == MAG3110_DR_OS_2_5_16)) {
+    m_delay = 400; // 2.5 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_1_25_128) || 
+      (t_DROS == MAG3110_DR_OS_1_25_64) || (t_DROS == MAG3110_DR_OS_1_25_32) || 
+      (t_DROS == MAG3110_DR_OS_1_25_16)) {
+    m_delay = 800; // 1.25 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_0_63_128) || 
+      (t_DROS == MAG3110_DR_OS_0_63_64) || (t_DROS == MAG3110_DR_OS_0_63_32) || 
+      (t_DROS == MAG3110_DR_OS_0_63_16)) {
+    m_delay = 1600; // 0.63 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_0_31_128) || 
+      (t_DROS == MAG3110_DR_OS_0_31_64) || (t_DROS == MAG3110_DR_OS_0_31_32)) {
+    m_delay = 3200; // 0.31 Hz
+  } else if ((t_DROS == MAG3110_DR_OS_0_16_128) || 
+      (t_DROS == MAG3110_DR_OS_0_16_64)) {
+    m_delay = 6400; // 0.16 Hz
+  } else if (t_DROS == MAG3110_DR_OS_0_08_128) {
+    m_delay = 12800; // 0.08 Hz
   } else {
     throw runtime_error(string("delay(): unknown DR_OS setting (") 
-      + to_string(dr_os) + ")");
+      + to_string(t_DROS) + ")");
   }
-  this_thread::sleep_for(chrono::milliseconds(delay));
 }
