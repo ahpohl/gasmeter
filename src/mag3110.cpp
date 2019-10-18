@@ -110,8 +110,6 @@ uint8_t const MAG3110::MAG3110_DR_STATUS_XYZOW = 0x80;
 MAG3110::MAG3110(void)
 {
   m_debug = false;
-	m_xscale = 0.0f;
-	m_yscale = 0.0f;
   m_delay = 0;
 }
 
@@ -186,44 +184,6 @@ void MAG3110::start(void)
   writeRegister(MAG3110_CTRL_REG1, (reg | MAG3110_ACTIVE_MODE));
 }
 
-int MAG3110::readAxis(uint8_t const& t_axis) const
-{
-  uint8_t msbAddr = t_axis;
-  uint8_t lsbAddr = t_axis + 0x01;
-  uint8_t msb = readRegister(msbAddr);
-  uint8_t lsb = readRegister(lsbAddr);
-  return static_cast<int16_t>((lsb & 0xFF) | ((msb & 0xFF) << 8));
-}
-
-void MAG3110::writeOffset(uint8_t const& t_axis, int const& t_offset) const
-{
-  // msb bits [14:7], lsb bits [6:0]
-  uint8_t msbAddr = t_axis + 0x08;
-  uint8_t lsbAddr = msbAddr + 0x01;
-  writeRegister(msbAddr, static_cast<uint8_t>((t_offset >> 7) & 0xFF));
-  writeRegister(lsbAddr, static_cast<uint8_t>((t_offset << 1) & 0xFF));
-}
-
-int MAG3110::readOffset(uint8_t const& t_axis) const
-{
-  return (readAxis(t_axis + 0x08) >> 1);
-}
-
-void MAG3110::setOffset(int const& t_xoff, int const&  t_yoff, 
-  int const& t_zoff) const
-{
-  writeOffset(MAG3110_X_AXIS, t_xoff);
-  writeOffset(MAG3110_Y_AXIS, t_yoff);
-  writeOffset(MAG3110_Z_AXIS, t_zoff);
-}
-
-void MAG3110::getOffset(int* t_xoff, int* t_yoff, int* t_zoff) const
-{
-  *t_xoff = readOffset(MAG3110_X_AXIS);
-  *t_yoff = readOffset(MAG3110_Y_AXIS);
-  *t_zoff = readOffset(MAG3110_Z_AXIS);
-}
-
 void MAG3110::reset(void)
 {
   writeRegister(MAG3110_CTRL_REG1, 0x00);
@@ -233,51 +193,31 @@ void MAG3110::reset(void)
   setDelay(MAG3110_DR_OS_80_16);
 }
 
-void MAG3110::readMag(int* t_x, int* t_y, int* t_z) const
+bool MAG3110::isActive(void) const
 {
-  this_thread::sleep_for(chrono::milliseconds(m_delay));  
-  *t_x = readAxis(MAG3110_X_AXIS);
-  *t_y = readAxis(MAG3110_Y_AXIS);
-  *t_z = readAxis(MAG3110_Z_AXIS);
+	uint8_t reg = readRegister(MAG3110_SYSMOD);
+  return ((reg & MAG3110_SYSMOD_ACTIVE) >> 1);
 }
 
-void MAG3110::getMag(int* t_x, int* t_y, int* t_z) const
+bool MAG3110::isRaw(void) const
 {
-  this_thread::sleep_for(chrono::milliseconds(m_delay));
-  int res;
-  const int LEN = 1;
-  if ((res = write(m_fd, &MAG3110_OUT_X_MSB, LEN)) != LEN) {
-    throw runtime_error(string("getMag: Failed to write to the i2c bus (") 
-      + to_string(res) + ")");
+	uint8_t reg = readRegister(MAG3110_SYSMOD);
+  return (reg & MAG3110_SYSMOD_ACTIVE_RAW);
+}
+
+void MAG3110::setRawMode(bool const t_raw)
+{
+  if (t_raw) {
+    writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN | (0x01 << 5));
+  } else {
+    writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN & ~(0x01 << 5));
   }
-  this_thread::sleep_for(chrono::microseconds(2));
-  const int BYTES = 6;
-  uint16_t val[BYTES] = {0};
-  for (uint8_t i = 0; i < BYTES; ++i)
-  { 
-    if ((res = read(m_fd, &val[i], LEN)) != LEN) {
-      throw runtime_error(string("getMag: Failed to read from the i2c bus (")
-        + to_string(res) + ")");
-    }
-  }
-  *t_x = static_cast<int16_t>(((val[0] & 0xFF) << 8) | (val[1] & 0xFF));
-  *t_y = static_cast<int16_t>(((val[2] & 0xFF) << 8) | (val[3] & 0xFF));
-  *t_z = static_cast<int16_t>(((val[4] & 0xFF) << 8) | (val[5] & 0xFF));
 }
 
-void MAG3110::readMicroTesla(double* t_x, double* t_y, double* t_z) const
-{
-	int x, y, z;
-	getMag(&x, &y, &z);
-	*t_x = x * 0.1f;
-	*t_y = y * 0.1f;
-	*t_z = z * 0.1f;
-}
-
-double MAG3110::getMagnitude(double const& t_x, double const& t_y, 
-    double const& t_z) const
-{
-  return sqrt(pow(t_x, 2.0) + pow(t_y, 2.0) + pow(t_z, 2.0));
+void MAG3110::triggerMeasurement(void)
+{	
+	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
+	writeRegister(MAG3110_CTRL_REG1, reg | (0x01 << 1));
 }
 
 bool MAG3110::dataReady(void) const
@@ -298,110 +238,6 @@ uint8_t MAG3110::getDR_OS(void) const
 {
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
   return (reg & 0xF8);
-}
-
-void MAG3110::setRawMode(bool const t_raw)
-{
-  if (t_raw) {
-    writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN | (0x01 << 5));
-  } else {
-    writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN & ~(0x01 << 5));
-  }
-}
-
-void MAG3110::calibrate(void)
-{
-  setDR_OS(MAG3110_DR_OS_80_16);
-  setRawMode(true);
-  int x, y, z;
-  int xmin = INT16_MAX, xmax = INT16_MIN;
-  int ymin = INT16_MAX, ymax = INT16_MIN;
-  int zmin = INT16_MAX, zmax = INT16_MIN;
-  bool changed;
-  auto start_calib = chrono::system_clock::now();
-  chrono::high_resolution_clock::time_point end_calib;
-  do {
-    changed = false;
-    triggerMeasurement();
-    getMag(&x, &y, &z);
-	  if (x < xmin) { xmin = x; changed = true; }
-    if (x > xmax) { xmax = x; changed = true; }
-    if (y < ymin) { ymin = y; changed = true; }
-    if (y > ymax) { ymax = y; changed = true; }
-    if (z < zmin) { zmin = z; changed = true; }
-    if (z > zmax) { zmax = z; changed = true; }
-    if (m_debug) {
-      cout << "x: " << xmin << " < " << x << " < " << xmax 
-        << ", y: " << ymin << " < " << y << " < " << ymax
-        << ", z: " << zmin << " < " << z << " < " << zmax << endl;
-    }
-    if (changed) {
-      start_calib = chrono::system_clock::now();
-    }
-    end_calib = chrono::system_clock::now();
-  } while (chrono::duration_cast<chrono::milliseconds>(end_calib - start_calib).count() < CALIBRATION_TIMEOUT);
-  setOffset((xmin+xmax)/2, (ymin+ymax)/2, (zmin+zmax)/2);
-	m_xscale = 1.0 / (xmax - xmin);
-	m_yscale = 1.0 / (ymax - ymin);
-  m_calibrated = true;
-  setRawMode(false);
-}
-
-double MAG3110::getHeading(void)
-{
-	int x, y, z;
-	getMag(&x, &y, &z);
-	return (atan2(-y*m_yscale, x*m_xscale) * DEG_PER_RAD);
-}
-
-void MAG3110::triggerMeasurement(void)
-{	
-	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
-	writeRegister(MAG3110_CTRL_REG1, reg | (0x01 << 1));
-}
-
-bool MAG3110::isActive(void) const
-{
-	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
-  return (reg & MAG3110_ACTIVE_MODE);
-}
-
-bool MAG3110::isRaw(void) const
-{
-	uint8_t reg = readRegister(MAG3110_CTRL_REG2);
-  return ((reg & MAG3110_RAW_MODE) >> 5);
-}
-
-bool MAG3110::isCalibrated(void) const
-{
-	return m_calibrated;
-}
-
-uint8_t MAG3110::getSysMode(void) const
-{
-	return readRegister(MAG3110_SYSMOD);
-}
-
-int MAG3110::getTemperature(void) const
-{
-  uint8_t temp = readRegister(MAG3110_DIE_TEMP);
-  return static_cast<int>(temp);
-}
-
-void MAG3110::displayMag(int const& t_x, int const& t_y, int const& t_z) const
-{
-  cout << "x: " << setw(6) << t_x
-    << ", y: " << setw(6) << t_y
-    << ", z: " << setw(6) << t_z << endl;
-}
-
-void MAG3110::displayMag(int const& t_x, int const& t_y, int const& t_z, 
-  double const& t_mag) const
-{
-  cout << "Bx: " << setw(6) << t_x
-    << ", By: " << setw(6) << t_y
-    << ", Bz: " << setw(6) << t_z
-    << ", B: " << setw(6) << fixed << setprecision(0) << t_mag << endl;
 }
 
 void MAG3110::setDelay(uint8_t t_DROS)
@@ -451,4 +287,128 @@ void MAG3110::setDelay(uint8_t t_DROS)
 int MAG3110::getDelay(void) const
 {
   return m_delay;
+}
+
+void MAG3110::setOffset(int const& t_xoff, int const&  t_yoff, 
+  int const& t_zoff) const
+{
+  uint8_t msbAddr;
+  uint8_t lsbAddr;
+  
+  // msb bits [14:7], lsb bits [6:0]
+  msbAddr = MAG3110_X_AXIS + 0x08;
+  lsbAddr = msbAddr + 0x01;
+  writeRegister(msbAddr, static_cast<uint8_t>((t_offset >> 7) & 0xFF));
+  writeRegister(lsbAddr, static_cast<uint8_t>((t_offset << 1) & 0xFF));
+
+  msbAddr = MAG3110_Y_AXIS + 0x08;
+  lsbAddr = msbAddr + 0x01;
+  writeRegister(msbAddr, static_cast<uint8_t>((t_offset >> 7) & 0xFF));
+  writeRegister(lsbAddr, static_cast<uint8_t>((t_offset << 1) & 0xFF));
+
+  msbAddr = MAG3110_Z_AXIS + 0x08;
+  lsbAddr = msbAddr + 0x01;
+  writeRegister(msbAddr, static_cast<uint8_t>((t_offset >> 7) & 0xFF));
+  writeRegister(lsbAddr, static_cast<uint8_t>((t_offset << 1) & 0xFF));
+}
+
+void MAG3110::getOffset(int* t_bxoff, int* t_byoff, int* t_bzoff) const
+{
+  uint8_t msb, lsb;
+
+  // msb bits [14:7], lsb bits [6:0]
+  msb = readRegister(MAG3110_X_AXIS + 0x08);
+  lsb = readRegister(MAG3110_X_AXIS + 0x09);
+  *t_bxoff = static_cast<int16_t>(((lsb & 0xFF) >> 1) | ((msb & 0xFF) << 7));
+
+  msb = readRegister(MAG3110_Y_AXIS + 0x08);
+  lsb = readRegister(MAG3110_Y_AXIS + 0x09);
+  *t_byoff = static_cast<int16_t>(((lsb & 0xFF) >> 1) | ((msb & 0xFF) << 7));
+
+  msb = readRegister(MAG3110_Z_AXIS + 0x08);
+  lsb = readRegister(MAG3110_Z_AXIS + 0x09);
+  *t_bzoff = static_cast<int16_t>(((lsb & 0xFF) >> 1) | ((msb & 0xFF) << 7));
+}
+
+void MAG3110::calibrate(void) const
+{
+  setDR_OS(MAG3110_DR_OS_80_16);
+  setRawMode(true);
+  int bx, by, bz;
+  int bxmin = INT16_MAX, bxmax = INT16_MIN;
+  int bymin = INT16_MAX, bymax = INT16_MIN;
+  int bzmin = INT16_MAX, bzmax = INT16_MIN;
+  bool changed;
+  auto start_calib = chrono::system_clock::now();
+  chrono::high_resolution_clock::time_point end_calib;
+  do {
+    changed = false;
+    triggerMeasurement();
+    getMag(&bx, &by, &bz);
+	  if (bx < bxmin) { bxmin = bx; changed = true; }
+    if (bx > bxmax) { bxmax = bx; changed = true; }
+    if (by < bymin) { bymin = by; changed = true; }
+    if (by > bymax) { bymax = by; changed = true; }
+    if (bz < bzmin) { bzmin = bz; changed = true; }
+    if (bz > bzmax) { bzmax = bz; changed = true; }
+    if (m_debug) {
+      cout << "Bx: " << bxmin << " < " << bx << " < " << bxmax 
+        << ", By: " << bymin << " < " << by << " < " << bymax
+        << ", Bz: " << bzmin << " < " << bz << " < " << bzmax << endl;
+    }
+    if (changed) {
+      start_calib = chrono::system_clock::now();
+    }
+    end_calib = chrono::system_clock::now();
+  } while (chrono::duration_cast<chrono::milliseconds>(
+      end_calib - start_calib).count() < CALIBRATION_TIMEOUT);
+  setOffset((bxmin+bxmax)/2, (bymin+bymax)/2, (bzmin+bzmax)/2);
+  setRawMode(false);
+}
+
+void MAG3110::getMag(int* t_bx, int* t_by, int* t_bz) const
+{
+  this_thread::sleep_for(chrono::milliseconds(m_delay));
+  int res;
+  const int LEN = 1;
+  if ((res = write(m_fd, &MAG3110_OUT_X_MSB, LEN)) != LEN) {
+    throw runtime_error(string("getMag: Failed to write to the i2c bus (") 
+      + to_string(res) + ")");
+  }
+  this_thread::sleep_for(chrono::microseconds(2));
+  const int BYTES = 6;
+  uint16_t val[BYTES] = {0};
+  for (uint8_t i = 0; i < BYTES; ++i)
+  { 
+    if ((res = read(m_fd, &val[i], LEN)) != LEN) {
+      throw runtime_error(string("getMag: Failed to read from the i2c bus (")
+        + to_string(res) + ")");
+    }
+  }
+  *t_bx = static_cast<int16_t>(((val[0] & 0xFF) << 8) | (val[1] & 0xFF));
+  *t_by = static_cast<int16_t>(((val[2] & 0xFF) << 8) | (val[3] & 0xFF));
+  *t_bz = static_cast<int16_t>(((val[4] & 0xFF) << 8) | (val[5] & 0xFF));
+}
+
+double MAG3110::getMagnitude(int const& t_bx, int const& t_by, 
+    int const& t_bz) const
+{
+  return sqrt(pow(static_cast<double>(t_bx), 2.0) 
+    + pow(static_cast<double>(t_by), 2.0) 
+    + pow(static_cast<double>(t_bz), 2.0));
+}
+
+void MAG3110::displayMag(int const& t_bx, int const& t_by, int const& t_bz) const
+{
+  double mag = getMagnitude(t_bx, t_by, t_bz);
+  cout << "Bx: " << setw(6) << t_bx
+    << ", By: " << setw(6) << t_by
+    << ", Bz: " << setw(6) << t_bz
+    << ", B: " << setw(6) << fixed << setprecision(0) << mag << endl;
+}
+
+int MAG3110::getTemperature(void) const
+{
+  uint8_t temp = readRegister(MAG3110_DIE_TEMP);
+  return static_cast<int>(temp);
 }

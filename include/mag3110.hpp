@@ -8,7 +8,6 @@ public:
   static uint8_t const MAG3110_I2C_ADDRESS;
   static uint8_t const MAG3110_WHO_AM_I_RSP;
   static int const CALIBRATION_TIMEOUT;
-  static double const DEG_PER_RAD;
   
   // register addresses
   static uint8_t const MAG3110_DR_STATUS;
@@ -101,48 +100,34 @@ public:
   ~MAG3110(void);
   void setDebug(void);
   void initialize(const char* t_bus);
-  void reset(void);
+  uint8_t readRegister(uint8_t const& t_addr) const;
+  void writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const;
   void standby(void);
   void start(void);
-  void setRawMode(bool const t_raw);
-  void triggerMeasurement(void);
-  void setDR_OS(uint8_t const t_DROS);
-  void calibrate(void);
-  void writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const;
-  void setOffset(int const& t_xoff, int const& t_yoff, 
-    int const& t_zoff) const;
-  void writeOffset(uint8_t const& t_axis, int const& t_offset) const;
-  void getOffset(int* t_xoff, int* t_yoff, int* t_zoff) const; 
-  void getMag(int* t_x, int* t_y, int* t_z) const;
-  void readMag(int* t_x, int* t_y, int* t_z) const; 
-  void readMicroTesla(double* t_x, double* t_y, double* t_z) const;
-  void displayMag(int const& t_x, int const& t_y, int const& t_z) const;
-  void displayMag(int const& t_x, int const& t_y, int const& t_z, 
-    double const& t_mag) const;
-  void setDelay(uint8_t t_DROS);
+  void reset(void);
   bool isActive(void) const;
   bool isRaw(void) const;
-  bool isCalibrated(void) const;
+  void setRawMode(bool const t_raw);
+  void triggerMeasurement(void);
   bool dataReady(void) const;  
-  uint8_t getSysMode(void) const;
-  uint8_t readRegister(uint8_t const& t_addr) const;
+  void setDR_OS(uint8_t const t_DROS);
   uint8_t getDR_OS(void) const;
-  int readAxis(uint8_t const& t_axis) const;
-  int readOffset(uint8_t const& t_axis) const;
-  int getTemperature(void) const;
+  void setDelay(uint8_t t_DROS);
   int getDelay(void) const;
-  double getMagnitude(double const& t_x, double const& t_y, 
-    double const& t_z) const;
-  double getHeading(void);
-
+  void setOffset(int const& t_bxoff, int const& t_byoff, 
+    int const& t_bzoff) const;
+  void getOffset(int* t_bxoff, int* t_byoff, int* t_bzoff) const;
+  void calibrate(void) const; 
+  void getMag(int* t_bx, int* t_by, int* t_bz) const; 
+  double getMagnitude(int const& t_bx, int const& t_by, 
+    int const& t_bz) const;
+  void displayMag(int const& t_bx, int const& t_by, int const& t_bz) const;
+  int getTemperature(void) const;
+  
 private:
   bool m_debug;
-  bool m_calibrated;
   int m_fd;
-  int m_timeLastChange;
   int m_delay;
-  double m_xscale;
-  double m_yscale;
 };
 
 #endif // MAG3110_HPP
