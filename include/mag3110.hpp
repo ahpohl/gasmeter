@@ -130,6 +130,7 @@ public:
   int readAxis(uint8_t const& t_axis) const;
   int readOffset(uint8_t const& t_axis) const;
   int getTemperature(void) const;
+  int getDelay(void) const;
   double getMagnitude(double const& t_x, double const& t_y, 
     double const& t_z) const;
   double getHeading(void);

@@ -6,10 +6,10 @@ set timefmt "%s"
 set format x "%H:%M"
 set xlabel "Time (hh:mm)"
 set ylabel "Magnetic field (10^{-7} T)"
-set key top left
+set key top right
 set grid
 #set xrange ["09:30":"09:35"]
-plot "mag.txt" using 1:2 with lines lw 2 lt 2 lc rgb "black" title 'Mag', \
-"mag.txt" using 1:3 with lines lw 2 lt 2 lc rgb "red" title 'x-axis', \
-"mag.txt" using 1:4 with lines lw 2 lt 2 lc rgb "blue" title 'y-axis', \
-"mag.txt" using 1:5 with lines lw 2 lt 2 lc rgb "cyan" title 'z-axis'
+plot "mag.txt" using ($1+7200):2 with lines lw 2 lt 2 lc rgb "black" title 'B', \
+"mag.txt" using ($1+7200):3 with lines lw 2 lt 2 lc rgb "red" title 'B_{x}', \
+"mag.txt" using ($1+7200):4 with lines lw 2 lt 2 lc rgb "blue" title 'B_{y}', \
+"mag.txt" using ($1+7200):5 with lines lw 2 lt 2 lc rgb "cyan" title 'B_{z}'

@@ -398,10 +398,10 @@ void MAG3110::displayMag(int const& t_x, int const& t_y, int const& t_z) const
 void MAG3110::displayMag(int const& t_x, int const& t_y, int const& t_z, 
   double const& t_mag) const
 {
-  cout << "x: " << setw(6) << t_x
-    << ", y: " << setw(6) << t_y
-    << ", z: " << setw(6) << t_z
-    << ", <B>: " << setw(6) << fixed << setprecision(0) << t_mag << endl;
+  cout << "Bx: " << setw(6) << t_x
+    << ", By: " << setw(6) << t_y
+    << ", Bz: " << setw(6) << t_z
+    << ", B: " << setw(6) << fixed << setprecision(0) << t_mag << endl;
 }
 
 void MAG3110::setDelay(uint8_t t_DROS)
@@ -446,4 +446,9 @@ void MAG3110::setDelay(uint8_t t_DROS)
     throw runtime_error(string("delay(): unknown DR_OS setting (") 
       + to_string(t_DROS) + ")");
   }
+}
+
+int MAG3110::getDelay(void) const
+{
+  return m_delay;
 }

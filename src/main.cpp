@@ -15,10 +15,10 @@ int main(int argc, char** argv)
   mySensor.initialize("/dev/i2c-1");
   mySensor.reset();
 
-  int x, y, z;
+  int bx, by, bz;
   mySensor.triggerMeasurement();
-  mySensor.getMag(&x, &y, &z);
-  mySensor.displayMag(x, y, z);
+  mySensor.getMag(&bx, &by, &bz);
+  mySensor.displayMag(bx, by, bz);
 
   mySensor.calibrate();
  
@@ -27,8 +27,8 @@ int main(int argc, char** argv)
   cout << "Get offset: " << xoff << ", " << yoff << ", " << zoff << endl;
  
   mySensor.triggerMeasurement();
-  mySensor.getMag(&x, &y, &z);
-  mySensor.displayMag(x, y, z);
+  mySensor.getMag(&bx, &by, &bz);
+  mySensor.displayMag(bx, by, bz);
 
   if (mySensor.isCalibrated()) {
     double heading = mySensor.getHeading();
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
   int temp = mySensor.getTemperature();
   cout << "Temperature: " << temp << "°C" << endl;
 
-  mySensor.setDR_OS(MAG3110::MAG3110_DR_OS_1_25_128);
+  mySensor.setDR_OS(MAG3110::MAG3110_DR_OS_10_128);
   uint8_t dr_os = mySensor.getDR_OS();
   cout << "DR_OS setting: " << static_cast<int>(dr_os) << endl;
 
@@ -55,12 +55,13 @@ int main(int argc, char** argv)
 
   while (true) {
     mySensor.triggerMeasurement();
-    mySensor.getMag(&x, &y, &z);
-    mag = mySensor.getMagnitude(x, y, z);
-    mySensor.displayMag(x, y, z, mag);
+    mySensor.getMag(&bx, &by, &bz);
+    mag = mySensor.getMagnitude(bx, by, bz);
+    mySensor.displayMag(bx, by, bz, mag);
     timestamp = time(nullptr);
-    file << timestamp << "," << x << "," << y << "," << z 
+    file << timestamp << "," << bx << "," << by << "," << bz 
       << "," << mag << endl;
+    this_thread::sleep_for(chrono::seconds(1));
   }
   file.close();
 
