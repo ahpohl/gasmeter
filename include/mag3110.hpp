@@ -117,11 +117,13 @@ public:
   void setOffset(int const& t_bxoff, int const& t_byoff, 
     int const& t_bzoff) const;
   void getOffset(int* t_bxoff, int* t_byoff, int* t_bzoff) const;
-  void calibrate(void) const; 
+  void calibrate(void); 
   void getMag(int* t_bx, int* t_by, int* t_bz) const; 
   double getMagnitude(int const& t_bx, int const& t_by, 
     int const& t_bz) const;
   void displayMag(int const& t_bx, int const& t_by, int const& t_bz) const;
+  void displayMag(int const& t_bx, int const& t_by, int const& t_bz, 
+    double const& t_mag) const;
   int getTemperature(void) const;
   
 private:

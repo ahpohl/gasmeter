@@ -19,7 +19,6 @@ using namespace std;
 uint8_t const MAG3110::MAG3110_I2C_ADDRESS = 0x0E;
 uint8_t const MAG3110::MAG3110_WHO_AM_I_RSP = 0xC4;
 int const MAG3110::CALIBRATION_TIMEOUT = 1000; // ms
-double const MAG3110::DEG_PER_RAD = (180.0 / M_PI);
   
 // register addresses
 uint8_t const MAG3110::MAG3110_DR_STATUS = 0x00;
@@ -189,7 +188,6 @@ void MAG3110::reset(void)
   writeRegister(MAG3110_CTRL_REG1, 0x00);
   writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN);
   setOffset(0, 0, 0);
-  m_calibrated = false;
   setDelay(MAG3110_DR_OS_80_16);
 }
 
@@ -298,18 +296,18 @@ void MAG3110::setOffset(int const& t_xoff, int const&  t_yoff,
   // msb bits [14:7], lsb bits [6:0]
   msbAddr = MAG3110_X_AXIS + 0x08;
   lsbAddr = msbAddr + 0x01;
-  writeRegister(msbAddr, static_cast<uint8_t>((t_offset >> 7) & 0xFF));
-  writeRegister(lsbAddr, static_cast<uint8_t>((t_offset << 1) & 0xFF));
+  writeRegister(msbAddr, static_cast<uint8_t>((t_xoff >> 7) & 0xFF));
+  writeRegister(lsbAddr, static_cast<uint8_t>((t_xoff << 1) & 0xFF));
 
   msbAddr = MAG3110_Y_AXIS + 0x08;
   lsbAddr = msbAddr + 0x01;
-  writeRegister(msbAddr, static_cast<uint8_t>((t_offset >> 7) & 0xFF));
-  writeRegister(lsbAddr, static_cast<uint8_t>((t_offset << 1) & 0xFF));
+  writeRegister(msbAddr, static_cast<uint8_t>((t_yoff >> 7) & 0xFF));
+  writeRegister(lsbAddr, static_cast<uint8_t>((t_yoff << 1) & 0xFF));
 
   msbAddr = MAG3110_Z_AXIS + 0x08;
   lsbAddr = msbAddr + 0x01;
-  writeRegister(msbAddr, static_cast<uint8_t>((t_offset >> 7) & 0xFF));
-  writeRegister(lsbAddr, static_cast<uint8_t>((t_offset << 1) & 0xFF));
+  writeRegister(msbAddr, static_cast<uint8_t>((t_zoff >> 7) & 0xFF));
+  writeRegister(lsbAddr, static_cast<uint8_t>((t_zoff << 1) & 0xFF));
 }
 
 void MAG3110::getOffset(int* t_bxoff, int* t_byoff, int* t_bzoff) const
@@ -330,7 +328,7 @@ void MAG3110::getOffset(int* t_bxoff, int* t_byoff, int* t_bzoff) const
   *t_bzoff = static_cast<int16_t>(((lsb & 0xFF) >> 1) | ((msb & 0xFF) << 7));
 }
 
-void MAG3110::calibrate(void) const
+void MAG3110::calibrate(void)
 {
   setDR_OS(MAG3110_DR_OS_80_16);
   setRawMode(true);
@@ -398,13 +396,22 @@ double MAG3110::getMagnitude(int const& t_bx, int const& t_by,
     + pow(static_cast<double>(t_bz), 2.0));
 }
 
-void MAG3110::displayMag(int const& t_bx, int const& t_by, int const& t_bz) const
+void MAG3110::displayMag(int const& t_bx, int const& t_by, 
+  int const& t_bz) const
+{ 
+  cout << "Bx: " << setw(6) << t_bx
+    << ", By: " << setw(6) << t_by
+    << ", Bz: " << setw(6) << t_bz << endl;
+}
+
+void MAG3110::displayMag(int const& t_bx, int const& t_by, 
+  int const& t_bz, double const& t_mag) const
 {
-  double mag = getMagnitude(t_bx, t_by, t_bz);
   cout << "Bx: " << setw(6) << t_bx
     << ", By: " << setw(6) << t_by
     << ", Bz: " << setw(6) << t_bz
-    << ", B: " << setw(6) << fixed << setprecision(0) << mag << endl;
+    << ", B: " << setw(6) << fixed 
+    << setprecision(0) << t_mag << endl;
 }
 
 int MAG3110::getTemperature(void) const
