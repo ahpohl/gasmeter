@@ -36,16 +36,31 @@ int main(int argc, char** argv)
   cout << "Get magnetic induction" << endl;
   mag.getMag(&bx, &by, &bz);
   mag.displayMag(bx, by, bz);
-  int bxoff = 500, byoff = -500, bzoff = 1000;
+  int16_t bxoff = 500, byoff = -500, bzoff = 1000;
   cout << "Set offset: " << bxoff << " " << byoff << " " << bzoff << endl;
   mag.setOffset(bxoff, byoff, bzoff);
   mag.getOffset(&bxoff, &byoff, &bzoff);
   cout << "Get offset: " << bxoff << ", " << byoff << ", " << bzoff << endl;
   mag.getMag(&bx, &by, &bz);
   mag.displayMag(bx, by, bz);
-  cout << "Calibrate" << endl;
+  cout << "Raw: ";
+  mag.setRawMode(false);
+  if (mag.isRaw()) {
+    cout << "Sensor is in raw mode" << endl;
+  } else {
+    cout << "Sensor is not in raw mode" << endl;
+  }
+  cout << "Raw: ";
+  mag.setRawMode(true);
+    if (mag.isRaw()) {
+    cout << "Sensor is in raw mode" << endl;
+  } else {
+    cout << "Sensor is not in raw mode" << endl;
+  }
+  cout << "Calibrate offset: ";
   mag.calibrate();
-  cout << "Get offset: " << bxoff << ", " << byoff << ", " << bzoff << endl;
+  mag.getOffset(&bxoff, &byoff, &bzoff);
+  cout << bxoff << ", " << byoff << ", " << bzoff << endl;
   mag.getMag(&bx, &by, &bz);
   mag.triggerMeasurement();
   mag.getMag(&bx, &by, &bz);

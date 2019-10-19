@@ -8,6 +8,7 @@ public:
   static uint8_t const MAG3110_I2C_ADDRESS;
   static uint8_t const MAG3110_WHO_AM_I_RSP;
   static int const CALIBRATION_TIMEOUT;
+  static int const MAG3110_DIE_TEMP_OFFSET;
   
   // register addresses
   static uint8_t const MAG3110_DR_STATUS;
@@ -114,9 +115,9 @@ public:
   uint8_t getDR_OS(void) const;
   void setDelay(uint8_t t_DROS);
   int getDelay(void) const;
-  void setOffset(int const& t_bxoff, int const& t_byoff, 
-    int const& t_bzoff) const;
-  void getOffset(int* t_bxoff, int* t_byoff, int* t_bzoff) const;
+  void setOffset(int16_t const& t_bxoff, int16_t const& t_byoff, 
+    int16_t const& t_bzoff) const;
+  void getOffset(int16_t* t_bxoff, int16_t* t_byoff, int16_t* t_bzoff) const;
   void calibrate(void); 
   void getMag(int* t_bx, int* t_by, int* t_bz) const; 
   double getMagnitude(int const& t_bx, int const& t_by, 

@@ -19,6 +19,7 @@ using namespace std;
 uint8_t const MAG3110::MAG3110_I2C_ADDRESS = 0x0E;
 uint8_t const MAG3110::MAG3110_WHO_AM_I_RSP = 0xC4;
 int const MAG3110::CALIBRATION_TIMEOUT = 1000; // ms
+int const MAG3110::MAG3110_DIE_TEMP_OFFSET = 10; // °C
   
 // register addresses
 uint8_t const MAG3110::MAG3110_DR_STATUS = 0x00;
@@ -193,16 +194,14 @@ void MAG3110::reset(void)
 
 bool MAG3110::isActive(void) const
 { 
-  this_thread::sleep_for(chrono::milliseconds(m_delay));  
-	uint8_t reg = readRegister(MAG3110_SYSMOD);
-  return ((reg & MAG3110_SYSMOD_ACTIVE) >> 1);
+  uint8_t reg = readRegister(MAG3110_CTRL_REG1);
+  return (reg & MAG3110_ACTIVE_MODE);
 }
 
 bool MAG3110::isRaw(void) const
 {
-  this_thread::sleep_for(chrono::milliseconds(m_delay));
-	uint8_t reg = readRegister(MAG3110_SYSMOD);
-  return (reg & MAG3110_SYSMOD_ACTIVE_RAW);
+	uint8_t reg = readRegister(MAG3110_CTRL_REG2);
+  return ((reg & MAG3110_RAW_MODE) >> 5);
 }
 
 void MAG3110::setRawMode(bool const t_raw)
@@ -289,30 +288,21 @@ int MAG3110::getDelay(void) const
   return m_delay;
 }
 
-void MAG3110::setOffset(int const& t_xoff, int const&  t_yoff, 
-  int const& t_zoff) const
+void MAG3110::setOffset(int16_t const& t_xoff, int16_t const&  t_yoff, 
+  int16_t const& t_zoff) const
 {
-  uint8_t msbAddr;
-  uint8_t lsbAddr;
-  
   // msb bits [14:7], lsb bits [6:0]
-  msbAddr = MAG3110_X_AXIS + 0x08;
-  lsbAddr = msbAddr + 0x01;
-  writeRegister(msbAddr, static_cast<uint8_t>((t_xoff >> 7) & 0xFF));
-  writeRegister(lsbAddr, static_cast<uint8_t>((t_xoff << 1) & 0xFF));
-
-  msbAddr = MAG3110_Y_AXIS + 0x08;
-  lsbAddr = msbAddr + 0x01;
-  writeRegister(msbAddr, static_cast<uint8_t>((t_yoff >> 7) & 0xFF));
-  writeRegister(lsbAddr, static_cast<uint8_t>((t_yoff << 1) & 0xFF));
-
-  msbAddr = MAG3110_Z_AXIS + 0x08;
-  lsbAddr = msbAddr + 0x01;
-  writeRegister(msbAddr, static_cast<uint8_t>((t_zoff >> 7) & 0xFF));
-  writeRegister(lsbAddr, static_cast<uint8_t>((t_zoff << 1) & 0xFF));
+  writeRegister(MAG3110_X_AXIS + 0x08, (t_xoff >> 7) & 0xFF);
+  writeRegister(MAG3110_X_AXIS + 0x09, (t_xoff << 1) & 0xFF);
+  
+  writeRegister(MAG3110_Y_AXIS + 0x08, (t_yoff >> 7) & 0xFF);
+  writeRegister(MAG3110_Y_AXIS + 0x09, (t_yoff << 1) & 0xFF);
+  
+  writeRegister(MAG3110_Z_AXIS + 0x08, (t_zoff >> 7) & 0xFF);
+  writeRegister(MAG3110_Z_AXIS + 0x09, (t_zoff << 1) & 0xFF);
 }
 
-void MAG3110::getOffset(int* t_bxoff, int* t_byoff, int* t_bzoff) const
+void MAG3110::getOffset(int16_t* t_bxoff, int16_t* t_byoff, int16_t* t_bzoff) const
 {
   uint8_t msb, lsb;
 
@@ -419,5 +409,5 @@ void MAG3110::displayMag(int const& t_bx, int const& t_by,
 int MAG3110::getTemperature(void) const
 {
   uint8_t temp = readRegister(MAG3110_DIE_TEMP);
-  return static_cast<int>(temp);
+  return static_cast<int>(temp) + MAG3110_DIE_TEMP_OFFSET;
 }
