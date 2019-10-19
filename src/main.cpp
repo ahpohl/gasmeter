@@ -16,14 +16,14 @@ int main(int argc, char** argv)
   mag.initialize("/dev/i2c-1");
   cout << "Reset" << endl;
   mag.reset();
-  cout << "Start" << endl;
+  cout << "Start: ";
   mag.start();
   if (mag.isActive()) {
     cout << "Sensor is active" << endl;
   } else {
     cout << "Sensor is in standby" << endl;
   }
-  cout << "Standby" << endl;
+  cout << "Standby: ";
   mag.standby();
   if (mag.isActive()) {
     cout << "Sensor is active" << endl;
@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     cout << "Sensor is in standby" << endl;
   }
   int bx, by, bz;
-  cout << "Trigger" << endl;
+  cout << "Trigger: ";
   mag.triggerMeasurement();
   cout << "Get magnetic induction" << endl;
   mag.getMag(&bx, &by, &bz);

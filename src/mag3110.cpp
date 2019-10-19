@@ -174,7 +174,7 @@ void MAG3110::writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const
 void MAG3110::standby(void)
 {
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
-  writeRegister(MAG3110_CTRL_REG1, reg & ~(0x01));
+  writeRegister(MAG3110_CTRL_REG1, reg & ~(MAG3110_ACTIVE_MODE));
 }
 
 void MAG3110::start(void)
@@ -192,13 +192,15 @@ void MAG3110::reset(void)
 }
 
 bool MAG3110::isActive(void) const
-{
+{ 
+  this_thread::sleep_for(chrono::milliseconds(m_delay));  
 	uint8_t reg = readRegister(MAG3110_SYSMOD);
   return ((reg & MAG3110_SYSMOD_ACTIVE) >> 1);
 }
 
 bool MAG3110::isRaw(void) const
 {
+  this_thread::sleep_for(chrono::milliseconds(m_delay));
 	uint8_t reg = readRegister(MAG3110_SYSMOD);
   return (reg & MAG3110_SYSMOD_ACTIVE_RAW);
 }
@@ -206,16 +208,16 @@ bool MAG3110::isRaw(void) const
 void MAG3110::setRawMode(bool const t_raw)
 {
   if (t_raw) {
-    writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN | (0x01 << 5));
+    writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN | (1 << 5));
   } else {
-    writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN & ~(0x01 << 5));
+    writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN & ~(1 << 5));
   }
 }
 
 void MAG3110::triggerMeasurement(void)
 {	
 	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
-	writeRegister(MAG3110_CTRL_REG1, reg | (0x01 << 1));
+	writeRegister(MAG3110_CTRL_REG1, reg | MAG3110_TRIGGER_MEASUREMENT);
 }
 
 bool MAG3110::dataReady(void) const
