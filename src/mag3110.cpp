@@ -19,7 +19,7 @@ using namespace std;
 uint8_t const MAG3110::MAG3110_I2C_ADDRESS = 0x0E;
 uint8_t const MAG3110::MAG3110_WHO_AM_I_RSP = 0xC4;
 int const MAG3110::CALIBRATION_TIMEOUT = 1000; // ms
-int const MAG3110::MAG3110_DIE_TEMP_OFFSET = 10; // °C
+int const MAG3110::MAG3110_DIE_TEMP_OFFSET = 11; // °C
   
 // register addresses
 uint8_t const MAG3110::MAG3110_DR_STATUS = 0x00;
@@ -291,33 +291,30 @@ int MAG3110::getDelay(void) const
 void MAG3110::setOffset(int16_t const& t_xoff, int16_t const&  t_yoff, 
   int16_t const& t_zoff) const
 {
-  // msb bits [14:7], lsb bits [6:0]
+  // msb
   writeRegister(MAG3110_X_AXIS + 0x08, (t_xoff >> 7) & 0xFF);
-  writeRegister(MAG3110_X_AXIS + 0x09, (t_xoff << 1) & 0xFF);
-  
-  writeRegister(MAG3110_Y_AXIS + 0x08, (t_yoff >> 7) & 0xFF);
-  writeRegister(MAG3110_Y_AXIS + 0x09, (t_yoff << 1) & 0xFF);
-  
+  writeRegister(MAG3110_Y_AXIS + 0x08, (t_yoff >> 7) & 0xFF); 
   writeRegister(MAG3110_Z_AXIS + 0x08, (t_zoff >> 7) & 0xFF);
+  // lsb
+  writeRegister(MAG3110_X_AXIS + 0x09, (t_xoff << 1) & 0xFF);
+  writeRegister(MAG3110_Y_AXIS + 0x09, (t_yoff << 1) & 0xFF);
   writeRegister(MAG3110_Z_AXIS + 0x09, (t_zoff << 1) & 0xFF);
 }
 
 void MAG3110::getOffset(int16_t* t_bxoff, int16_t* t_byoff, int16_t* t_bzoff) const
 {
   uint8_t msb, lsb;
-
-  // msb bits [14:7], lsb bits [6:0]
   msb = readRegister(MAG3110_X_AXIS + 0x08);
   lsb = readRegister(MAG3110_X_AXIS + 0x09);
-  *t_bxoff = static_cast<int16_t>(((lsb & 0xFF) >> 1) | ((msb & 0xFF) << 7));
+  *t_bxoff = static_cast<int16_t>(((lsb & 0xFF) | ((msb & 0xFF) << 8)) >> 1);
 
   msb = readRegister(MAG3110_Y_AXIS + 0x08);
   lsb = readRegister(MAG3110_Y_AXIS + 0x09);
-  *t_byoff = static_cast<int16_t>(((lsb & 0xFF) >> 1) | ((msb & 0xFF) << 7));
+  *t_byoff = static_cast<int16_t>(((lsb & 0xFF) | ((msb & 0xFF) << 8)) >> 1);
 
   msb = readRegister(MAG3110_Z_AXIS + 0x08);
   lsb = readRegister(MAG3110_Z_AXIS + 0x09);
-  *t_bzoff = static_cast<int16_t>(((lsb & 0xFF) >> 1) | ((msb & 0xFF) << 7));
+  *t_bzoff = static_cast<int16_t>(((lsb & 0xFF) | ((msb & 0xFF) << 8)) >> 1);
 }
 
 void MAG3110::calibrate(void)
