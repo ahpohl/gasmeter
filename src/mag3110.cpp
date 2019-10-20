@@ -306,15 +306,15 @@ void MAG3110::getOffset(int16_t* t_bxoff, int16_t* t_byoff, int16_t* t_bzoff) co
   uint8_t msb, lsb;
   msb = readRegister(MAG3110_X_AXIS + 0x08);
   lsb = readRegister(MAG3110_X_AXIS + 0x09);
-  *t_bxoff = static_cast<int16_t>(((lsb & 0xFF) | ((msb & 0xFF) << 8)) >> 1);
+  *t_bxoff = (static_cast<int16_t>((lsb & 0xFF) | ((msb & 0xFF) << 8))) >> 1;
 
   msb = readRegister(MAG3110_Y_AXIS + 0x08);
   lsb = readRegister(MAG3110_Y_AXIS + 0x09);
-  *t_byoff = static_cast<int16_t>(((lsb & 0xFF) | ((msb & 0xFF) << 8)) >> 1);
+  *t_byoff = (static_cast<int16_t>((lsb & 0xFF) | ((msb & 0xFF) << 8))) >> 1;
 
   msb = readRegister(MAG3110_Z_AXIS + 0x08);
   lsb = readRegister(MAG3110_Z_AXIS + 0x09);
-  *t_bzoff = static_cast<int16_t>(((lsb & 0xFF) | ((msb & 0xFF) << 8)) >> 1);
+  *t_bzoff = (static_cast<int16_t>((lsb & 0xFF) | ((msb & 0xFF) << 8))) >> 1;
 }
 
 void MAG3110::calibrate(void)
