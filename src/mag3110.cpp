@@ -18,7 +18,7 @@ using namespace std;
 
 uint8_t const MAG3110::MAG3110_I2C_ADDRESS = 0x0E;
 uint8_t const MAG3110::MAG3110_WHO_AM_I_RSP = 0xC4;
-int const MAG3110::CALIBRATION_TIMEOUT = 1000; // ms
+int const MAG3110::CALIBRATION_TIMEOUT = 100; // ms
 int const MAG3110::MAG3110_DIE_TEMP_OFFSET = 11; // °C
   
 // register addresses
@@ -120,9 +120,9 @@ MAG3110::~MAG3110(void)
   }
 }
 
-void MAG3110::setDebug(void)
+void MAG3110::setDebug(bool t_debug)
 {
-  m_debug = true;
+  m_debug = t_debug;
 }
 
 void MAG3110::initialize(const char* t_bus)
@@ -281,6 +281,11 @@ void MAG3110::setDelay(uint8_t t_DROS)
     throw runtime_error(string("delay(): unknown DR_OS setting (") 
       + to_string(t_DROS) + ")");
   }
+}
+
+void MAG3110::setDelay(int t_delay)
+{
+  m_delay = t_delay;
 }
 
 int MAG3110::getDelay(void) const

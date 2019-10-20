@@ -12,6 +12,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
   MAG3110 mag;
+  mag.setDebug(true);
   cout << "Initialization" << endl;
   mag.initialize("/dev/i2c-1");
   cout << "Reset" << endl;
@@ -41,6 +42,7 @@ int main(int argc, char** argv)
   mag.setOffset(bxoff, byoff, bzoff);
   mag.getOffset(&bxoff, &byoff, &bzoff);
   cout << "Get offset: " << bxoff << ", " << byoff << ", " << bzoff << endl;
+  mag.triggerMeasurement();
   mag.getMag(&bx, &by, &bz);
   mag.displayMag(bx, by, bz);
   cout << "Raw: ";
@@ -57,8 +59,11 @@ int main(int argc, char** argv)
   } else {
     cout << "Sensor is not in raw mode" << endl;
   }
-  cout << "Calibrate offset: ";
+  mag.triggerMeasurement();
+  mag.getMag(&bx, &by, &bz);
+  mag.displayMag(bx, by, bz);
   mag.calibrate();
+  cout << "Calibrate: ";
   mag.getOffset(&bxoff, &byoff, &bzoff);
   cout << bxoff << ", " << byoff << ", " << bzoff << endl;
   mag.getMag(&bx, &by, &bz);
@@ -76,15 +81,23 @@ int main(int argc, char** argv)
   time_t timestamp;
   double scalarMag;
 
+  int delay = mag.getDelay(); 
+  cout << "Delay: " << delay << " ms" << endl;
+  mag.start();
+  this_thread::sleep_for(chrono::milliseconds(delay));
+
   while (true) {
-    mag.triggerMeasurement();
-    mag.getMag(&bx, &by, &bz);
+    if (mag.dataReady()) {
+      mag.getMag(&bx, &by, &bz);
+    } else {
+      cout << "getMag: invalid data" << endl;
+    }
     scalarMag = mag.getMagnitude(bx, by, bz);
     mag.displayMag(bx, by, bz, scalarMag);
     timestamp = time(nullptr);
     file << timestamp << "," << bx << "," << by << "," << bz 
       << "," << scalarMag << endl;
-    this_thread::sleep_for(chrono::seconds(1));
+    this_thread::sleep_for(chrono::milliseconds(905));
   }
   file.close();
 

@@ -99,7 +99,7 @@ public:
 
   MAG3110(void);
   ~MAG3110(void);
-  void setDebug(void);
+  void setDebug(bool t_debug);
   void initialize(const char* t_bus);
   uint8_t readRegister(uint8_t const& t_addr) const;
   void writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const;
@@ -114,6 +114,7 @@ public:
   void setDR_OS(uint8_t const t_DROS);
   uint8_t getDR_OS(void) const;
   void setDelay(uint8_t t_DROS);
+  void setDelay(int t_delay);
   int getDelay(void) const;
   void setOffset(int16_t const& t_bxoff, int16_t const& t_byoff, 
     int16_t const& t_bzoff) const;
