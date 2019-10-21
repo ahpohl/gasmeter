@@ -103,13 +103,13 @@ public:
   void initialize(const char* t_bus);
   uint8_t readRegister(uint8_t const& t_addr) const;
   void writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const;
-  void standby(void);
-  void start(void);
+  void standby(void) const;
+  void start(void) const;
   void reset(void);
   bool isActive(void) const;
   bool isRaw(void) const;
-  void setRawMode(bool const t_raw);
-  void triggerMeasurement(void);
+  void setRawMode(bool const t_raw) const;
+  void triggerMeasurement(void) const;
   bool dataReady(void) const;  
   void setDR_OS(uint8_t const t_DROS);
   uint8_t getDR_OS(void) const;
@@ -120,7 +120,9 @@ public:
     int16_t const& t_bzoff) const;
   void getOffset(int16_t* t_bxoff, int16_t* t_byoff, int16_t* t_bzoff) const;
   void calibrate(void); 
-  void getMag(int* t_bx, int* t_by, int* t_bz) const; 
+  void readMag(int* t_bx, int* t_by, int* t_bz) const;
+  void getMag(int* t_bx, int* t_by, int* t_bz) const;
+  int getMagPoll(int* t_bx, int* t_by, int* t_bz) const;
   double getMagnitude(int const& t_bx, int const& t_by, 
     int const& t_bz) const;
   void displayMag(int const& t_bx, int const& t_by, int const& t_bz) const;

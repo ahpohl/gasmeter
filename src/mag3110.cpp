@@ -172,13 +172,13 @@ void MAG3110::writeRegister(uint8_t const& t_addr, uint8_t const& t_val) const
   this_thread::sleep_for(chrono::microseconds(2)); 
 }
 
-void MAG3110::standby(void)
+void MAG3110::standby(void) const
 {
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
   writeRegister(MAG3110_CTRL_REG1, reg & ~(MAG3110_ACTIVE_MODE));
 }
 
-void MAG3110::start(void)
+void MAG3110::start(void) const
 {
   uint8_t reg = readRegister(MAG3110_CTRL_REG1);
   writeRegister(MAG3110_CTRL_REG1, (reg | MAG3110_ACTIVE_MODE));
@@ -204,7 +204,7 @@ bool MAG3110::isRaw(void) const
   return ((reg & MAG3110_RAW_MODE) >> 5);
 }
 
-void MAG3110::setRawMode(bool const t_raw)
+void MAG3110::setRawMode(bool const t_raw) const
 {
   if (t_raw) {
     writeRegister(MAG3110_CTRL_REG2, MAG3110_AUTO_MRST_EN | (1 << 5));
@@ -213,7 +213,7 @@ void MAG3110::setRawMode(bool const t_raw)
   }
 }
 
-void MAG3110::triggerMeasurement(void)
+void MAG3110::triggerMeasurement(void) const
 {	
 	uint8_t reg = readRegister(MAG3110_CTRL_REG1);
 	writeRegister(MAG3110_CTRL_REG1, reg | MAG3110_TRIGGER_MEASUREMENT);
@@ -358,9 +358,8 @@ void MAG3110::calibrate(void)
   setRawMode(false);
 }
 
-void MAG3110::getMag(int* t_bx, int* t_by, int* t_bz) const
+void MAG3110::readMag(int* t_bx, int* t_by, int* t_bz) const
 {
-  this_thread::sleep_for(chrono::milliseconds(m_delay));
   int res;
   const int LEN = 1;
   if ((res = write(m_fd, &MAG3110_OUT_X_MSB, LEN)) != LEN) {
@@ -380,6 +379,27 @@ void MAG3110::getMag(int* t_bx, int* t_by, int* t_bz) const
   *t_bx = static_cast<int16_t>(((val[0] & 0xFF) << 8) | (val[1] & 0xFF));
   *t_by = static_cast<int16_t>(((val[2] & 0xFF) << 8) | (val[3] & 0xFF));
   *t_bz = static_cast<int16_t>(((val[4] & 0xFF) << 8) | (val[5] & 0xFF));
+}
+
+void MAG3110::getMag(int* t_bx, int* t_by, int* t_bz) const
+{
+  this_thread::sleep_for(chrono::milliseconds(m_delay));
+  readMag(t_bx, t_by, t_bz);
+}
+
+int MAG3110::getMagPoll(int* t_bx, int* t_by, int* t_bz) const
+{
+  int count = 0;
+  triggerMeasurement();
+  do {
+    this_thread::sleep_for(chrono::microseconds(m_delay * 100));
+    ++count; 
+  } while (!dataReady());
+  readMag(t_bx, t_by, t_bz);
+  if (m_debug) {
+    cout << "getMagPoll: " << (count * m_delay * 0.1) << " ms" << endl;
+  }
+  return static_cast<int>(count * m_delay * 0.1);
 }
 
 double MAG3110::getMagnitude(int const& t_bx, int const& t_by, 

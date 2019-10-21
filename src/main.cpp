@@ -87,17 +87,13 @@ int main(int argc, char** argv)
   this_thread::sleep_for(chrono::milliseconds(delay));
 
   while (true) {
-    if (mag.dataReady()) {
-      mag.getMag(&bx, &by, &bz);
-    } else {
-      cout << "getMag: invalid data" << endl;
-    }
+    mag.getMag(&bx, &by, &bz);
     scalarMag = mag.getMagnitude(bx, by, bz);
     mag.displayMag(bx, by, bz, scalarMag);
     timestamp = time(nullptr);
     file << timestamp << "," << bx << "," << by << "," << bz 
       << "," << scalarMag << endl;
-    this_thread::sleep_for(chrono::milliseconds(905));
+    this_thread::sleep_for(chrono::milliseconds(1000 - delay));
   }
   file.close();
 
