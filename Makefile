@@ -13,17 +13,17 @@ CPPFLAGS = -Wall -g -std=c++11 -pthread
 
 # define any directories containing header files other than /usr/include
 #
-INCLUDES = -I./include
+INCLUDES = -I./include -I../mag3110/include
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS =
+LFLAGS = -L../mag3110
 
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
 #   option, something like (this will link in libmylib.so and libm.so:
-LIBS =
+LIBS = -lmag3110
 
 # define src and obj directories
 SRC_DIR = src
