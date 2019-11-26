@@ -9,21 +9,21 @@
 CPP = g++
 
 # define any compile-time flags
-CPPFLAGS = -Wall -g -std=c++11 -pthread -static
+CPPFLAGS = -Wall -g -std=c++11 -pthread
 
 # define any directories containing header files other than /usr/include
 #
-INCLUDES = -I./include -I../mag3110/include
+INCLUDES =
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS = -L../mag3110
+LFLAGS =
 
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
 #   option, something like (this will link in libmylib.so and libm.so:
-LIBS = -lmag3110
+LIBS = -lmag3110 -lwiringPi
 
 # define src and obj directories
 SRC_DIR = src
