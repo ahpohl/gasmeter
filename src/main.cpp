@@ -1,67 +1,117 @@
 #include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <ctime>
-#include <chrono>
 #include <thread>
-#include <cstring>
-#include <unistd.h>
-#include <mag3110>
-#include <wiringPi.h>
-#include <errno.h>
+#include <getopt.h>
+#include "gasmeter.hpp"
 
 using namespace std;
 
-int const MAG3110_PIN = 7;
-static volatile bool isEvent = false;
-void magISR(void)
+int main(int argc, char* argv[])
 {
-  isEvent = true;
-}
+  bool raw_mode = false;
+  bool debug = false;
+  bool version = false;
+  bool help = false;
+  double meter_reading = 0;
+  char const* rrd_file = nullptr;
+  char const* rrdcached_socket = nullptr;
+  char const* i2c_device = nullptr;
+  int trigger_level_low = 0;
+  int trigger_level_high = 0;
 
-int main(int argc, char** argv)
-{
-  if (wiringPiSetup() < 0)
-  {
-    throw runtime_error(string("Unable to setup wiringPi: ") + 
-      + strerror(errno) + " (" + to_string(errno) + ")");
-  }
-  if (wiringPiISR(MAG3110_PIN, INT_EDGE_RISING, &magISR) < 0)
-  {
-    throw runtime_error(string("Unable to setup ISR: ") + 
-      + strerror(errno) + " (" + to_string(errno) + ")");
-  }
+  const struct option longOpts[] = {
+    { "help", no_argument, nullptr, 'h' },
+    { "version", no_argument, nullptr, 'V' },
+    { "debug", no_argument, nullptr, 'D' },
+    { "device", required_argument, nullptr, 'd' },
+    { "raw", no_argument, nullptr, 'R' },
+    { "low", required_argument, nullptr, 'L' },
+    { "high", required_argument, nullptr, 'H' },
+    { "file", required_argument, nullptr, 'f' },
+    { "socket", required_argument, nullptr, 's'},
+    { "meter", required_argument, nullptr, 'm'},
+    { nullptr, 0, nullptr, 0 }
+  };
 
-  MAG3110 mag;
-  mag.getVersion();
-  mag.initialize("/dev/i2c-1");
-  mag.reset();
-  mag.setDR_OS(MAG3110::MAG3110_DR_OS_0_63_128);
-  mag.start();
-  
-  ofstream file;
-  file.open("mag.txt", ios::app);
-  time_t rawtime;
-  struct tm* timeinfo;
-  char buffer[80];
-  double scalarMag;
-  int bx, by, bz;
+  const char * optString = "hVDd:RL:H:f:s:m:";
 
-  while (true) {
-    while (!isEvent) {
-      this_thread::sleep_for(chrono::milliseconds(1));
+  int opt = 0;
+  int longIndex = 0;
+
+  do {
+    opt = getopt_long(argc, argv, optString, longOpts, &longIndex);
+    switch (opt) {
+    case 'h':
+      help = true;
+      break;
+    case 'V':
+      version = true;
+      break;
+    case 'D':
+      debug = true;
+      break;
+    case 'd':
+      i2c_device = optarg;
+      break;
+    case 'R':
+      raw_mode = true;
+      break;
+    case 'L':
+      trigger_level_low = atoi(optarg);
+      break;
+    case 'H':
+      trigger_level_high = atoi(optarg);
+      break;
+    case 'f':
+      rrd_file = optarg;
+      break;
+    case 's':
+      rrdcached_socket = optarg;
+      break;
+    case 'm':
+      meter_reading = atof(optarg);
+      break;
+    default:
+      break;
     }
-    mag.getMag(&bx, &by, &bz);
-    scalarMag = mag.getMagnitude(bx, by, bz);
-    mag.displayMag(bx, by, bz, scalarMag);
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
-    file << string(buffer) << "," 
-      << bx << "," << by << "," << bz << "," << scalarMag << endl;
-    isEvent = false;
-  }
-  file.close();
 
+  } while (opt != -1);
+
+  if (help)
+  {
+    cout << "Gasmeter " << VERSION_TAG << endl;
+    cout << endl << "Usage: " << argv[0] << " [options]" << endl << endl;
+    cout << "\
+  -h --help              Show help message\n\
+  -V --version           Show build info\n\
+  -D --debug             Show debug messages\n\
+  -d --device [dev]      I2C device\n\
+  -R --raw               Select raw mode\n\
+  -L --low [int]         Set trigger level low\n\
+  -H --high [int]        Set trigger level high\n\
+  -f --file [path]       Full path to rrd file\n\
+  -s --socket [fd]       Set socket of rrdcached daemon\n\
+  -m --meter [float]     Set meter reading [kWh]"
+    << endl << endl;
+    return 0;
+  }
+
+  if (version)
+  {
+      cout << "Version " << VERSION_TAG 
+        << " (" << VERSION_BUILD << ") built " 
+        << VERSION_BUILD_DATE 
+        << " by " << VERSION_BUILD_MACHINE << endl;
+      return 0;
+  }
+
+  cout << "Gasmeter " << VERSION_TAG
+    << " (" << VERSION_BUILD << ")" << endl;
+
+  shared_ptr<Gasmeter> meter(new Gasmeter());
+
+  if (debug) {
+    meter->setDebug();
+  }
+  
   return 0;
 }
