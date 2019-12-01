@@ -37,7 +37,9 @@ LIBS = -lmag3110 -lwiringPi -lstdc++fs
 
 # define src and obj directories
 SRC_DIR = src
-OBJ_DIR = obj
+
+# define build directory
+OBJ_DIR = build
 
 # define the C source files
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
@@ -52,18 +54,21 @@ MAIN = gasmeter
 ### targets ###
 ###############
 
-.PHONY: depend clean install
+.PHONY: build clean install
 
-all: $(MAIN)
+all: build $(MAIN)
+
+build:
+	-@ mkdir -p $(OBJ_DIR)
 
 $(MAIN): $(OBJS) 
-	$(CPP) $(CPPFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
+	$(CPP) $(CPPFLAGS) $(INCLUDES) -o $(OBJ_DIR)/$(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-	$(RM) $(OBJS) *~ $(MAIN)
+	-@ $(RM) $(OBJS) $(OBJ_DIR)/$(MAIN) *~
 
 # define install directories
 ifeq ($(PREFIX),)
