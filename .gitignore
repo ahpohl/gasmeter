@@ -1,5 +1,3 @@
-gasmeter
+build/
 *.png
 *.txt
-*.o
-*.d
