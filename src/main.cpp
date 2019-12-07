@@ -112,6 +112,18 @@ int main(int argc, char* argv[])
   if (debug) {
     meter->setDebug();
   }
-  
+
+  thread mag3110_thread;
+
+  if (raw_mode) {
+    meter->createFile(rrd_file, rrdcached_socket);
+    meter->openI2CDevice(i2c_device);
+    mag3110_thread = thread(&Gasmeter::runRaw, meter);
+  }
+ 
+  if (mag3110_thread.joinable()) {
+    mag3110_thread.join();
+  }
+
   return 0;
 }

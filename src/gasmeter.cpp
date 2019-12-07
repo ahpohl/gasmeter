@@ -1,5 +1,9 @@
 #include <iostream>
+#include <mag3110>
+#include <cstring>
+#include <wiringPi.h>
 #include <unistd.h>
+#include <errno.h>
 #include "gasmeter.hpp"
 #include "rrd.hpp"
 
@@ -23,4 +27,35 @@ Gasmeter::~Gasmeter(void)
 void Gasmeter::setDebug(void)
 {
   m_debug = true;
+}
+
+void Gasmeter::openI2CDevice(char const* t_device)
+{
+  if (!t_device) {
+    throw runtime_error("I2C device argument empty");
+  }
+  /*
+  if (wiringPiSetup() < 0)
+  {
+    throw runtime_error(string("Unable to setup wiringPi: ") +
+      + strerror(errno) + " (" + to_string(errno) + ")");
+  }
+  if (wiringPiISR(MAG3110_PIN, INT_EDGE_RISING, &magISR) < 0)
+  {
+    throw runtime_error(string("Unable to setup ISR: ") +
+      + strerror(errno) + " (" + to_string(errno) + ")");
+  }
+  */
+  initialize(t_device);
+  reset();
+  setDR_OS(MAG3110::MAG3110_DR_OS_0_63_128);
+  start();
+}
+
+void Gasmeter::runRaw(void) const
+{
+  while (true) {
+    sleep(1);
+    cout << "I am sleeping" << endl;
+  }
 }
