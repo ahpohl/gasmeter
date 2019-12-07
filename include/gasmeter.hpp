@@ -8,6 +8,10 @@
 class Gasmeter : public MAG3110
 {
 public:
+  static int const MAG3110_INT_PIN;
+  static bool isEvent;
+  static void magISR(void);
+
   Gasmeter(void);
   ~Gasmeter(void);
   void setDebug(void);
