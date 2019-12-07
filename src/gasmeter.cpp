@@ -1,6 +1,8 @@
 #include <iostream>
 #include <mag3110>
 #include <cstring>
+#include <chrono>
+#include <thread>
 #include <wiringPi.h>
 #include <unistd.h>
 #include <errno.h>
@@ -53,14 +55,24 @@ void Gasmeter::openI2CDevice(char const* t_device)
   }
   initialize(t_device);
   reset();
-  setDR_OS(MAG3110::MAG3110_DR_OS_0_63_128);
+  setDR_OS(MAG3110::MAG3110_DR_OS_1_25_128);
   start();
 }
 
-void Gasmeter::runRaw(void) const
+void Gasmeter::getMagneticField(void)
+{
+  int bx, by, bz;
+  while (!isEvent) {
+    this_thread::sleep_for(chrono::milliseconds(1));
+  }
+  getMag(&bx, &by, &bz);
+  displayMag(bx, by, bz);
+  isEvent = false;
+}
+
+void Gasmeter::runRaw(void)
 {
   while (true) {
-    sleep(1);
-    cout << "I am sleeping" << endl;
+    getMagneticField();
   }
 }

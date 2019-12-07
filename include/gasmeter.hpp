@@ -1,8 +1,6 @@
 #ifndef GASMETER_HPP
 #define GASMETER_HPP
 
-#include <ctime>
-#include <chrono>
 #include <mag3110>
 
 class Gasmeter : public MAG3110
@@ -17,7 +15,8 @@ public:
   void setDebug(void);
   void openI2CDevice(char const* t_device);
   void createFile(char const* t_file, char const* t_socket);
-  void runRaw(void) const;
+  void runRaw(void);
+  void getMagneticField(void);
 
 private:
   char const* m_file;           // filename of RRD database
