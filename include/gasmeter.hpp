@@ -15,8 +15,10 @@ public:
   void setDebug(void);
   void openI2CDevice(char const* t_device);
   void createFile(char const* t_file, char const* t_socket);
-  void runRaw(void);
+  void runMag3110(void);
   void getMagneticField(void);
+  void runRRD(void);
+  void setMagneticField(void);
 
 private:
   char const* m_file;           // filename of RRD database

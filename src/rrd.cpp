@@ -5,6 +5,9 @@
 #include <ctime>
 #include <cmath>
 #include <filesystem>
+#include <thread>
+#include <mutex>
+#include <chrono>
 
 extern "C" {
 #include <rrd.h>
@@ -63,5 +66,67 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket)
   ret = rrdc_disconnect();
   if (ret) {
     throw runtime_error(rrd_get_error());
+  }
+}
+
+void Gasmeter::setMagneticField(void)
+{
+	time_t timestamp = time(nullptr);
+  char* argv[Con::RRD_BUF_SIZE];
+	*argv = (char*) malloc(Con::RRD_BUF_SIZE * sizeof(char));
+
+  // rrd format: "timestamp : bx : by : bz"
+  memset(*argv, '\0', Con::RRD_BUF_SIZE);
+  std::mutex mutex;
+  std::lock_guard<std::mutex> guard(mutex);
+  snprintf(*argv, Con::RRD_BUF_SIZE, "%ld:%d:%d:%d", timestamp, 
+    m_bx, m_by, m_bz);
+	
+  if (m_debug) {
+	  cout << argv[0] << endl;
+  }
+
+  int ret = rrdc_connect(m_socket);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }    
+    
+  ret = rrdc_flush(m_file);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  } 
+ 
+  ret = rrdc_update(m_file, Con::RRD_DS_LEN, (const char **) argv);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }
+  
+  ret = rrdc_disconnect();
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }
+
+  if (m_debug) {
+    ofstream log;
+    log.open("mag.log", ios::app);
+    struct tm* tm = localtime(&timestamp);
+    char time_buffer[32] = {0};
+    strftime(time_buffer, 31, "%F %T", tm);
+
+    // Date, Timestamp, bx, by, bz
+    log << time_buffer << "," << timestamp << "," << m_bx << ","
+      << m_by << "," << m_bz << endl; 
+    
+    log.close();
+  }
+
+	free(*argv);
+}
+
+void Gasmeter::runRRD(void)
+{
+  while (true) {
+    setMagneticField();
+    this_thread::sleep_for(chrono::seconds(1));
   }
 }

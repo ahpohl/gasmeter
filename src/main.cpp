@@ -114,15 +114,20 @@ int main(int argc, char* argv[])
   }
 
   thread mag3110_thread;
+  thread rrd_thread;
 
   if (raw_mode) {
     meter->createFile(rrd_file, rrdcached_socket);
     meter->openI2CDevice(i2c_device);
-    mag3110_thread = thread(&Gasmeter::runRaw, meter);
+    mag3110_thread = thread(&Gasmeter::runMag3110, meter);
+    rrd_thread = thread(&Gasmeter::runRRD, meter);
   }
- 
+
   if (mag3110_thread.joinable()) {
     mag3110_thread.join();
+  }
+  if (rrd_thread.joinable()) {
+    rrd_thread.join();
   }
 
   return 0;

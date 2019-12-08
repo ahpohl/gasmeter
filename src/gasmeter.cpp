@@ -3,11 +3,11 @@
 #include <cstring>
 #include <chrono>
 #include <thread>
+#include <mutex>
 #include <wiringPi.h>
 #include <unistd.h>
 #include <errno.h>
 #include "gasmeter.hpp"
-#include "rrd.hpp"
 
 using namespace std;
 
@@ -24,6 +24,7 @@ Gasmeter::Gasmeter(void)
   m_socket = nullptr;
 	m_debug = false;
   m_raw = false;
+  m_bx = 0; m_by = 0; m_bz = 0;
 }
 
 Gasmeter::~Gasmeter(void)
@@ -64,12 +65,16 @@ void Gasmeter::getMagneticField(void)
   while (!isEvent) {
     this_thread::sleep_for(chrono::milliseconds(1));
   }
+  std::mutex mutex;
+  std::lock_guard<std::mutex> guard(mutex);
   MAG3110::getMag(&m_bx, &m_by, &m_bz);
-  MAG3110::displayMag(m_bx, m_by, m_bz);
+  if (m_debug) {
+    MAG3110::displayMag(m_bx, m_by, m_bz);
+  }
   isEvent = false;
 }
 
-void Gasmeter::runRaw(void)
+void Gasmeter::runMag3110(void)
 {
   while (true) {
     getMagneticField();
