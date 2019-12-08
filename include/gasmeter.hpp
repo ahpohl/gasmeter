@@ -16,14 +16,14 @@ public:
   void openI2CDevice(char const* t_device);
   void createFile(char const* t_file, char const* t_socket);
   void createFile(char const* t_file, char const* t_socket,
-    double t_counter, double t_step);
+    double const& t_counter, double const& t_step);
   void runSensor(void);
   void getMagneticField(void);
   void runMag(void);
   void setMagneticField(void);
   void runCounter(void);
   void setGasCounter(void);
-  void getGasCounter(void);
+  unsigned long getGasCounter(void);
 
 private:
   char const* m_rrdcounter;     // counter: filename of RRD database
@@ -33,7 +33,7 @@ private:
   int m_bx;                     // x-axis magnetic field
   int m_by;                     // y-axis magnetic field
   int m_bz;                     // z-axis magnetic field
-  size_t m_counter;             // gas counter in [m³ * 1/step]
+  unsigned long m_counter;      // gas counter in [m³ * 1/step]
 };
 
 #endif // GASMETER_HPP

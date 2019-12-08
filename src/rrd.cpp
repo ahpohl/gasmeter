@@ -69,7 +69,7 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket)
   }
 }
 
-void Gasmeter::createFile(char const* t_file, char const* t_socket, double t_counter, double t_step)
+void Gasmeter::createFile(char const* t_file, char const* t_socket, double const& t_counter, double const& t_step)
 {
   if (!t_file) {
     throw runtime_error("RRD file location not set");
@@ -124,6 +124,40 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double t_cou
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
+
+  char * argv[Con::RRD_BUF_SIZE];
+  time_t timestamp = time(nullptr);
+  unsigned long requested_counter = lround(t_counter / t_step);
+  unsigned long counter = getGasCounter();
+
+  if (counter < requested_counter)
+  {
+	  *argv = (char *) malloc(Con::RRD_BUF_SIZE * sizeof(char));
+    memset(*argv, '\0', Con::RRD_BUF_SIZE);
+    snprintf(*argv, Con::RRD_BUF_SIZE, "%ld:%ld", timestamp, 
+      requested_counter);
+
+    ret = rrdc_connect(t_socket);
+    if (ret) {
+      throw runtime_error(rrd_get_error());
+    }
+
+    ret = rrdc_update(m_rrdcounter, Con::RRD_DS_LEN, (const char **) argv);
+    if (ret) {
+      throw runtime_error(rrd_get_error());
+    }
+
+    ret = rrdc_disconnect();
+    if (ret) {
+      throw runtime_error(rrd_get_error());
+    }
+
+    counter = requested_counter;
+    free(*argv);
+  }
+  
+  cout << "Gas counter: " << fixed << setprecision(2)
+    << static_cast<double>(counter) * t_step << " m³" << endl;
 }
 
 void Gasmeter::setMagneticField(void)
@@ -182,9 +216,90 @@ void Gasmeter::setMagneticField(void)
 
 void Gasmeter::setGasCounter(void)
 {
+	time_t timestamp = time(nullptr);
+  char* argv[Con::RRD_BUF_SIZE];
+	*argv = (char*) malloc(Con::RRD_BUF_SIZE * sizeof(char));
+
+  // rrd format: "timestamp : gas counter)"
+  memset(*argv, '\0', Con::RRD_BUF_SIZE);
+  snprintf(*argv, Con::RRD_BUF_SIZE, "%ld:%ld", timestamp, m_counter);
+	
   if (m_debug) {
-    cout << "set gas counter" << endl;
+	  cout << argv[0] << endl;
   }
+
+  int ret = rrdc_connect(m_socket);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }    
+    
+  ret = rrdc_flush(m_rrdcounter);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  } 
+ 
+  ret = rrdc_update(m_rrdcounter, Con::RRD_DS_LEN, (const char **) argv);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }
+  
+  ret = rrdc_disconnect();
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }
+
+  if (m_debug) {
+    ofstream log;
+    log.open("gas.log", ios::app);
+    struct tm* tm = localtime(&timestamp);
+    char time_buffer[32] = {0};
+    strftime(time_buffer, 31, "%F %T", tm);
+    double gas_counter = m_counter * 0.01f; // TODO: m_step
+
+    // Date,Timestamp,Counter,Gas [m³] 
+    log << time_buffer << "," << timestamp << "," << m_counter
+      << fixed << setprecision(2) << "," << gas_counter << endl; 
+    log.close();
+  }
+
+	free(*argv);
+}
+
+unsigned long Gasmeter::getGasCounter(void)
+{
+  int ret = rrdc_connect(m_socket);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }  
+
+  ret = rrdc_flush(m_rrdcounter);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }
+  
+  char **ds_names = 0;
+  char **ds_data = 0;
+  time_t last_update = 0;
+  unsigned long ds_count = 0;
+
+  ret = rrd_lastupdate_r(m_rrdcounter, &last_update, &ds_count,
+    &ds_names, &ds_data);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }
+
+  ret = rrdc_disconnect();
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }  
+  
+  // ds_data[0]: gas counts
+  unsigned long counter = atol(ds_data[0]);
+
+  rrd_freemem(ds_names);
+  rrd_freemem(ds_data);
+
+  return counter;
 }
 
 void Gasmeter::runMag(void)
