@@ -7,32 +7,34 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-  bool raw_mode = false;
-  bool debug = false;
-  bool version = false;
   bool help = false;
-  double meter_reading = 0;
-  char const* rrd_file = nullptr;
-  char const* rrdcached_socket = nullptr;
+  bool version = false;
+  bool debug = false; 
   char const* i2c_device = nullptr;
+  char const* rrd_socket = nullptr;
+  char const* rrd_counter = nullptr;
+  double gas_counter = 0;
   int trigger_level_low = 0;
   int trigger_level_high = 0;
+  double counter_step = 0;
+  char const* rrd_mag = nullptr;
 
   const struct option longOpts[] = {
     { "help", no_argument, nullptr, 'h' },
     { "version", no_argument, nullptr, 'V' },
     { "debug", no_argument, nullptr, 'D' },
     { "device", required_argument, nullptr, 'd' },
-    { "raw", no_argument, nullptr, 'R' },
+    { "socket", required_argument, nullptr, 's'},
+    { "gas", required_argument, nullptr, 'g' },
+    { "counter", required_argument, nullptr, 'c'},
     { "low", required_argument, nullptr, 'L' },
     { "high", required_argument, nullptr, 'H' },
-    { "file", required_argument, nullptr, 'f' },
-    { "socket", required_argument, nullptr, 's'},
-    { "meter", required_argument, nullptr, 'm'},
+    { "step", required_argument, nullptr, 'S'},
+    { "mag", required_argument, nullptr, 'm' },
     { nullptr, 0, nullptr, 0 }
   };
 
-  const char * optString = "hVDd:RL:H:f:s:m:";
+  const char * optString = "hVDd:s:g:c:L:H:S:m:";
 
   int opt = 0;
   int longIndex = 0;
@@ -52,8 +54,14 @@ int main(int argc, char* argv[])
     case 'd':
       i2c_device = optarg;
       break;
-    case 'R':
-      raw_mode = true;
+    case 's':
+      rrd_socket = optarg;
+      break;
+    case 'g':
+      rrd_counter = optarg;
+      break;
+    case 'c':
+      gas_counter = atof(optarg);
       break;
     case 'L':
       trigger_level_low = atoi(optarg);
@@ -61,14 +69,11 @@ int main(int argc, char* argv[])
     case 'H':
       trigger_level_high = atoi(optarg);
       break;
-    case 'f':
-      rrd_file = optarg;
-      break;
-    case 's':
-      rrdcached_socket = optarg;
+    case 'S':
+      counter_step = atof(optarg);
       break;
     case 'm':
-      meter_reading = atof(optarg);
+      rrd_mag = optarg;
       break;
     default:
       break;
@@ -84,13 +89,18 @@ int main(int argc, char* argv[])
   -h --help              Show help message\n\
   -V --version           Show build info\n\
   -D --debug             Show debug messages\n\
-  -d --device [dev]      I2C device\n\
-  -R --raw               Select raw mode\n\
-  -L --low [int]         Set trigger level low\n\
-  -H --high [int]        Set trigger level high\n\
-  -f --file [path]       Full path to rrd file\n\
+  -d --device [dev]      Set I²C device\n\
   -s --socket [fd]       Set socket of rrdcached daemon\n\
-  -m --meter [float]     Set meter reading [kWh]"
+\n\
+Option 1:\n\
+  -g --gas [path]        Save gasmeter counter\n\
+  -c --counter [float]   Set intial gas counter [m³]\n\
+  -L --low [int]         Set low trigger level\n\
+  -H --high [int]        Set high trigger level\n\
+  -S --step [float]      Set counter step [m³]\n\
+\n\
+Option 2:\n\
+  -m --mag [path]        Save magnetic field data"
     << endl << endl;
     return 0;
   }
@@ -113,21 +123,33 @@ int main(int argc, char* argv[])
     meter->setDebug();
   }
 
-  thread mag3110_thread;
-  thread rrd_thread;
+  thread sensor_thread;
+  thread mag_thread;
+  thread counter_thread;
 
-  if (raw_mode) {
-    meter->createFile(rrd_file, rrdcached_socket);
-    meter->openI2CDevice(i2c_device);
-    mag3110_thread = thread(&Gasmeter::runMag3110, meter);
-    rrd_thread = thread(&Gasmeter::runRRD, meter);
+  meter->openI2CDevice(i2c_device);
+  sensor_thread = thread(&Gasmeter::runSensor, meter);
+
+  if (rrd_mag != nullptr) {
+    meter->createFile(rrd_mag, rrd_socket);
+    mag_thread = thread(&Gasmeter::runMag, meter);
   }
 
-  if (mag3110_thread.joinable()) {
-    mag3110_thread.join();
+  /*
+  if (rrd_counter != nullptr) {
+    meter->createFile(rrd_mag, rrd_socket, gas_counter);
+    counter_thread = thread(&Gasmeter::runCounter, meter);
   }
-  if (rrd_thread.joinable()) {
-    rrd_thread.join();
+  */
+
+  if (sensor_thread.joinable()) {
+    sensor_thread.join();
+  }
+  if (mag_thread.joinable()) {
+    mag_thread.join();
+  }
+  if (counter_thread.joinable()) {
+    counter_thread.join();
   }
 
   return 0;

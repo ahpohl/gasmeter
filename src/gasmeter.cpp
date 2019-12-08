@@ -74,7 +74,7 @@ void Gasmeter::getMagneticField(void)
   isEvent = false;
 }
 
-void Gasmeter::runMag3110(void)
+void Gasmeter::runSensor(void)
 {
   while (true) {
     getMagneticField();

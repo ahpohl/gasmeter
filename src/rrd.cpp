@@ -123,7 +123,12 @@ void Gasmeter::setMagneticField(void)
 	free(*argv);
 }
 
-void Gasmeter::runRRD(void)
+void Gasmeter::setGasCounter(void)
+{
+
+}
+
+void Gasmeter::runMag(void)
 {
   while (true) {
     setMagneticField();
