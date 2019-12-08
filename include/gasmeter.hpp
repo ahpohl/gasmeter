@@ -23,6 +23,9 @@ private:
   char const* m_socket;         // socket of rrdcached daemon
   bool m_debug;                 // debug flag
   bool m_raw;                   // flag for raw sensor mode
+  int m_bx;                     // x-axis magnetic field
+  int m_by;                     // y-axis magnetic field
+  int m_bz;                     // z-axis magnetic field
 };
 
 #endif // GASMETER_HPP

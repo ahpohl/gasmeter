@@ -53,20 +53,19 @@ void Gasmeter::openI2CDevice(char const* t_device)
     throw runtime_error(string("Unable to setup ISR: ") +
       + strerror(errno) + " (" + to_string(errno) + ")");
   }
-  initialize(t_device);
-  reset();
-  setDR_OS(MAG3110::MAG3110_DR_OS_1_25_128);
-  start();
+  MAG3110::initialize(t_device);
+  MAG3110::reset();
+  MAG3110::setDR_OS(MAG3110::MAG3110_DR_OS_1_25_128);
+  MAG3110::start();
 }
 
 void Gasmeter::getMagneticField(void)
 {
-  int bx, by, bz;
   while (!isEvent) {
     this_thread::sleep_for(chrono::milliseconds(1));
   }
-  getMag(&bx, &by, &bz);
-  displayMag(bx, by, bz);
+  MAG3110::getMag(&m_bx, &m_by, &m_bz);
+  MAG3110::displayMag(m_bx, m_by, m_bz);
   isEvent = false;
 }
 
