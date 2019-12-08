@@ -135,12 +135,10 @@ Option 2:\n\
     mag_thread = thread(&Gasmeter::runMag, meter);
   }
 
-  /*
   if (rrd_counter != nullptr) {
-    meter->createFile(rrd_mag, rrd_socket, gas_counter);
+    meter->createFile(rrd_counter, rrd_socket, gas_counter, counter_step);
     counter_thread = thread(&Gasmeter::runCounter, meter);
   }
-  */
 
   if (sensor_thread.joinable()) {
     sensor_thread.join();

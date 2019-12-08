@@ -20,10 +20,11 @@ void Gasmeter::magISR(void)
 
 Gasmeter::Gasmeter(void)
 {
-  m_file = nullptr;
+  m_debug = false;
+  m_rrdmag = nullptr;
+  m_rrdcounter = nullptr;
   m_socket = nullptr;
-	m_debug = false;
-  m_raw = false;
+  m_counter = 0;
   m_bx = 0; m_by = 0; m_bz = 0;
 }
 

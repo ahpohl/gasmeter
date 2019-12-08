@@ -30,7 +30,7 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket)
     throw runtime_error("RRD cached socket not set");
   }
 
-  m_file = t_file;
+  m_rrdmag = t_file;
   m_socket = t_socket;
 
   time_t timestamp_start = time(nullptr) - 10;
@@ -48,6 +48,63 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket)
     "DS:bz:GAUGE:2:-30000:30000",
     "RRA:AVERAGE:0.5:1:86400",
     nullptr};
+
+  fs::path dir(t_file);
+  fs::create_directories(dir.parent_path());
+
+  int ret = rrdc_connect(t_socket);
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }
+
+	ret = rrdc_create(t_file, step_size, timestamp_start, no_overwrite, 
+		ds_count, ds_schema);
+	if (!ret) {
+    cout << "Round Robin Database \"" << t_file << "\" created" << endl;
+  }
+
+  ret = rrdc_disconnect();
+  if (ret) {
+    throw runtime_error(rrd_get_error());
+  }
+}
+
+void Gasmeter::createFile(char const* t_file, char const* t_socket, double t_counter, double t_step)
+{
+  if (!t_file) {
+    throw runtime_error("RRD file location not set");
+  }
+
+  if (!t_socket) {
+    throw runtime_error("RRD cached socket not set");
+  }
+
+  m_rrdcounter = t_file;
+  m_socket = t_socket;
+
+  time_t timestamp_start = time(nullptr) - 120;
+	const int ds_count = 7;
+	const int step_size = 60;
+	const int no_overwrite = 1;
+
+	// gas is stored in counts (GAUGE)
+	// gas [m³] = counts / counter step size
+		
+	char const* ds_schema[] = {
+		"DS:gas:GAUGE:3600:0:U",
+		"RRA:LAST:0.5:1:1500",
+		"RRA:LAST:0.5:5:900",
+    "RRA:LAST:0.5:10:450",
+    "RRA:LAST:0.5:15:300",
+		"RRA:LAST:0.5:60:750",
+		"RRA:LAST:0.5:1440:375",
+		nullptr};
+
+	// RRAs
+	// keep 1 day in 1 min resolution
+	// keep 1 month in 1 hour resolution
+	// keep 1 year in 1 day resolution
+	// consolidate LAST (gas)
 
   fs::path dir(t_file);
   fs::create_directories(dir.parent_path());
@@ -91,12 +148,12 @@ void Gasmeter::setMagneticField(void)
     throw runtime_error(rrd_get_error());
   }    
     
-  ret = rrdc_flush(m_file);
+  ret = rrdc_flush(m_rrdmag);
   if (ret) {
     throw runtime_error(rrd_get_error());
   } 
  
-  ret = rrdc_update(m_file, Con::RRD_DS_LEN, (const char **) argv);
+  ret = rrdc_update(m_rrdmag, Con::RRD_DS_LEN, (const char **) argv);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
@@ -125,7 +182,9 @@ void Gasmeter::setMagneticField(void)
 
 void Gasmeter::setGasCounter(void)
 {
-
+  if (m_debug) {
+    cout << "set gas counter" << endl;
+  }
 }
 
 void Gasmeter::runMag(void)
@@ -133,5 +192,13 @@ void Gasmeter::runMag(void)
   while (true) {
     setMagneticField();
     this_thread::sleep_for(chrono::seconds(1));
+  }
+}
+
+void Gasmeter::runCounter(void)
+{
+  while (true) {
+    setGasCounter();
+    this_thread::sleep_for(chrono::seconds(60));
   }
 }

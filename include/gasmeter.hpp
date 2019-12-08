@@ -15,7 +15,8 @@ public:
   void setDebug(void);
   void openI2CDevice(char const* t_device);
   void createFile(char const* t_file, char const* t_socket);
-  void createFile(char const* t_file, char const* t_socket, size_t t_counter);
+  void createFile(char const* t_file, char const* t_socket,
+    double t_counter, double t_step);
   void runSensor(void);
   void getMagneticField(void);
   void runMag(void);
@@ -25,10 +26,10 @@ public:
   void getGasCounter(void);
 
 private:
-  char const* m_file;           // filename of RRD database
+  char const* m_rrdcounter;     // counter: filename of RRD database
+  char const* m_rrdmag;         // magnetic field: filename of RRD database
   char const* m_socket;         // socket of rrdcached daemon
   bool m_debug;                 // debug flag
-  bool m_raw;                   // flag for raw sensor mode
   int m_bx;                     // x-axis magnetic field
   int m_by;                     // y-axis magnetic field
   int m_bz;                     // z-axis magnetic field
