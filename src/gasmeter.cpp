@@ -26,6 +26,9 @@ Gasmeter::Gasmeter(void)
   m_socket = nullptr;
   m_counter = 0;
   m_bx = 0; m_by = 0; m_bz = 0;
+  m_level = 0;
+  m_hyst = 0;
+  m_step = 0;
 }
 
 Gasmeter::~Gasmeter(void)
@@ -75,9 +78,39 @@ void Gasmeter::getMagneticField(void)
   isEvent = false;
 }
 
+void Gasmeter::setTriggerParameters(int const& t_level, int const& t_hyst)
+{
+  if (!t_level || !t_hyst) {
+    throw runtime_error("Trigger parameters not set");
+  }
+  m_level = t_level;
+  m_hyst = t_hyst;
+}
+
+void Gasmeter::increaseGasCounter(void)
+{
+  static bool old_state = false;
+  bool trigger_state = false;
+  std::mutex mutex;
+  std::lock_guard<std::mutex> guard(mutex);
+  if (m_by > (m_level + m_hyst)) {
+    trigger_state = true;
+  } else if (m_by < (m_level - m_hyst)) {
+    trigger_state = false;
+  }
+  if (!old_state && trigger_state) {
+    ++m_counter;
+    if (m_debug) {
+      cout << "Gas counter: " << m_counter << endl;
+    }
+  }
+  old_state = trigger_state;
+}
+
 void Gasmeter::runSensor(void)
 {
   while (true) {
     getMagneticField();
+    increaseGasCounter();
   }
 }

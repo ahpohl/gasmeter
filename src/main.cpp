@@ -14,8 +14,8 @@ int main(int argc, char* argv[])
   char const* rrd_socket = nullptr;
   char const* rrd_counter = nullptr;
   double gas_counter = 0;
-  int trigger_level_low = 0;
-  int trigger_level_high = 0;
+  int trigger_level = 0;
+  int trigger_hyst = 0;
   double counter_step = 0;
   char const* rrd_mag = nullptr;
 
@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
     { "socket", required_argument, nullptr, 's'},
     { "gas", required_argument, nullptr, 'g' },
     { "counter", required_argument, nullptr, 'c'},
-    { "low", required_argument, nullptr, 'L' },
-    { "high", required_argument, nullptr, 'H' },
+    { "level", required_argument, nullptr, 'L' },
+    { "hyst", required_argument, nullptr, 'H' },
     { "step", required_argument, nullptr, 'S'},
     { "mag", required_argument, nullptr, 'm' },
     { nullptr, 0, nullptr, 0 }
@@ -64,10 +64,10 @@ int main(int argc, char* argv[])
       gas_counter = atof(optarg);
       break;
     case 'L':
-      trigger_level_low = atoi(optarg);
+      trigger_level = atoi(optarg);
       break;
     case 'H':
-      trigger_level_high = atoi(optarg);
+      trigger_hyst = atoi(optarg);
       break;
     case 'S':
       counter_step = atof(optarg);
@@ -95,8 +95,8 @@ int main(int argc, char* argv[])
 Option 1:\n\
   -g --gas [path]        Save gasmeter counter\n\
   -c --counter [float]   Set intial gas counter [m³]\n\
-  -L --low [int]         Set low trigger level\n\
-  -H --high [int]        Set high trigger level\n\
+  -L --level [int]       Set trigger level\n\
+  -H --hyst [int]        Set trigger hysteresis\n\
   -S --step [float]      Set counter step [m³]\n\
 \n\
 Option 2:\n\
@@ -128,6 +128,7 @@ Option 2:\n\
   thread counter_thread;
 
   meter->openI2CDevice(i2c_device);
+  meter->setTriggerParameters(trigger_level, trigger_hyst);
   sensor_thread = thread(&Gasmeter::runSensor, meter);
 
   if (rrd_mag != nullptr) {

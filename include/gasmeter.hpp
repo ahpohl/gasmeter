@@ -14,11 +14,13 @@ public:
   ~Gasmeter(void);
   void setDebug(void);
   void openI2CDevice(char const* t_device);
+  void setTriggerParameters(int const& t_level, int const& t_hyst);
   void createFile(char const* t_file, char const* t_socket);
   void createFile(char const* t_file, char const* t_socket,
     double const& t_counter, double const& t_step);
   void runSensor(void);
   void getMagneticField(void);
+  void increaseGasCounter(void);
   void runMag(void);
   void setMagneticField(void);
   void runCounter(void);
@@ -34,6 +36,9 @@ private:
   int m_by;                     // y-axis magnetic field
   int m_bz;                     // z-axis magnetic field
   unsigned long m_counter;      // gas counter in [m³ * 1/step]
+  int m_level;                  // trigger level
+  int m_hyst;                   // trigger hysteresis
+  double m_step;                // counter step size [m³]
 };
 
 #endif // GASMETER_HPP

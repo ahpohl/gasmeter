@@ -25,7 +25,6 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket)
   if (!t_file) {
     throw runtime_error("RRD file location not set");
   }
-
   if (!t_socket) {
     throw runtime_error("RRD cached socket not set");
   }
@@ -74,13 +73,16 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
   if (!t_file) {
     throw runtime_error("RRD file location not set");
   }
-
   if (!t_socket) {
     throw runtime_error("RRD cached socket not set");
+  }
+  if (!t_step) {
+    throw runtime_error("Gas counter step size not set");
   }
 
   m_rrdcounter = t_file;
   m_socket = t_socket;
+  m_step = t_step;
 
   time_t timestamp_start = time(nullptr) - 120;
 	const int ds_count = 7;
@@ -113,13 +115,11 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
-
 	ret = rrdc_create(t_file, step_size, timestamp_start, no_overwrite, 
 		ds_count, ds_schema);
 	if (!ret) {
     cout << "Round Robin Database \"" << t_file << "\" created" << endl;
   }
-
   ret = rrdc_disconnect();
   if (ret) {
     throw runtime_error(rrd_get_error());
@@ -128,9 +128,11 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
   char * argv[Con::RRD_BUF_SIZE];
   time_t timestamp = time(nullptr);
   unsigned long requested_counter = lround(t_counter / t_step);
-  unsigned long counter = getGasCounter();
+  std::mutex mutex;
+  std::lock_guard<std::mutex> guard(mutex);  
+  m_counter = getGasCounter();
 
-  if (counter < requested_counter)
+  if (m_counter < requested_counter)
   {
 	  *argv = (char *) malloc(Con::RRD_BUF_SIZE * sizeof(char));
     memset(*argv, '\0', Con::RRD_BUF_SIZE);
@@ -141,23 +143,21 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
     if (ret) {
       throw runtime_error(rrd_get_error());
     }
-
     ret = rrdc_update(m_rrdcounter, Con::RRD_DS_LEN, (const char **) argv);
     if (ret) {
       throw runtime_error(rrd_get_error());
     }
-
     ret = rrdc_disconnect();
     if (ret) {
       throw runtime_error(rrd_get_error());
     }
 
-    counter = requested_counter;
+    m_counter = requested_counter;
     free(*argv);
   }
   
   cout << "Gas counter: " << fixed << setprecision(2)
-    << static_cast<double>(counter) * t_step << " m³" << endl;
+    << static_cast<double>(m_counter) * t_step << " m³" << endl;
 }
 
 void Gasmeter::setMagneticField(void)
@@ -231,18 +231,15 @@ void Gasmeter::setGasCounter(void)
   int ret = rrdc_connect(m_socket);
   if (ret) {
     throw runtime_error(rrd_get_error());
-  }    
-    
+  }      
   ret = rrdc_flush(m_rrdcounter);
   if (ret) {
     throw runtime_error(rrd_get_error());
   } 
- 
   ret = rrdc_update(m_rrdcounter, Con::RRD_DS_LEN, (const char **) argv);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
-  
   ret = rrdc_disconnect();
   if (ret) {
     throw runtime_error(rrd_get_error());
@@ -254,7 +251,7 @@ void Gasmeter::setGasCounter(void)
     struct tm* tm = localtime(&timestamp);
     char time_buffer[32] = {0};
     strftime(time_buffer, 31, "%F %T", tm);
-    double gas_counter = m_counter * 0.01f; // TODO: m_step
+    double gas_counter = m_counter * m_step;
 
     // Date,Timestamp,Counter,Gas [m³] 
     log << time_buffer << "," << timestamp << "," << m_counter
