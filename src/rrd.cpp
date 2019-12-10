@@ -84,9 +84,8 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
   m_socket = t_socket;
   m_step = t_step;
 
-  time_t timestamp_start = time(nullptr) - 120;
-	const int ds_count = 7;
-	const int step_size = 60;
+  time_t timestamp_start = time(nullptr) - 2 * RRD::STEP_SIZE;
+	const int ds_count = 5;
 	const int no_overwrite = 1;
 
 	// gas is stored in counts (GAUGE)
@@ -94,18 +93,17 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
 		
 	char const* ds_schema[] = {
 		"DS:gas:GAUGE:3600:0:U",
-		"RRA:LAST:0.5:1:1500",
-		"RRA:LAST:0.5:5:900",
-    "RRA:LAST:0.5:10:450",
-    "RRA:LAST:0.5:15:300",
-		"RRA:LAST:0.5:60:750",
-		"RRA:LAST:0.5:1440:375",
+    "RRA:LAST:0.5:1:2300"
+    "RRA:LAST:0.5:2:2300"
+    "RRA:LAST:0.5:12:800"
+    "RRA:LAST:0.5:288:400"
 		nullptr};
 
 	// RRAs
-	// keep 1 day in 1 min resolution
-	// keep 1 month in 1 hour resolution
-	// keep 1 year in 1 day resolution
+	// keep 1 week in 5 min resolution
+	// keep 2 weeks in 10 min resolution
+	// keep 1 month in 60 min resolution
+  // keep 1 year in 1 day resolution
 	// consolidate LAST (gas)
 
   fs::path dir(t_file);
@@ -115,7 +113,7 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
-	ret = rrdc_create(t_file, step_size, timestamp_start, no_overwrite, 
+	ret = rrdc_create(t_file, RRD::STEP_SIZE, timestamp_start, no_overwrite, 
 		ds_count, ds_schema);
 	if (!ret) {
     cout << "Round Robin Database \"" << t_file << "\" created" << endl;
@@ -125,8 +123,8 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
     throw runtime_error(rrd_get_error());
   }
 
-  char * argv[Con::RRD_BUF_SIZE];
-  time_t timestamp = time(nullptr);
+  char * argv[RRD::BUF_SIZE];
+  time_t timestamp = time(nullptr) - RRD::STEP_SIZE;
   unsigned long requested_counter = lround(t_counter / t_step);
   std::mutex mutex;
   std::lock_guard<std::mutex> guard(mutex);  
@@ -134,16 +132,16 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
 
   if (m_counter < requested_counter)
   {
-	  *argv = (char *) malloc(Con::RRD_BUF_SIZE * sizeof(char));
-    memset(*argv, '\0', Con::RRD_BUF_SIZE);
-    snprintf(*argv, Con::RRD_BUF_SIZE, "%ld:%ld", timestamp, 
+	  *argv = (char *) malloc(RRD::BUF_SIZE * sizeof(char));
+    memset(*argv, '\0', RRD::BUF_SIZE);
+    snprintf(*argv, RRD::BUF_SIZE, "%ld:%ld", timestamp, 
       requested_counter);
 
     ret = rrdc_connect(t_socket);
     if (ret) {
       throw runtime_error(rrd_get_error());
     }
-    ret = rrdc_update(m_rrdcounter, Con::RRD_DS_LEN, (const char **) argv);
+    ret = rrdc_update(m_rrdcounter, RRD::DS_LEN, (const char **) argv);
     if (ret) {
       throw runtime_error(rrd_get_error());
     }
@@ -163,14 +161,14 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
 void Gasmeter::setMagneticField(void)
 {
 	time_t timestamp = time(nullptr);
-  char* argv[Con::RRD_BUF_SIZE];
-	*argv = (char*) malloc(Con::RRD_BUF_SIZE * sizeof(char));
+  char* argv[RRD::BUF_SIZE];
+	*argv = (char*) malloc(RRD::BUF_SIZE * sizeof(char));
 
   // rrd format: "timestamp : bx : by : bz"
-  memset(*argv, '\0', Con::RRD_BUF_SIZE);
+  memset(*argv, '\0', RRD::BUF_SIZE);
   std::mutex mutex;
   std::lock_guard<std::mutex> guard(mutex);
-  snprintf(*argv, Con::RRD_BUF_SIZE, "%ld:%d:%d:%d", timestamp, 
+  snprintf(*argv, RRD::BUF_SIZE, "%ld:%d:%d:%d", timestamp, 
     m_bx, m_by, m_bz);
 	
   if (m_debug) {
@@ -187,7 +185,7 @@ void Gasmeter::setMagneticField(void)
     throw runtime_error(rrd_get_error());
   } 
  
-  ret = rrdc_update(m_rrdmag, Con::RRD_DS_LEN, (const char **) argv);
+  ret = rrdc_update(m_rrdmag, RRD::DS_LEN, (const char **) argv);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
@@ -217,12 +215,12 @@ void Gasmeter::setMagneticField(void)
 void Gasmeter::setGasCounter(void)
 {
 	time_t timestamp = time(nullptr);
-  char* argv[Con::RRD_BUF_SIZE];
-	*argv = (char*) malloc(Con::RRD_BUF_SIZE * sizeof(char));
+  char* argv[RRD::BUF_SIZE];
+	*argv = (char*) malloc(RRD::BUF_SIZE * sizeof(char));
 
   // rrd format: "timestamp : gas counter)"
-  memset(*argv, '\0', Con::RRD_BUF_SIZE);
-  snprintf(*argv, Con::RRD_BUF_SIZE, "%ld:%ld", timestamp, m_counter);
+  memset(*argv, '\0', RRD::BUF_SIZE);
+  snprintf(*argv, RRD::BUF_SIZE, "%ld:%ld", timestamp, m_counter);
 	
   if (m_debug) {
 	  cout << argv[0] << endl;
@@ -236,7 +234,7 @@ void Gasmeter::setGasCounter(void)
   if (ret) {
     throw runtime_error(rrd_get_error());
   } 
-  ret = rrdc_update(m_rrdcounter, Con::RRD_DS_LEN, (const char **) argv);
+  ret = rrdc_update(m_rrdcounter, RRD::DS_LEN, (const char **) argv);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
@@ -311,6 +309,6 @@ void Gasmeter::runCounter(void)
 {
   while (true) {
     setGasCounter();
-    this_thread::sleep_for(chrono::seconds(60));
+    this_thread::sleep_for(chrono::seconds(RRD::STEP_SIZE));
   }
 }

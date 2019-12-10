@@ -1,10 +1,11 @@
 #ifndef RRD_HPP
 #define RRD_HPP
 
-namespace Con
+namespace RRD
 {
-  const int RRD_DS_LEN = 1;
-  const int RRD_BUF_SIZE = 64;
+  const int DS_LEN = 1;
+  const int BUF_SIZE = 64;
+  const int STEP_SIZE = 300;
 }
 
 #endif // RRD_HPP
