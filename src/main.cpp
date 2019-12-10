@@ -91,12 +91,12 @@ int main(int argc, char* argv[])
   -D --debug             Show debug messages\n\
   -d --device [dev]      Set I²C device\n\
   -s --socket [fd]       Set socket of rrdcached daemon\n\
+  -L --level [int]       Set trigger level\n\
+  -H --hyst [int]        Set trigger hysteresis\n\
 \n\
 Option 1:\n\
   -g --gas [path]        Save gasmeter counter\n\
   -c --counter [float]   Set intial gas counter [m³]\n\
-  -L --level [int]       Set trigger level\n\
-  -H --hyst [int]        Set trigger hysteresis\n\
   -S --step [float]      Set counter step [m³]\n\
 \n\
 Option 2:\n\
