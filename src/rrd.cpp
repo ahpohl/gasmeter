@@ -93,10 +93,10 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
 		
 	char const* ds_schema[] = {
 		"DS:gas:GAUGE:3600:0:U",
-    "RRA:LAST:0.5:1:2300"
-    "RRA:LAST:0.5:2:2300"
-    "RRA:LAST:0.5:12:800"
-    "RRA:LAST:0.5:288:400"
+    "RRA:LAST:0.5:1:2300",
+    "RRA:LAST:0.5:2:2300",
+    "RRA:LAST:0.5:12:800",
+    "RRA:LAST:0.5:288:400",
 		nullptr};
 
 	// RRAs
