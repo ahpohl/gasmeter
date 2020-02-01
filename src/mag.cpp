@@ -1,49 +1,26 @@
 #include <iostream>
+#include <fstream>
 #include <mag3110>
 #include <cstring>
 #include <chrono>
 #include <thread>
 #include <mutex>
+#include <ctime>
 #include <wiringPi.h>
 #include <unistd.h>
 #include <errno.h>
-#include "gasmeter.hpp"
+#include "gas.hpp"
 
 using namespace std;
 
-int const Gasmeter::MAG3110_INT_PIN = 7;
-bool Gasmeter::isEvent = false;
-void Gasmeter::magISR(void)
+int const Gas::MAG3110_INT_PIN = 7;
+bool Gas::isEvent = false;
+void Gas::magISR(void)
 {
   isEvent = true;
 }
 
-Gasmeter::Gasmeter(void)
-{
-  m_debug = false;
-  m_rrdmag = nullptr;
-  m_rrdcounter = nullptr;
-  m_socket = nullptr;
-  m_counter = 0;
-  m_bx = 0; m_by = 0; m_bz = 0;
-  m_level = 0;
-  m_hyst = 0;
-  m_step = 0;
-}
-
-Gasmeter::~Gasmeter(void)
-{
-  if (m_debug) {
-    cout << "Gasmeter destructor method called" << endl;
-  }
-}
-
-void Gasmeter::setDebug(void)
-{
-  m_debug = true;
-}
-
-void Gasmeter::openI2CDevice(char const* t_device)
+void Gas::openI2CDevice(const char* const t_device)
 {
   if (!t_device) {
     throw runtime_error("I2C device argument empty");
@@ -64,7 +41,7 @@ void Gasmeter::openI2CDevice(char const* t_device)
   MAG3110::start();
 }
 
-void Gasmeter::getMagneticField(void)
+void Gas::getMagneticField(void)
 {
   while (!isEvent) {
     this_thread::sleep_for(chrono::milliseconds(1));
@@ -78,16 +55,7 @@ void Gasmeter::getMagneticField(void)
   isEvent = false;
 }
 
-void Gasmeter::setTriggerParameters(int const& t_level, int const& t_hyst)
-{
-  if (!t_level || !t_hyst) {
-    throw runtime_error("Trigger parameters not set");
-  }
-  m_level = t_level;
-  m_hyst = t_hyst;
-}
-
-void Gasmeter::increaseGasCounter(void)
+void Gas::increaseGasCounter(void)
 {
   static bool old_state = false;
   bool trigger_state = false;
@@ -102,15 +70,15 @@ void Gasmeter::increaseGasCounter(void)
     ++m_counter;
     if (m_debug) {
       cout << "Gas counter: " << m_counter << endl;
+      ofstream log;
+      log.open("count.log", ios::app);
+      time_t timestamp = time(nullptr);
+      struct tm* tm = localtime(&timestamp);
+      char time_buffer[32] = {0};
+      strftime(time_buffer, 31, "%F %T", tm);
+      log << time_buffer << "," << timestamp << "," << m_counter << endl;
+      log.close();
     }
   }
   old_state = trigger_state;
-}
-
-void Gasmeter::runSensor(void)
-{
-  while (true) {
-    getMagneticField();
-    increaseGasCounter();
-  }
 }

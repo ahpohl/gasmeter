@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <getopt.h>
-#include "gasmeter.hpp"
+#include "gas.hpp"
 
 using namespace std;
 
@@ -12,12 +12,11 @@ int main(int argc, char* argv[])
   bool debug = false; 
   char const* i2c_device = nullptr;
   char const* rrd_socket = nullptr;
-  char const* rrd_counter = nullptr;
-  double gas_counter = 0;
+  char const* rrd_path = nullptr;
+  double meter_reading = 0;
+  double meter_step = 0;
   int trigger_level = 0;
   int trigger_hyst = 0;
-  double counter_step = 0;
-  char const* rrd_mag = nullptr;
 
   const struct option longOpts[] = {
     { "help", no_argument, nullptr, 'h' },
@@ -25,16 +24,15 @@ int main(int argc, char* argv[])
     { "debug", no_argument, nullptr, 'D' },
     { "device", required_argument, nullptr, 'd' },
     { "socket", required_argument, nullptr, 's'},
-    { "gas", required_argument, nullptr, 'g' },
-    { "counter", required_argument, nullptr, 'c'},
+    { "rrd", required_argument, nullptr, 'r' },
+    { "meter", required_argument, nullptr, 'm'},
+    { "step", required_argument, nullptr, 'S'},
     { "level", required_argument, nullptr, 'L' },
     { "hyst", required_argument, nullptr, 'H' },
-    { "step", required_argument, nullptr, 'S'},
-    { "mag", required_argument, nullptr, 'm' },
     { nullptr, 0, nullptr, 0 }
   };
 
-  const char * optString = "hVDd:s:g:c:L:H:S:m:";
+  const char* const optString = "hVDd:s:r:m:S:L:H:";
 
   int opt = 0;
   int longIndex = 0;
@@ -57,23 +55,20 @@ int main(int argc, char* argv[])
     case 's':
       rrd_socket = optarg;
       break;
-    case 'g':
-      rrd_counter = optarg;
+    case 'r':
+      rrd_path = optarg;
       break;
-    case 'c':
-      gas_counter = atof(optarg);
+    case 'm':
+      meter_reading = atof(optarg);
+      break;
+    case 'S':
+      meter_step = atof(optarg);
       break;
     case 'L':
       trigger_level = atoi(optarg);
       break;
     case 'H':
       trigger_hyst = atoi(optarg);
-      break;
-    case 'S':
-      counter_step = atof(optarg);
-      break;
-    case 'm':
-      rrd_mag = optarg;
       break;
     default:
       break;
@@ -89,18 +84,13 @@ int main(int argc, char* argv[])
   -h --help              Show help message\n\
   -V --version           Show build info\n\
   -D --debug             Show debug messages\n\
-  -d --device [dev]      Set I²C device\n\
+  -d --device [dev]      Set MAG3110 I²C device\n\
   -s --socket [fd]       Set socket of rrdcached daemon\n\
+  -r --rrd [path]        set path of rrd databases\n\
+  -m --meter [float]     Set intial gas meter [m³]\n\
+  -S --step [float]      Set meter step [m³]\n\
   -L --level [int]       Set trigger level\n\
-  -H --hyst [int]        Set trigger hysteresis\n\
-\n\
-Option 1:\n\
-  -g --gas [path]        Save gasmeter counter\n\
-  -c --counter [float]   Set intial gas counter [m³]\n\
-  -S --step [float]      Set counter step [m³]\n\
-\n\
-Option 2:\n\
-  -m --mag [path]        Save magnetic field data"
+  -H --hyst [int]        Set trigger hysteresis"
     << endl << endl;
     return 0;
   }
@@ -117,38 +107,26 @@ Option 2:\n\
   cout << "Gasmeter " << VERSION_TAG
     << " (" << VERSION_BUILD << ")" << endl;
 
-  shared_ptr<Gasmeter> meter(new Gasmeter());
+  shared_ptr<Gas> meter(new Gas());
 
   if (debug) {
     meter->setDebug();
   }
 
   thread sensor_thread;
-  thread mag_thread;
-  thread counter_thread;
-
   meter->openI2CDevice(i2c_device);
   meter->setTriggerParameters(trigger_level, trigger_hyst);
-  sensor_thread = thread(&Gasmeter::runSensor, meter);
+  sensor_thread = thread(&Gas::runMagSensor, meter);
 
-  if (rrd_mag != nullptr) {
-    meter->createFile(rrd_mag, rrd_socket);
-    mag_thread = thread(&Gasmeter::runMag, meter);
-  }
-
-  if (rrd_counter != nullptr) {
-    meter->createFile(rrd_counter, rrd_socket, gas_counter, counter_step);
-    counter_thread = thread(&Gasmeter::runCounter, meter);
-  }
+  thread meter_thread;
+  meter->createRRD(rrd_path, rrd_socket, meter_reading, meter_step);
+  meter_thread = thread(&Gas::runGasCounter, meter);
 
   if (sensor_thread.joinable()) {
     sensor_thread.join();
   }
-  if (mag_thread.joinable()) {
-    mag_thread.join();
-  }
-  if (counter_thread.joinable()) {
-    counter_thread.join();
+  if (meter_thread.joinable()) {
+    meter_thread.join();
   }
 
   return 0;
