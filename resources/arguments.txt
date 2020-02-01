@@ -1,0 +1,1 @@
+sudo ./build/gasmeter --debug --device /dev/i2c-1 --socket unix:/tmp/rrdcached.sock --level 10500 --hyst 200 --mag /var/lib/gasmeter/mag.rrd --gas /var/lib/gasmeter/gas.rrd --step 0.01

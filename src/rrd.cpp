@@ -84,7 +84,7 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
   m_socket = t_socket;
   m_step = t_step;
 
-  time_t timestamp_start = time(nullptr) - 2 * RRD::STEP_SIZE;
+  time_t timestamp_start = time(nullptr) - 2 * RRD::GAS_STEP_SIZE;
 	const int ds_count = 5;
 	const int no_overwrite = 1;
 
@@ -113,7 +113,7 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
-	ret = rrdc_create(t_file, RRD::STEP_SIZE, timestamp_start, no_overwrite, 
+	ret = rrdc_create(t_file, RRD::GAS_STEP_SIZE, timestamp_start, no_overwrite, 
 		ds_count, ds_schema);
 	if (!ret) {
     cout << "Round Robin Database \"" << t_file << "\" created" << endl;
@@ -124,7 +124,7 @@ void Gasmeter::createFile(char const* t_file, char const* t_socket, double const
   }
 
   char * argv[RRD::BUF_SIZE];
-  time_t timestamp = time(nullptr) - RRD::STEP_SIZE;
+  time_t timestamp = time(nullptr) - RRD::GAS_STEP_SIZE;
   unsigned long requested_counter = lround(t_counter / t_step);
   std::mutex mutex;
   std::lock_guard<std::mutex> guard(mutex);  
@@ -309,6 +309,6 @@ void Gasmeter::runCounter(void)
 {
   while (true) {
     setGasCounter();
-    this_thread::sleep_for(chrono::seconds(RRD::STEP_SIZE));
+    this_thread::sleep_for(chrono::seconds(RRD::GAS_STEP_SIZE));
   }
 }
