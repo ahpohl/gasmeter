@@ -54,13 +54,6 @@ void Gas::createRRD(const char* const t_path, const char* const t_socket,
     "RRA:LAST:0.5:288:400",
 		nullptr};
 
-	// RRAs
-	// keep 1 week in 5 min resolution
-	// keep 2 weeks in 10 min resolution
-	// keep 1 month in 60 min resolution
-  // keep 1 year in 1 day resolution
-	// consolidate LAST (gas)
-
   fs::path dir(t_path);
   if (!fs::exists(dir)) {
     fs::create_directories(dir);

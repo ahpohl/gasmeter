@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
   -D --debug             Show debug messages\n\
   -d --device [dev]      Set MAG3110 I²C device\n\
   -s --socket [fd]       Set socket of rrdcached daemon\n\
-  -r --rrd [path]        set path of rrd databases\n\
+  -r --rrd [path]        set path of gas.rrd database\n\
   -m --meter [float]     Set intial gas meter [m³]\n\
   -S --step [float]      Set meter step [m³]\n\
   -L --level [int]       Set trigger level\n\
@@ -113,18 +113,20 @@ int main(int argc, char* argv[])
     meter->setDebug();
   }
 
+/*
   thread sensor_thread;
   meter->openI2CDevice(i2c_device);
   meter->setTriggerParameters(trigger_level, trigger_hyst);
   sensor_thread = thread(&Gas::runMagSensor, meter);
-
+*/
   thread meter_thread;
   meter->createRRD(rrd_path, rrd_socket, meter_reading, meter_step);
   meter_thread = thread(&Gas::runGasCounter, meter);
-
+/*
   if (sensor_thread.joinable()) {
     sensor_thread.join();
   }
+*/
   if (meter_thread.joinable()) {
     meter_thread.join();
   }
