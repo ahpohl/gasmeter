@@ -43,7 +43,7 @@ void Gas::createRRD(const char* const t_path, const char* const t_socket)
   int ret = access(m_rrd, F_OK);
   if (!ret) {
     if (m_debug) {
-      cout << "RRD database exists, not creating" << endl;
+      cout << "Round Robin Database exists" << endl;
     }
     return;
   }
