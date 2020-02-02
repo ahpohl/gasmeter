@@ -34,6 +34,7 @@ public:
   void setGasCounter(void);
   unsigned long getGasCounter(void);
   void createObisPath(const char* const t_ramdisk) const;
+  void writeObisCodes() const;
 
 private:
   bool m_debug;                 // debug flag

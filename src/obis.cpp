@@ -29,3 +29,22 @@ void Gas::createObisPath(const char* const t_ramdisk) const
       + "' is not a directory");
   }
 }
+
+void Gas::writeObisCodes() const
+{
+  ofstream ofs;
+  ofs.open(Gas::OBIS_GAS_X_MAG, ios::out);
+  ofs << Gas::OBIS_GAS_X_MAG << "(" << m_bx / 10.0 << "*µT)";
+  ofs.close();
+  ofs.open(Gas::OBIS_GAS_Y_MAG, ios::out);
+  ofs << Gas::OBIS_GAS_Y_MAG << "(" << m_by / 10.0 << "*µT)";
+  ofs.close();
+  ofs.open(Gas::OBIS_GAS_Z_MAG, ios::out);
+  ofs << Gas::OBIS_GAS_Z_MAG << "(" << m_bz / 10.0 << "*µT)";
+  ofs.close();
+  ofs.open(Gas::OBIS_GAS_VOLUME, ios::out);
+  ofs << Gas::OBIS_GAS_VOLUME << "(" << fixed << setprecision(2) 
+    << m_counter / m_step << "*m3)";
+  ofs.close();
+}
+
