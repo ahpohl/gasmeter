@@ -26,6 +26,8 @@ Gas::~Gas(void)
   if (m_debug) {
     cout << "Gasmeter destructor method called" << endl;
   }
+  delete[] m_socket;
+  delete[] m_rrd;
 }
 
 void Gas::setDebug(void)

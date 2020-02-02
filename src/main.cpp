@@ -113,22 +113,21 @@ int main(int argc, char* argv[])
     meter->setDebug();
   }
 
-  thread sensor_thread;
   meter->openI2CDevice(i2c_device);
   meter->setTriggerParameters(trigger_level, trigger_hyst);
+  meter->createRRD(rrd_path, rrd_socket);
+  meter->setMeterReading(meter_reading, meter_step);
+
+  thread sensor_thread;
   sensor_thread = thread(&Gas::runMagSensor, meter);
-/*
   thread meter_thread;
-  meter->createRRD(rrd_path, rrd_socket, meter_reading, meter_step);
   meter_thread = thread(&Gas::runGasCounter, meter);
-*/
   if (sensor_thread.joinable()) {
     sensor_thread.join();
   }
-/*
   if (meter_thread.joinable()) {
     meter_thread.join();
   }
-*/
+
   return 0;
 }

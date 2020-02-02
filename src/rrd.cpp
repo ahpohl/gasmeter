@@ -23,8 +23,7 @@ int const Gas::RUN_METER_INTERVAL = 300;
 int const Gas::RRD_BUFFER_SIZE = 64;
 int const Gas::RRD_DS_LEN = 1;
 
-void Gas::createRRD(const char* const t_path, const char* const t_socket, 
-  double const& t_meter, double const& t_step)
+void Gas::createRRD(const char* const t_path, const char* const t_socket)
 {
   if (!t_path) {
     throw runtime_error("Path of RRD files not set");
@@ -32,12 +31,22 @@ void Gas::createRRD(const char* const t_path, const char* const t_socket,
   if (!t_socket) {
     throw runtime_error("Socket of RRD cached daemon not set");
   }
-  if (!t_step) {
-    throw runtime_error("Gas meter step size not set");
+  m_socket = new char[strlen(t_socket)+1];
+  strncpy(m_socket, t_socket, strlen(t_socket));
+  fs::path dir(t_path);
+  if (!fs::exists(dir)) {
+    fs::create_directories(dir);
   }
-
-  m_socket = t_socket;
-  m_step = t_step;
+  dir /= "gas.rrd";
+  m_rrd = new char [dir.string().length()+1];
+  strncpy (m_rrd, dir.c_str(), dir.string().length());
+  int ret = access(m_rrd, F_OK);
+  if (!ret) {
+    if (m_debug) {
+      cout << "RRD database exists, not creating" << endl;
+    }
+    return;
+  }
 
   time_t timestamp_start = time(nullptr) - 2 * Gas::RUN_METER_INTERVAL;
 	const int ds_count = 5;
@@ -54,14 +63,7 @@ void Gas::createRRD(const char* const t_path, const char* const t_socket,
     "RRA:LAST:0.5:288:400",
 		nullptr};
 
-  fs::path dir(t_path);
-  if (!fs::exists(dir)) {
-    fs::create_directories(dir);
-  }
-  dir /= "gas.rrd";
-  m_rrd = dir.string().c_str();
-
-  int ret = rrdc_connect(t_socket);
+  ret = rrdc_connect(t_socket);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
@@ -74,12 +76,17 @@ void Gas::createRRD(const char* const t_path, const char* const t_socket,
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
+}
 
+void Gas::setMeterReading(double const& t_meter, double const& t_step)
+{
+  if (!t_step) {
+    throw runtime_error("Gas meter step size not set");
+  }
+  m_step = t_step;
   char * argv[Gas::RRD_BUFFER_SIZE];
   time_t timestamp = time(nullptr) - Gas::RUN_METER_INTERVAL;
   unsigned long requested_counter = lround(t_meter / t_step);
-  std::mutex mutex;
-  std::lock_guard<std::mutex> guard(mutex);  
   m_counter = getGasCounter();
 
   if (m_counter < requested_counter)
@@ -89,7 +96,7 @@ void Gas::createRRD(const char* const t_path, const char* const t_socket,
     snprintf(*argv, Gas::RRD_BUFFER_SIZE, "%ld:%ld", timestamp, 
       requested_counter);
 
-    ret = rrdc_connect(t_socket);
+    int ret = rrdc_connect(m_socket);
     if (ret) {
       throw runtime_error(rrd_get_error());
     }
@@ -106,7 +113,7 @@ void Gas::createRRD(const char* const t_path, const char* const t_socket,
     free(*argv);
   }
   
-  cout << "Gas counter: " << fixed << setprecision(2)
+  cout << "Meter reading: " << fixed << setprecision(2)
     << static_cast<double>(m_counter) * t_step << " m³" << endl;
 }
 
@@ -123,10 +130,6 @@ void Gas::setGasCounter(void)
   std::lock_guard<std::mutex> guard(mutex);
   snprintf(*argv, Gas::RRD_BUFFER_SIZE, "%ld:%ld", timestamp, m_counter);
 	
-  if (m_debug) {
-	  cout << argv[0] << endl;
-  }
-
   int ret = rrdc_connect(m_socket);
   if (ret) {
     throw runtime_error(rrd_get_error());
@@ -150,9 +153,9 @@ void Gas::setGasCounter(void)
     struct tm* tm = localtime(&timestamp);
     char time_buffer[32] = {0};
     strftime(time_buffer, 31, "%F %T", tm);
-    double gas_counter = m_counter * m_step;
+    double meter_reading = m_counter * m_step;
     log << time_buffer << "," << timestamp << "," << m_counter
-      << fixed << setprecision(2) << "," << gas_counter << endl; 
+      << fixed << setprecision(2) << "," << meter_reading << endl; 
     log.close();
   }
 
