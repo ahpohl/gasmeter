@@ -54,6 +54,6 @@ void Gas::runGasCounter(void)
 {
   while (true) {
     setGasCounter();
-    this_thread::sleep_for(chrono::seconds(RRD::GAS_STEP_SIZE));
+    this_thread::sleep_for(chrono::seconds(Gas::RUN_METER_INTERVAL));
   }
 }

@@ -9,6 +9,9 @@ public:
   static int const MAG3110_INT_PIN;
   static bool isEvent;
   static void magISR(void);
+  static int const RUN_METER_INTERVAL;
+  static int const RRD_BUFFER_SIZE;
+  static int const RRD_DS_LEN;
 
   Gas(void);
   ~Gas(void);
@@ -16,6 +19,7 @@ public:
 
   void runMagSensor(void);
   void openI2CDevice(const char* const t_device);
+  void setMagneticField(void);
   void getMagneticField(void);
   void setTriggerParameters(int const& t_level, int const& t_hyst);
   void increaseGasCounter(void);
@@ -28,7 +32,7 @@ public:
 
 private:
   bool m_debug;                 // debug flag
-  char const* m_rrdpath;        // path of rrd databases
+  char const* m_rrd;            // full path of gas.rrd database
   char const* m_socket;         // socket of rrdcached daemon
   int m_bx;                     // x-axis magnetic field
   int m_by;                     // y-axis magnetic field

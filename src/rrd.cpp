@@ -15,13 +15,16 @@ extern "C" {
 }
 
 #include "gas.hpp"
-#include "rrd.hpp"
 
 using namespace std;
 namespace fs = std::filesystem;
 
-void Gas::createRRD(void createRRD(const char* const t_path, 
-  const char* const t_socket, double const& t_meter, double const& t_step)
+int const Gas::RUN_METER_INTERVAL = 300;
+int const Gas::RRD_BUFFER_SIZE = 64;
+int const Gas::RRD_DS_LEN = 1;
+
+void Gas::createRRD(const char* const t_path, const char* const t_socket, 
+  double const& t_meter, double const& t_step)
 {
   if (!t_path) {
     throw runtime_error("Path of RRD files not set");
@@ -33,11 +36,10 @@ void Gas::createRRD(void createRRD(const char* const t_path,
     throw runtime_error("Gas meter step size not set");
   }
 
-  m_rrdpath = t_path;
   m_socket = t_socket;
   m_step = t_step;
 
-  time_t timestamp_start = time(nullptr) - 2 * RRD::GAS_STEP_SIZE;
+  time_t timestamp_start = time(nullptr) - 2 * Gas::RUN_METER_INTERVAL;
 	const int ds_count = 5;
 	const int no_overwrite = 1;
 
@@ -59,42 +61,46 @@ void Gas::createRRD(void createRRD(const char* const t_path,
   // keep 1 year in 1 day resolution
 	// consolidate LAST (gas)
 
-  fs::path dir(t_file);
-  fs::create_directories(dir.parent_path());
+  fs::path dir(t_path);
+  if (!fs::exists(dir)) {
+    fs::create_directories(dir);
+  }
+  dir /= "gas.rrd";
+  m_rrd = dir.string().c_str();
 
   int ret = rrdc_connect(t_socket);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
-	ret = rrdc_create(t_file, RRD::GAS_STEP_SIZE, timestamp_start, no_overwrite, 
-		ds_count, ds_schema);
+	ret = rrdc_create(m_rrd, Gas::RUN_METER_INTERVAL, timestamp_start, 
+    no_overwrite, ds_count, ds_schema);
 	if (!ret) {
-    cout << "Round Robin Database \"" << t_file << "\" created" << endl;
+    cout << "Round Robin Database \"" << dir.string() << "\" created" << endl;
   }
   ret = rrdc_disconnect();
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
 
-  char * argv[RRD::BUF_SIZE];
-  time_t timestamp = time(nullptr) - RRD::GAS_STEP_SIZE;
-  unsigned long requested_counter = lround(t_counter / t_step);
+  char * argv[Gas::RRD_BUFFER_SIZE];
+  time_t timestamp = time(nullptr) - Gas::RUN_METER_INTERVAL;
+  unsigned long requested_counter = lround(t_meter / t_step);
   std::mutex mutex;
   std::lock_guard<std::mutex> guard(mutex);  
   m_counter = getGasCounter();
 
   if (m_counter < requested_counter)
   {
-	  *argv = (char *) malloc(RRD::BUF_SIZE * sizeof(char));
-    memset(*argv, '\0', RRD::BUF_SIZE);
-    snprintf(*argv, RRD::BUF_SIZE, "%ld:%ld", timestamp, 
+	  *argv = (char *) malloc(Gas::RRD_BUFFER_SIZE * sizeof(char));
+    memset(*argv, '\0', Gas::RRD_BUFFER_SIZE);
+    snprintf(*argv, Gas::RRD_BUFFER_SIZE, "%ld:%ld", timestamp, 
       requested_counter);
 
     ret = rrdc_connect(t_socket);
     if (ret) {
       throw runtime_error(rrd_get_error());
     }
-    ret = rrdc_update(m_rrdcounter, RRD::DS_LEN, (const char **) argv);
+    ret = rrdc_update(m_rrd, Gas::RRD_DS_LEN, (const char **) argv);
     if (ret) {
       throw runtime_error(rrd_get_error());
     }
@@ -113,67 +119,31 @@ void Gas::createRRD(void createRRD(const char* const t_path,
 
 void Gas::setMagneticField(void)
 {
-	time_t timestamp = time(nullptr);
-  char* argv[RRD::BUF_SIZE];
-	*argv = (char*) malloc(RRD::BUF_SIZE * sizeof(char));
-
-  // rrd format: "timestamp : bx : by : bz"
-  memset(*argv, '\0', RRD::BUF_SIZE);
   std::mutex mutex;
   std::lock_guard<std::mutex> guard(mutex);
-  snprintf(*argv, RRD::BUF_SIZE, "%ld:%d:%d:%d", timestamp, 
-    m_bx, m_by, m_bz);
 	
-  if (m_debug) {
-	  cout << argv[0] << endl;
-  }
-
-  int ret = rrdc_connect(m_socket);
-  if (ret) {
-    throw runtime_error(rrd_get_error());
-  }    
-    
-  ret = rrdc_flush(m_rrdmag);
-  if (ret) {
-    throw runtime_error(rrd_get_error());
-  } 
- 
-  ret = rrdc_update(m_rrdmag, RRD::DS_LEN, (const char **) argv);
-  if (ret) {
-    throw runtime_error(rrd_get_error());
-  }
-  
-  ret = rrdc_disconnect();
-  if (ret) {
-    throw runtime_error(rrd_get_error());
-  }
-
   if (m_debug) {
     ofstream log;
     log.open("mag.log", ios::app);
+    time_t timestamp = time(nullptr);
     struct tm* tm = localtime(&timestamp);
     char time_buffer[32] = {0};
     strftime(time_buffer, 31, "%F %T", tm);
-
-    // Date, Timestamp, bx, by, bz
     log << time_buffer << "," << timestamp << "," << m_bx << ","
       << m_by << "," << m_bz << endl; 
-    
     log.close();
   }
-
-	free(*argv);
 }
 
 void Gas::setGasCounter(void)
 {
 	time_t timestamp = time(nullptr);
-  char* argv[RRD::BUF_SIZE];
-	*argv = (char*) malloc(RRD::BUF_SIZE * sizeof(char));
+  char* argv[Gas::RRD_BUFFER_SIZE];
+	*argv = (char*) malloc(Gas::RRD_BUFFER_SIZE * sizeof(char));
 
   // rrd format: "timestamp : gas counter)"
-  memset(*argv, '\0', RRD::BUF_SIZE);
-  snprintf(*argv, RRD::BUF_SIZE, "%ld:%ld", timestamp, m_counter);
+  memset(*argv, '\0', Gas::RRD_BUFFER_SIZE);
+  snprintf(*argv, Gas::RRD_BUFFER_SIZE, "%ld:%ld", timestamp, m_counter);
 	
   if (m_debug) {
 	  cout << argv[0] << endl;
@@ -183,11 +153,11 @@ void Gas::setGasCounter(void)
   if (ret) {
     throw runtime_error(rrd_get_error());
   }      
-  ret = rrdc_flush(m_rrdcounter);
+  ret = rrdc_flush(m_rrd);
   if (ret) {
     throw runtime_error(rrd_get_error());
   } 
-  ret = rrdc_update(m_rrdcounter, RRD::DS_LEN, (const char **) argv);
+  ret = rrdc_update(m_rrd, Gas::RRD_DS_LEN, (const char **) argv);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
@@ -203,8 +173,6 @@ void Gas::setGasCounter(void)
     char time_buffer[32] = {0};
     strftime(time_buffer, 31, "%F %T", tm);
     double gas_counter = m_counter * m_step;
-
-    // Date,Timestamp,Counter,Gas [m³] 
     log << time_buffer << "," << timestamp << "," << m_counter
       << fixed << setprecision(2) << "," << gas_counter << endl; 
     log.close();
@@ -220,7 +188,7 @@ unsigned long Gas::getGasCounter(void)
     throw runtime_error(rrd_get_error());
   }  
 
-  ret = rrdc_flush(m_rrdcounter);
+  ret = rrdc_flush(m_rrd);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
@@ -230,8 +198,7 @@ unsigned long Gas::getGasCounter(void)
   time_t last_update = 0;
   unsigned long ds_count = 0;
 
-  ret = rrd_lastupdate_r(m_rrdcounter, &last_update, &ds_count,
-    &ds_names, &ds_data);
+  ret = rrd_lastupdate_r(m_rrd, &last_update, &ds_count, &ds_names, &ds_data);
   if (ret) {
     throw runtime_error(rrd_get_error());
   }
@@ -248,12 +215,4 @@ unsigned long Gas::getGasCounter(void)
   rrd_freemem(ds_data);
 
   return counter;
-}
-
-void Gasmeter::runCounter(void)
-{
-  while (true) {
-    setGasCounter();
-    this_thread::sleep_for(chrono::seconds(RRD::GAS_STEP_SIZE));
-  }
 }
