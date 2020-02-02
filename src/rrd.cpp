@@ -110,24 +110,6 @@ void Gas::createRRD(const char* const t_path, const char* const t_socket,
     << static_cast<double>(m_counter) * t_step << " m³" << endl;
 }
 
-void Gas::setMagneticField(void)
-{
-  std::mutex mutex;
-  std::lock_guard<std::mutex> guard(mutex);
-	
-  if (m_debug) {
-    ofstream log;
-    log.open("mag.log", ios::app);
-    time_t timestamp = time(nullptr);
-    struct tm* tm = localtime(&timestamp);
-    char time_buffer[32] = {0};
-    strftime(time_buffer, 31, "%F %T", tm);
-    log << time_buffer << "," << timestamp << "," << m_bx << ","
-      << m_by << "," << m_bz << endl; 
-    log.close();
-  }
-}
-
 void Gas::setGasCounter(void)
 {
 	time_t timestamp = time(nullptr);
@@ -136,6 +118,9 @@ void Gas::setGasCounter(void)
 
   // rrd format: "timestamp : gas counter)"
   memset(*argv, '\0', Gas::RRD_BUFFER_SIZE);
+  
+  std::mutex mutex;
+  std::lock_guard<std::mutex> guard(mutex);
   snprintf(*argv, Gas::RRD_BUFFER_SIZE, "%ld:%ld", timestamp, m_counter);
 	
   if (m_debug) {

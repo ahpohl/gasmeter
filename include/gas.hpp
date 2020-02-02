@@ -19,7 +19,6 @@ public:
 
   void runMagSensor(void);
   void openI2CDevice(const char* const t_device);
-  void setMagneticField(void);
   void getMagneticField(void);
   void setTriggerParameters(int const& t_level, int const& t_hyst);
   void increaseGasCounter(void);
