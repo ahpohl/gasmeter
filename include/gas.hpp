@@ -12,6 +12,11 @@ public:
   static int const RUN_METER_INTERVAL;
   static int const RRD_BUFFER_SIZE;
   static int const RRD_DS_LEN;
+  static const char* const OBIS_GAS_VOLUME;
+  static const char* const OBIS_GAS_ENERGY;
+  static const char* const OBIS_GAS_X_MAG;
+  static const char* const OBIS_GAS_Y_MAG;
+  static const char* const OBIS_GAS_Z_MAG;
 
   Gas(void);
   ~Gas(void);
@@ -28,6 +33,7 @@ public:
   void setMeterReading(double const& t_meter, double const& t_step);
   void setGasCounter(void);
   unsigned long getGasCounter(void);
+  void createObisPath(const char* const t_ramdisk) const;
 
 private:
   bool m_debug;                 // debug flag
