@@ -71,8 +71,6 @@ void Gas::increaseGasCounter(void)
     trigger_state = false;
   }
   if (!old_state && trigger_state) {
-    std::mutex mutex;
-    std::lock_guard<std::mutex> guard(mutex);
     ++m_counter;
     if (m_debug) {
       ofstream log;

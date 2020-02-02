@@ -125,9 +125,6 @@ void Gas::setGasCounter(void)
 
   // rrd format: "timestamp : gas counter)"
   memset(*argv, '\0', Gas::RRD_BUFFER_SIZE);
-  
-  std::mutex mutex;
-  std::lock_guard<std::mutex> guard(mutex);
   snprintf(*argv, Gas::RRD_BUFFER_SIZE, "%ld:%ld", timestamp, m_counter);
 	
   int ret = rrdc_connect(m_socket);
