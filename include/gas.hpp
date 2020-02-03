@@ -33,8 +33,8 @@ public:
   void setMeterReading(double const& t_meter, double const& t_step);
   void setGasCounter(void);
   unsigned long getGasCounter(void);
-  void createObisPath(const char* const t_ramdisk) const;
-  void writeObisCodes() const;
+  void createObisPath(const char* const t_ramdisk, double const& t_factor);
+  void writeObisCodes(void) const;
 
 private:
   bool m_debug;                 // debug flag
@@ -46,6 +46,7 @@ private:
   int m_level;                  // trigger level
   int m_hyst;                   // trigger hysteresis
   double m_step;                // counter step size [m³]
+  double m_factor;              // gas conversion factor to kWh
   unsigned long m_counter;      // gas counter in [m³ * 1/step]
 };
 

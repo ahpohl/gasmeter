@@ -12,8 +12,15 @@ const char* const Gas::OBIS_GAS_X_MAG =  "gas_bx";
 const char* const Gas::OBIS_GAS_Y_MAG =  "gas_by";
 const char* const Gas::OBIS_GAS_Z_MAG =  "gas_bz";
 
-void Gas::createObisPath(const char* const t_ramdisk) const
+void Gas::createObisPath(const char* const t_ramdisk, double const& t_factor)
 {
+  if (!t_ramdisk) {
+    throw runtime_error("Shared memory device not set");
+  }
+  if (!t_factor) {
+    throw runtime_error("Gas conversion factor not set");
+  }
+  m_factor = t_factor;
   fs::path dir(t_ramdisk);
   dir /= "obis";
   if (!fs::exists(dir)) {
@@ -30,7 +37,7 @@ void Gas::createObisPath(const char* const t_ramdisk) const
   }
 }
 
-void Gas::writeObisCodes() const
+void Gas::writeObisCodes(void) const
 {
   ofstream ofs;
   ofs.open(Gas::OBIS_GAS_X_MAG, ios::out);
@@ -45,6 +52,9 @@ void Gas::writeObisCodes() const
   ofs.open(Gas::OBIS_GAS_VOLUME, ios::out);
   ofs << Gas::OBIS_GAS_VOLUME << "(" << fixed << setprecision(2) 
     << m_counter / m_step << "*m3)";
+  ofs.open(Gas::OBIS_GAS_ENERGY, ios::out);
+  ofs << Gas::OBIS_GAS_ENERGY << "(" << fixed << setprecision(2)
+    << m_counter / m_step * m_factor * 1.0e3 << "*Wh)";
   ofs.close();
 }
 

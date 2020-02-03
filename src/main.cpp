@@ -13,8 +13,10 @@ int main(int argc, char* argv[])
   char const* i2c_device = nullptr;
   char const* rrd_socket = nullptr;
   char const* rrd_path = nullptr;
+  char const* ramdisk = nullptr;
   double meter_reading = 0;
   double meter_step = 0;
+  double gas_factor = 0;
   int trigger_level = 0;
   int trigger_hyst = 0;
 
@@ -25,14 +27,16 @@ int main(int argc, char* argv[])
     { "device", required_argument, nullptr, 'd' },
     { "socket", required_argument, nullptr, 's'},
     { "rrd", required_argument, nullptr, 'r' },
+    { "ramdisk", required_argument, nullptr, 'R' },
     { "meter", required_argument, nullptr, 'm'},
     { "step", required_argument, nullptr, 'S'},
+    { "factor", required_argument, nullptr, 'f' },
     { "level", required_argument, nullptr, 'L' },
     { "hyst", required_argument, nullptr, 'H' },
     { nullptr, 0, nullptr, 0 }
   };
 
-  const char* const optString = "hVDd:s:r:m:S:L:H:";
+  const char* const optString = "hVDd:s:r:R:m:S:f:L:H:";
 
   int opt = 0;
   int longIndex = 0;
@@ -58,11 +62,17 @@ int main(int argc, char* argv[])
     case 'r':
       rrd_path = optarg;
       break;
+    case 'R':
+      ramdisk = optarg;
+      break;
     case 'm':
       meter_reading = atof(optarg);
       break;
     case 'S':
       meter_step = atof(optarg);
+      break;
+    case 'f':
+      gas_factor = atof(optarg);
       break;
     case 'L':
       trigger_level = atoi(optarg);
@@ -86,9 +96,11 @@ int main(int argc, char* argv[])
   -D --debug             Show debug messages\n\
   -d --device [dev]      Set MAG3110 I²C device\n\
   -s --socket [fd]       Set socket of rrdcached daemon\n\
-  -r --rrd [path]        set path of gas.rrd database\n\
+  -r --rrd [path]        Set path of gas.rrd database\n\
+  -R --ramdisk [dev]     Set shared memory device\n\
   -m --meter [float]     Set intial gas meter [m³]\n\
   -S --step [float]      Set meter step [m³]\n\
+  -f --factor [float]    Set gas conversion factor\n\
   -L --level [int]       Set trigger level\n\
   -H --hyst [int]        Set trigger hysteresis"
     << endl << endl;
@@ -116,7 +128,8 @@ int main(int argc, char* argv[])
   meter->openI2CDevice(i2c_device);
   meter->setTriggerParameters(trigger_level, trigger_hyst);
   meter->createRRD(rrd_path, rrd_socket);
-  meter->setMeterReading(meter_reading, meter_step);
+  meter->setMeterParameters(meter_reading, meter_step, gas_factor);
+  meter->createObisPath(ramdisk);
 
   thread sensor_thread;
   sensor_thread = thread(&Gas::runMagSensor, meter);
