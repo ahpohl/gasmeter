@@ -51,10 +51,10 @@ void Gas::writeObisCodes(void) const
   ofs.close();
   ofs.open(Gas::OBIS_GAS_VOLUME, ios::out);
   ofs << Gas::OBIS_GAS_VOLUME << "(" << fixed << setprecision(2) 
-    << m_counter / m_step << "*m3)";
+    << m_counter * m_step << "*m3)";
+  ofs.close();
   ofs.open(Gas::OBIS_GAS_ENERGY, ios::out);
-  ofs << Gas::OBIS_GAS_ENERGY << "(" << fixed << setprecision(2)
-    << m_counter / m_step * m_factor * 1.0e3 << "*Wh)";
+  ofs << Gas::OBIS_GAS_ENERGY << "(" << fixed << setprecision(0)
+    << m_counter * m_step * m_factor * 1000 << "*Wh)";
   ofs.close();
 }
-
