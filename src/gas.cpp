@@ -28,7 +28,6 @@ Gas::~Gas(void)
   }
   delete[] m_socket;
   delete[] m_rrd;
-  delete[] m_ramdisk;
 }
 
 void Gas::setDebug(void)

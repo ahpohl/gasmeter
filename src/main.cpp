@@ -128,8 +128,8 @@ int main(int argc, char* argv[])
   meter->openI2CDevice(i2c_device);
   meter->setTriggerParameters(trigger_level, trigger_hyst);
   meter->createRRD(rrd_path, rrd_socket);
-  meter->setMeterParameters(meter_reading, meter_step, gas_factor);
-  meter->createObisPath(ramdisk);
+  meter->setMeterReading(meter_reading, meter_step);
+  meter->createObisPath(ramdisk, gas_factor);
 
   thread sensor_thread;
   sensor_thread = thread(&Gas::runMagSensor, meter);
