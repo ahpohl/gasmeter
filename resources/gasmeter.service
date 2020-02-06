@@ -6,9 +6,7 @@ Requires=rrdcached.service
 [Service]
 Type=simple
 EnvironmentFile=/etc/gasmeter.conf
-ExecStart=/usr/bin/gasmeter --device ${I2C_DEVICE} --socket ${RRDCACHED_SOCKET}  --counter ${RRD_COUNTER_FILE} --level ${TRIGGER_LEVEL} --hyst ${TRIGGER_HYST} --step ${GAS_COUNTER_STEP} --counter ${GAS_COUNTER_READING} --mag ${RRD_MAG_FILE}
-#User=gasmeter
-#Group=gasmeter
+ExecStart=/usr/local/bin/gasmeter --device ${DEVICE} --socket ${SOCKET} --rrd ${RRD} --level ${LEVEL} --hyst ${HYST} --step ${STEP} --meter ${METER_READING} --factor ${FACTOR} --ramdisk ${RAMDISK}
 Restart=always
 RestartSec=3
 
