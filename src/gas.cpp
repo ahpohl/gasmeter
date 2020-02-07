@@ -50,6 +50,7 @@ void Gas::runMagSensor(void)
     getMagneticField();
     increaseGasCounter();
     writeObisCodes();
+    this_thread::sleep_for(chrono::seconds(1));
   }
 }
 
