@@ -6,9 +6,8 @@
 class Gas : public MAG3110
 {
 public:
-  static int const MAG3110_INT_PIN;
+  static int const MAG3110_GPIOD_OFFSET;
   static bool isEvent;
-  static void magISR(void);
   static int const RUN_METER_INTERVAL;
   static int const RRD_BUFFER_SIZE;
   static int const RRD_DS_LEN;

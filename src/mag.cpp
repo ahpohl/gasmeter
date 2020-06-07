@@ -6,18 +6,23 @@
 #include <thread>
 #include <mutex>
 #include <ctime>
-#include <wiringPi.h>
+#include <gpiod.h>
 #include <unistd.h>
 #include <errno.h>
 #include "gas.hpp"
 
 using namespace std;
 
-int const Gas::MAG3110_INT_PIN = 7;
+int const Gas::MAG3110_GPIOD_OFFSET = 4;
 bool Gas::isEvent = false;
-void Gas::magISR(void)
+
+int event_cb(int event, unsigned int offset, const struct timespec *timestamp, void *unused)
 {
-  isEvent = true;
+  if (event == GPIOD_CTXLESS_EVENT_CB_RISING_EDGE) {
+    Gas::isEvent = true;
+  }
+
+  return GPIOD_CTXLESS_EVENT_CB_RET_OK;
 }
 
 void Gas::openI2CDevice(const char* const t_device)
@@ -25,16 +30,8 @@ void Gas::openI2CDevice(const char* const t_device)
   if (!t_device) {
     throw runtime_error("I2C device argument empty");
   }
-  if (wiringPiSetup() < 0)
-  {
-    throw runtime_error(string("Unable to setup wiringPi: ") +
-      + strerror(errno) + " (" + to_string(errno) + ")");
-  }
-  if (wiringPiISR(MAG3110_INT_PIN, INT_EDGE_RISING, &magISR) < 0)
-  {
-    throw runtime_error(string("Unable to setup ISR: ") +
-      + strerror(errno) + " (" + to_string(errno) + ")");
-  }
+  gpiod_ctxless_event_monitor("gpiochip0", GPIOD_CTXLESS_EVENT_RISING_EDGE,
+    Gas::MAG3110_GPIOD_OFFSET, 0, "gasmeter", NULL, NULL, event_cb, NULL);
   MAG3110::initialize(t_device);
   MAG3110::reset();
   MAG3110::setDR_OS(MAG3110::MAG3110_DR_OS_1_25_128);
