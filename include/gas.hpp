@@ -6,7 +6,6 @@
 class Gas : public MAG3110
 {
 public:
-  static int const MAG3110_GPIOD_OFFSET;
   static bool isEvent;
   static int const RUN_METER_INTERVAL;
   static int const RRD_BUFFER_SIZE;
@@ -23,6 +22,7 @@ public:
 
   void runMagSensor(void);
   void openI2CDevice(const char* const t_device);
+  void setupGpioDevice(const char* t_gpiochip, unsigned int const& t_offset);
   void getMagneticField(void);
   void setTriggerParameters(int const& t_level, int const& t_hyst);
   void increaseGasCounter(void);

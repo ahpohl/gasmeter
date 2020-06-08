@@ -1,1 +1,1 @@
-sudo ./build/gasmeter --debug --device /dev/i2c-1 --socket unix:/tmp/rrdcached.sock --level 10500 --hyst 200 --mag /var/lib/gasmeter/mag.rrd --gas /var/lib/gasmeter/gas.rrd --ramdisk /dev/shm --step 0.01 --factor 10.835
+sudo ./build/gasmeter --debug --device /dev/i2c-1 --socket unix:/tmp/rrdcached.sock --level 10500 --hyst 200 --rrd /var/lib/gasmeter --ramdisk /dev/shm --step 0.01 --factor 10.835 --gpiochip /dev/gpiochip0 --offset 18

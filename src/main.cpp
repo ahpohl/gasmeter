@@ -14,16 +14,20 @@ int main(int argc, char* argv[])
   char const* rrd_socket = nullptr;
   char const* rrd_path = nullptr;
   char const* ramdisk = nullptr;
+  char const* gpio_chip = nullptr;
   double meter_reading = 0;
   double meter_step = 0;
   double gas_factor = 0;
   int trigger_level = 0;
   int trigger_hyst = 0;
+  unsigned int gpio_line_offset = 0;
 
   const struct option longOpts[] = {
     { "help", no_argument, nullptr, 'h' },
     { "version", no_argument, nullptr, 'V' },
     { "debug", no_argument, nullptr, 'D' },
+    { "gpiochip", required_argument, nullptr, 'G' },
+    { "offset", required_argument, nullptr, 'O' },
     { "device", required_argument, nullptr, 'd' },
     { "socket", required_argument, nullptr, 's'},
     { "rrd", required_argument, nullptr, 'r' },
@@ -36,7 +40,7 @@ int main(int argc, char* argv[])
     { nullptr, 0, nullptr, 0 }
   };
 
-  const char* const optString = "hVDd:s:r:R:m:S:f:L:H:";
+  const char* const optString = "hVDG:O:d:s:r:R:m:S:f:L:H:";
 
   int opt = 0;
   int longIndex = 0;
@@ -52,6 +56,12 @@ int main(int argc, char* argv[])
       break;
     case 'D':
       debug = true;
+      break;
+    case 'G':
+      gpio_chip = optarg;
+      break;
+    case 'O':
+      gpio_line_offset = atoi(optarg);
       break;
     case 'd':
       i2c_device = optarg;
@@ -94,6 +104,8 @@ int main(int argc, char* argv[])
   -h --help              Show help message\n\
   -V --version           Show build info\n\
   -D --debug             Show debug messages\n\
+  -G --gpiochip          Set libgpiod gpiochip device\n\
+  -O --offset            Set libgpiod line offset\n\
   -d --device [dev]      Set MAG3110 I²C device\n\
   -s --socket [fd]       Set socket of rrdcached daemon\n\
   -r --rrd [path]        Set path of gas.rrd database\n\
@@ -126,6 +138,7 @@ int main(int argc, char* argv[])
   }
 
   meter->openI2CDevice(i2c_device);
+  meter->setupGpioDevice(gpio_chip, gpio_line_offset);
   meter->setTriggerParameters(trigger_level, trigger_hyst);
   meter->createRRD(rrd_path, rrd_socket);
   meter->setMeterReading(meter_reading, meter_step);

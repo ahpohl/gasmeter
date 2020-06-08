@@ -13,9 +13,7 @@
 
 using namespace std;
 
-int const Gas::MAG3110_GPIOD_OFFSET = 4;
 bool Gas::isEvent = false;
-
 int event_cb(int event, unsigned int offset, const struct timespec *timestamp, void *unused)
 {
   if (event == GPIOD_CTXLESS_EVENT_CB_RISING_EDGE) {
@@ -25,13 +23,16 @@ int event_cb(int event, unsigned int offset, const struct timespec *timestamp, v
   return GPIOD_CTXLESS_EVENT_CB_RET_OK;
 }
 
+void Gas::setupGpioDevice(const char* t_gpiochip, unsigned int const& t_offset)
+{
+   
+}
+
 void Gas::openI2CDevice(const char* const t_device)
 {
   if (!t_device) {
     throw runtime_error("I2C device argument empty");
   }
-  gpiod_ctxless_event_monitor("gpiochip0", GPIOD_CTXLESS_EVENT_RISING_EDGE,
-    Gas::MAG3110_GPIOD_OFFSET, 0, "gasmeter", NULL, NULL, event_cb, NULL);
   MAG3110::initialize(t_device);
   MAG3110::reset();
   MAG3110::setDR_OS(MAG3110::MAG3110_DR_OS_1_25_128);
