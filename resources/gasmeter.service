@@ -6,7 +6,7 @@ Requires=rrdcached.service
 [Service]
 Type=simple
 EnvironmentFile=/etc/gasmeter.conf
-ExecStart=/usr/local/bin/gasmeter --device ${DEVICE} --socket ${SOCKET} --rrd ${RRD} --level ${LEVEL} --hyst ${HYST} --step ${STEP} --meter ${METER_READING} --factor ${FACTOR} --ramdisk ${RAMDISK}
+ExecStart=/usr/local/bin/gasmeter --device ${DEVICE} --chip ${CHIP} --line ${LINE} --socket ${SOCKET} --rrd ${RRD} --level ${LEVEL} --hyst ${HYST} --step ${STEP} --meter ${METER_READING} --factor ${FACTOR} --ramdisk ${RAMDISK}
 Restart=always
 RestartSec=3
 
