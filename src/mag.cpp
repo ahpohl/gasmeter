@@ -13,21 +13,6 @@
 
 using namespace std;
 
-bool Gas::isEvent = false;
-int event_cb(int event, unsigned int offset, const struct timespec *timestamp, void *unused)
-{
-  if (event == GPIOD_CTXLESS_EVENT_CB_RISING_EDGE) {
-    Gas::isEvent = true;
-  }
-
-  return GPIOD_CTXLESS_EVENT_CB_RET_OK;
-}
-
-void Gas::setupGpioDevice(const char* t_gpiochip, unsigned int const& t_offset)
-{
-   
-}
-
 void Gas::openI2CDevice(const char* const t_device)
 {
   if (!t_device) {
@@ -41,22 +26,45 @@ void Gas::openI2CDevice(const char* const t_device)
 
 void Gas::getMagneticField(void)
 {
-  while (!isEvent) {
-    this_thread::sleep_for(chrono::milliseconds(1));
+  struct gpiod_chip* chip;
+  struct gpiod_line* line;
+  struct gpiod_line_event event;
+  int ret = 0;
+
+  chip = gpiod_chip_open(m_chip);
+  if (!chip) {
+    throw runtime_error(string("GPIO chip") + m_chip + " not found.");
   }
-  MAG3110::getMag(&m_bx, &m_by, &m_bz);
-  if (m_debug) {
-    ofstream log;
-    log.open("mag.log", ios::app);
-    time_t timestamp = time(nullptr);
-    struct tm* tm = localtime(&timestamp);
-    char time_buffer[32] = {0};
-    strftime(time_buffer, 31, "%F %T", tm);
-    log << time_buffer << "," << timestamp << "," << m_bx << ","
-      << m_by << "," << m_bz << endl;
-    log.close();
+  line = gpiod_chip_get_line(chip, m_line);
+  if (!line) {
+    gpiod_chip_close(chip);
+    throw runtime_error(string("GPIO line") + to_string(m_line) + " could not be opened.");
   }
-  isEvent = false;
+  ret = gpiod_line_request_rising_edge_events(line, "mag3110");
+  if (ret < 0) {
+    gpiod_chip_close(chip);
+    throw runtime_error("Request events failed");
+  }
+  do {
+    ret = gpiod_line_event_wait(line, NULL);
+  } while (ret <= 0);
+  ret = gpiod_line_event_read(line, &event);
+  if (!ret && (event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)) {
+    MAG3110::getMag(&m_bx, &m_by, &m_bz);
+    if (m_debug) {
+      printf("event: %d timestamp: [%8ld.%09ld]\n", event.event_type, event.ts.tv_sec, event.ts.tv_nsec);
+      ofstream log;
+      log.open("mag.log", ios::app);
+      time_t timestamp = time(nullptr);
+      struct tm* tm = localtime(&timestamp);
+      char time_buffer[32] = {0};
+      strftime(time_buffer, 31, "%F %T", tm);
+      log << time_buffer << "," << timestamp << "," << m_bx << ","
+        << m_by << "," << m_bz << endl;
+      log.close();
+    }
+  }
+  gpiod_chip_close(chip);
 }
 
 void Gas::increaseGasCounter(void)

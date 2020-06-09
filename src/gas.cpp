@@ -19,6 +19,8 @@ Gas::Gas(void)
   m_level = 0;
   m_hyst = 0;
   m_step = 0;
+  m_chip = 0;
+  m_line = 0;
 }
 
 Gas::~Gas(void)
@@ -42,6 +44,20 @@ void Gas::setTriggerParameters(int const& t_level, int const& t_hyst)
   }
   m_level = t_level;
   m_hyst = t_hyst;
+}
+
+void Gas::setGpioDevice(const char* t_chip, unsigned int const& t_line)
+{
+  if (!t_chip) {
+    throw runtime_error("GPIO chip device argument empty");
+  }
+
+  if (!t_line) {
+    throw runtime_error("GPIO line offset argument empty");
+  }
+
+  m_chip = t_chip;
+  m_line = t_line;
 }
 
 void Gas::runMagSensor(void)

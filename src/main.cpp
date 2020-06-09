@@ -20,14 +20,14 @@ int main(int argc, char* argv[])
   double gas_factor = 0;
   int trigger_level = 0;
   int trigger_hyst = 0;
-  unsigned int gpio_line_offset = 0;
+  unsigned int gpio_line = 0;
 
   const struct option longOpts[] = {
     { "help", no_argument, nullptr, 'h' },
     { "version", no_argument, nullptr, 'V' },
     { "debug", no_argument, nullptr, 'D' },
     { "gpiochip", required_argument, nullptr, 'G' },
-    { "offset", required_argument, nullptr, 'O' },
+    { "line", required_argument, nullptr, 'O' },
     { "device", required_argument, nullptr, 'd' },
     { "socket", required_argument, nullptr, 's'},
     { "rrd", required_argument, nullptr, 'r' },
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
       gpio_chip = optarg;
       break;
     case 'O':
-      gpio_line_offset = atoi(optarg);
+      gpio_line = atoi(optarg);
       break;
     case 'd':
       i2c_device = optarg;
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
   -V --version           Show build info\n\
   -D --debug             Show debug messages\n\
   -G --gpiochip          Set libgpiod gpiochip device\n\
-  -O --offset            Set libgpiod line offset\n\
+  -O --line              Set libgpiod line offset\n\
   -d --device [dev]      Set MAG3110 I²C device\n\
   -s --socket [fd]       Set socket of rrdcached daemon\n\
   -r --rrd [path]        Set path of gas.rrd database\n\
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
   }
 
   meter->openI2CDevice(i2c_device);
-  meter->setupGpioDevice(gpio_chip, gpio_line_offset);
+  meter->setGpioDevice(gpio_chip, gpio_line);
   meter->setTriggerParameters(trigger_level, trigger_hyst);
   meter->createRRD(rrd_path, rrd_socket);
   meter->setMeterReading(meter_reading, meter_step);

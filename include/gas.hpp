@@ -22,7 +22,7 @@ public:
 
   void runMagSensor(void);
   void openI2CDevice(const char* const t_device);
-  void setupGpioDevice(const char* t_gpiochip, unsigned int const& t_offset);
+  void setGpioDevice(const char* t_chip, unsigned int const& t_line);
   void getMagneticField(void);
   void setTriggerParameters(int const& t_level, int const& t_hyst);
   void increaseGasCounter(void);
@@ -37,8 +37,8 @@ public:
 
 private:
   bool m_debug;                 // debug flag
-  char* m_rrd;                  // full path of gas.rrd database
-  char* m_socket;               // socket of rrdcached daemon
+  char const* m_rrd;            // full path of gas.rrd database
+  char const* m_socket;         // socket of rrdcached daemon
   int m_bx;                     // x-axis magnetic field
   int m_by;                     // y-axis magnetic field
   int m_bz;                     // z-axis magnetic field
@@ -47,6 +47,8 @@ private:
   double m_step;                // counter step size [m³]
   double m_factor;              // gas conversion factor to kWh
   unsigned long m_counter;      // gas counter in [m³ * 1/step]
+  char const* m_chip;           // libgpiod gpio chip device
+  unsigned int m_line;          // libgpiod gpio line offset
 };
 
 #endif // GAS_HPP
