@@ -26,33 +26,16 @@ void Gas::openI2CDevice(const char* const t_device)
 
 void Gas::getMagneticField(void)
 {
-  struct gpiod_chip* chip;
-  struct gpiod_line* line;
   struct gpiod_line_event event;
   int ret = 0;
 
-  chip = gpiod_chip_open(m_chip);
-  if (!chip) {
-    throw runtime_error(string("GPIO chip") + m_chip + " not found.");
-  }
-  line = gpiod_chip_get_line(chip, m_line);
-  if (!line) {
-    gpiod_chip_close(chip);
-    throw runtime_error(string("GPIO line") + to_string(m_line) + " could not be opened.");
-  }
-  ret = gpiod_line_request_rising_edge_events(line, "mag3110");
-  if (ret < 0) {
-    gpiod_chip_close(chip);
-    throw runtime_error("Request events failed");
-  }
   do {
-    ret = gpiod_line_event_wait(line, NULL);
+    ret = gpiod_line_event_wait(m_line, NULL);
   } while (ret <= 0);
-  ret = gpiod_line_event_read(line, &event);
+  ret = gpiod_line_event_read(m_line, &event);
   if (!ret && (event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)) {
     MAG3110::getMag(&m_bx, &m_by, &m_bz);
     if (m_debug) {
-      printf("event: %d timestamp: [%8ld.%09ld]\n", event.event_type, event.ts.tv_sec, event.ts.tv_nsec);
       ofstream log;
       log.open("mag.log", ios::app);
       time_t timestamp = time(nullptr);
@@ -64,7 +47,6 @@ void Gas::getMagneticField(void)
       log.close();
     }
   }
-  gpiod_chip_close(chip);
 }
 
 void Gas::increaseGasCounter(void)

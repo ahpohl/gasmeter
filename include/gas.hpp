@@ -6,7 +6,6 @@
 class Gas : public MAG3110
 {
 public:
-  static bool isEvent;
   static int const RUN_METER_INTERVAL;
   static int const RRD_BUFFER_SIZE;
   static int const RRD_DS_LEN;
@@ -22,7 +21,7 @@ public:
 
   void runMagSensor(void);
   void openI2CDevice(const char* const t_device);
-  void setGpioDevice(const char* t_chip, unsigned int const& t_line);
+  void setupGpioDevice(const char* t_chip, unsigned int const& t_line);
   void getMagneticField(void);
   void setTriggerParameters(int const& t_level, int const& t_hyst);
   void increaseGasCounter(void);
@@ -47,8 +46,8 @@ private:
   double m_step;                // counter step size [m³]
   double m_factor;              // gas conversion factor to kWh
   unsigned long m_counter;      // gas counter in [m³ * 1/step]
-  char const* m_chip;           // libgpiod gpio chip device
-  unsigned int m_line;          // libgpiod gpio line offset
+  struct gpiod_chip* m_chip;    // libgpiod gpio chip device
+  struct gpiod_line* m_line;    // libgpiod gpio line offset
 };
 
 #endif // GAS_HPP
