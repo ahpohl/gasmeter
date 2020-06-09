@@ -14,19 +14,19 @@ int main(int argc, char* argv[])
   char const* rrd_socket = nullptr;
   char const* rrd_path = nullptr;
   char const* ramdisk = nullptr;
-  char const* gpio_chip = nullptr;
   double meter_reading = 0;
   double meter_step = 0;
   double gas_factor = 0;
   int trigger_level = 0;
   int trigger_hyst = 0;
+  char const* gpio_chip = nullptr;
   unsigned int gpio_line = 0;
 
   const struct option longOpts[] = {
     { "help", no_argument, nullptr, 'h' },
     { "version", no_argument, nullptr, 'V' },
     { "debug", no_argument, nullptr, 'D' },
-    { "gpiochip", required_argument, nullptr, 'G' },
+    { "chip", required_argument, nullptr, 'G' },
     { "line", required_argument, nullptr, 'O' },
     { "device", required_argument, nullptr, 'd' },
     { "socket", required_argument, nullptr, 's'},
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   -h --help              Show help message\n\
   -V --version           Show build info\n\
   -D --debug             Show debug messages\n\
-  -G --gpiochip          Set libgpiod gpiochip device\n\
+  -G --chip              Set libgpiod gpio chip device\n\
   -O --line              Set libgpiod line offset\n\
   -d --device [dev]      Set MAG3110 I²C device\n\
   -s --socket [fd]       Set socket of rrdcached daemon\n\
