@@ -36,8 +36,8 @@ public:
 
 private:
   bool m_debug;                 // debug flag
-  char const* m_rrd;            // full path of gas.rrd database
-  char const* m_socket;         // socket of rrdcached daemon
+  char* m_rrd;                  // full path of gas.rrd database
+  char* m_socket;               // socket of rrdcached daemon
   int m_bx;                     // x-axis magnetic field
   int m_by;                     // y-axis magnetic field
   int m_bz;                     // z-axis magnetic field
