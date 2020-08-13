@@ -34,6 +34,7 @@ Gas::~Gas(void)
   if (m_chip) {
     gpiod_chip_close(m_chip);
   }
+  delete m_mqtt;
 }
 
 void Gas::setDebug(void)
@@ -87,6 +88,7 @@ void Gas::runGasCounter(void)
 {
   while (true) {
     setGasCounter();
+    publishMqtt();
     this_thread::sleep_for(chrono::seconds(Gas::RUN_METER_INTERVAL));
   }
 }

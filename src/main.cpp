@@ -21,6 +21,9 @@ int main(int argc, char* argv[])
   int trigger_hyst = 0;
   char const* gpio_chip = nullptr;
   unsigned int gpio_line = 0;
+  char const* mqtt_host = nullptr;
+  char const* mqtt_topic = nullptr;
+  int mqtt_port = 0;
 
   const struct option longOpts[] = {
     { "help", no_argument, nullptr, 'h' },
@@ -36,11 +39,14 @@ int main(int argc, char* argv[])
     { "step", required_argument, nullptr, 'S'},
     { "factor", required_argument, nullptr, 'f' },
     { "level", required_argument, nullptr, 'L' },
-    { "hyst", required_argument, nullptr, 'H' },
+    { "hyst", required_argument, nullptr, 'y' },
+    { "host", required_argument, nullptr, 'H' },
+    { "port", required_argument, nullptr, 'p' },
+    { "topic", required_argument, nullptr, 't' },
     { nullptr, 0, nullptr, 0 }
   };
 
-  const char* const optString = "hVDG:O:d:s:r:R:m:S:f:L:H:";
+  const char* const optString = "hVDG:O:d:s:r:R:m:S:f:L:y:H:p:t:";
 
   int opt = 0;
   int longIndex = 0;
@@ -87,8 +93,17 @@ int main(int argc, char* argv[])
     case 'L':
       trigger_level = atoi(optarg);
       break;
-    case 'H':
+    case 'y':
       trigger_hyst = atoi(optarg);
+      break;
+    case 'H':
+      mqtt_host = optarg;
+      break;
+    case 'p':
+      mqtt_port = atoi(optarg);
+      break;
+    case 't':
+      mqtt_topic = optarg;
       break;
     default:
       break;
@@ -114,7 +129,10 @@ int main(int argc, char* argv[])
   -S --step [float]      Set meter step [m³]\n\
   -f --factor [float]    Set gas conversion factor\n\
   -L --level [int]       Set trigger level\n\
-  -H --hyst [int]        Set trigger hysteresis"
+  -y --hyst [int]        Set trigger hysteresis\n\
+  -H --host              Set MQTT broker host or ip\n\
+  -p --port [int]        Set MQTT broker port\n\
+  -t --topic             Set MQTT topic to publish"
     << endl << endl;
     return 0;
   }
@@ -143,6 +161,7 @@ int main(int argc, char* argv[])
   meter->createRRD(rrd_path, rrd_socket);
   meter->setMeterReading(meter_reading, meter_step);
   meter->createObisPath(ramdisk, gas_factor);
+  meter->initMqtt(mqtt_host, mqtt_port, mqtt_topic);
 
   thread sensor_thread;
   sensor_thread = thread(&Gas::runMagSensor, meter);
