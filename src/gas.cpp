@@ -22,6 +22,7 @@ Gas::Gas(void)
   m_step = 0;
   m_chip = 0;
   m_line = 0;
+  m_mqtt = nullptr;
 }
 
 Gas::~Gas(void)
@@ -81,6 +82,9 @@ void Gas::runMagSensor(void)
     getMagneticField();
     increaseGasCounter();
     writeObisCodes();
+    if (m_debug) {
+      publishMqttMag();
+    }
   }
 }
 

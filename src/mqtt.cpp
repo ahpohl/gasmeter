@@ -1,12 +1,12 @@
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <string>
 #include <iomanip>
 #include <unistd.h>
 #include <chrono>
 #include <thread>
 #include <mutex>
+#include <cmath>
 #include "gas.hpp"
 #include "mosq.hpp"
 
@@ -37,6 +37,38 @@ void Gas::publishMqtt(void) const
   // send energy in kWh
   payload << std::fixed << std::setprecision(2) << m_counter / m_step * m_factor;
   topic << m_topic << "/energy/state";
+  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
+  topic=std::stringstream(); payload=std::stringstream();
+}
+
+void Gas::publishMqttMag(void) const
+{
+  std::stringstream payload, topic;
+  std::mutex mutex;
+  std::lock_guard<std::mutex> guard(mutex);
+
+  // send x-axis magnetization in Gauss 
+  payload << std::fixed << std::setprecision(0) << m_bx; 
+  topic << m_topic << "/bx/state";
+  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
+  topic=std::stringstream(); payload=std::stringstream();
+
+  // send y-axis magnetization in Gauss
+  payload << std::fixed << std::setprecision(0) << m_by;
+  topic << m_topic << "/by/state";
+  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
+  topic=std::stringstream(); payload=std::stringstream();
+
+  // send z-axis magnetization in Gauss
+  payload << std::fixed << std::setprecision(0) << m_bz;
+  topic << m_topic << "/bz/state";
+  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
+  topic=std::stringstream(); payload=std::stringstream();
+
+  // send magitude of magnetization vectors in Gauss
+  payload << std::fixed << std::setprecision(0)
+    << std::sqrt(m_bx*m_bx+m_by*m_by+m_bz*m_bz);
+  topic << m_topic << "/mag/state";
   m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
   topic=std::stringstream(); payload=std::stringstream();
 }
