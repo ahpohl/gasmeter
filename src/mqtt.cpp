@@ -30,13 +30,13 @@ void Gas::publishMqtt(void) const
 
   // send volume in m³ 
   payload << std::fixed << std::setprecision(2) << m_counter*m_step;
-  topic << m_topic << "/volume/state";
+  topic << m_topic << "/gas_volume/state";
   m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
   topic=std::stringstream(); payload=std::stringstream();
 
   // send energy in kWh
   payload << std::fixed << std::setprecision(2) << m_counter*m_step*m_factor;
-  topic << m_topic << "/energy/state";
+  topic << m_topic << "/gas_energy/state";
   m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
   topic=std::stringstream(); payload=std::stringstream();
 }
