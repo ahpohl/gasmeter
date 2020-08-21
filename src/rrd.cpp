@@ -85,7 +85,7 @@ void Gas::setMeterReading(double const& t_meter, double const& t_step)
   }
   m_step = t_step;
   char * argv[Gas::RRD_BUFFER_SIZE];
-  time_t timestamp = time(nullptr) - Gas::RUN_METER_INTERVAL;
+  time_t timestamp = time(nullptr);
   unsigned long requested_counter = lround(t_meter / t_step);
   m_counter = getGasCounter();
 
@@ -197,6 +197,7 @@ unsigned long Gas::getGasCounter(void)
 
 void Gas::runRrdCounter(void)
 {
+  this_thread::sleep_for(chrono::seconds(1));
   while (true) {
     setGasCounter();
     this_thread::sleep_for(chrono::seconds(Gas::RUN_METER_INTERVAL));

@@ -158,6 +158,7 @@ int main(int argc, char* argv[])
   meter->openI2CDevice(i2c_device);
   meter->setupGpioDevice(gpio_chip, gpio_line);
   meter->setTriggerParameters(trigger_level, trigger_hyst);
+  
   meter->createRRD(rrd_path, rrd_socket);
   meter->setMeterReading(meter_reading, meter_step);
   meter->createObisPath(ramdisk, gas_factor);

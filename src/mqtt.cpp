@@ -37,9 +37,9 @@ void Gas::publishMqtt(void) const
     << "\"bz\":" << m_bz << ","
     << "\"mag\":" << std::sqrt(m_bx*m_bx+m_by*m_by+m_bz*m_bz) << ","
     << "\"volume\":" << m_counter*m_step << ","
-    << "\"energy\":" << m_counter*m_step*m_factor << ","
+    << "\"energy\":" << m_counter*m_step*m_factor
     << "},{"
-    << "\"factor\":" << m_factor << ","
+    << "\"factor\":" << std::setprecision(3) << m_factor
     << "}]";
 
   m_mqtt->send_message(topic.c_str(), payload.str().c_str());
