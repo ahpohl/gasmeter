@@ -73,3 +73,11 @@ void Gas::increaseGasCounter(void)
   }
   old_state = trigger_state;
 }
+
+void Gas::runMagSensor(void)
+{
+  while (true) {
+    getMagneticField();
+    increaseGasCounter();
+  }
+}

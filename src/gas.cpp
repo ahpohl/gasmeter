@@ -75,20 +75,3 @@ void Gas::setupGpioDevice(const char* t_chip, unsigned int const& t_line)
     throw runtime_error("Request events failed");
   }
 }
-
-void Gas::runMagSensor(void)
-{
-  while (true) {
-    getMagneticField();
-    increaseGasCounter();
-    writeObisCodes();
-  }
-}
-
-void Gas::runGasCounter(void)
-{
-  while (true) {
-    setGasCounter();
-    this_thread::sleep_for(chrono::seconds(Gas::RUN_METER_INTERVAL));
-  }
-}

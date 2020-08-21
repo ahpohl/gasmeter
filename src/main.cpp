@@ -163,15 +163,21 @@ int main(int argc, char* argv[])
   meter->createObisPath(ramdisk, gas_factor);
   meter->initMqtt(mqtt_host, mqtt_port, mqtt_topic);
 
-  thread sensor_thread;
-  sensor_thread = thread(&Gas::runMagSensor, meter);
-  thread meter_thread;
-  meter_thread = thread(&Gas::runGasCounter, meter);
-  if (sensor_thread.joinable()) {
-    sensor_thread.join();
+  thread mag_thread;
+  mag_thread = thread(&Gas::runMagSensor, meter);
+  thread mqtt_thread;
+  mqtt_thread = thread(&Gas::runMqtt, meter);
+  thread rrd_thread;
+  rrd_thread = thread(&Gas::runRrdCounter, meter);
+
+  if (mag_thread.joinable()) {
+    mag_thread.join();
   }
-  if (meter_thread.joinable()) {
-    meter_thread.join();
+  if (mqtt_thread.joinable()) {
+    mqtt_thread.join();
+  }
+  if (rrd_thread.joinable()) {
+    rrd_thread.join();
   }
 
   return 0;

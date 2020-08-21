@@ -194,3 +194,11 @@ unsigned long Gas::getGasCounter(void)
 
   return counter;
 }
+
+void Gas::runRrdCounter(void)
+{
+  while (true) {
+    setGasCounter();
+    this_thread::sleep_for(chrono::seconds(Gas::RUN_METER_INTERVAL));
+  }
+}

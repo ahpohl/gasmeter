@@ -52,6 +52,7 @@ void Gas::runMqtt(void) const
 {
   while (true) {
     publishMqtt();
+    writeObisCodes();
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 }

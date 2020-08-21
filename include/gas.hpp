@@ -31,11 +31,10 @@ public:
   void setMeterReading(double const& t_meter, double const& t_step);
   void setGasCounter(void);
   unsigned long getGasCounter(void);
+  void runRrdCounter(void);
   
-  void runGasCounter(void);
   void createObisPath(const char* const t_ramdisk, double const& t_factor);
   void writeObisCodes(void) const;
-
   void runMqtt(void) const;
   void initMqtt(char const* const t_host, int const& t_port, char const* const t_topic);
   void publishMqtt(void) const;
