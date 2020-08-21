@@ -1,1 +1,1 @@
-sudo ./build/gasmeter --debug --device /dev/i2c-1 --socket unix:/tmp/rrdcached.sock --level 9000 --hyst 200 --rrd /var/lib/gasmeter --ramdisk /dev/shm --step 0.01 --factor 10.835 --chip /dev/gpiochip0 --line 4 --host 192.168.178.40 --port 1883 --topic "gasmeter/sensor"
+sudo ./build/gasmeter --debug --device /dev/i2c-1 --socket unix:/tmp/rrdcached.sock --level 9000 --hyst 200 --rrd /var/lib/gasmeter --ramdisk /dev/shm --step 0.01 --factor 10.898 --chip /dev/gpiochip0 --line 4 --host 192.168.178.40 --port 1883 --topic "gasmeter"

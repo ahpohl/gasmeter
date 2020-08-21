@@ -29,8 +29,9 @@ public:
   
   void createRRD(const char* const t_path, const char* const t_socket);
   void setMeterReading(double const& t_meter, double const& t_step);
+  double getMeterReading(void) const;
   void setGasCounter(void);
-  unsigned long getGasCounter(void);
+  unsigned long getGasCounter(void) const;
   void runRrdCounter(void);
   
   void createObisPath(const char* const t_ramdisk, double const& t_factor);

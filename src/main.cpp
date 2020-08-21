@@ -3,8 +3,6 @@
 #include <getopt.h>
 #include "gas.hpp"
 
-using namespace std;
-
 int main(int argc, char* argv[])
 {
   bool help = false;
@@ -113,9 +111,9 @@ int main(int argc, char* argv[])
 
   if (help)
   {
-    cout << "Gasmeter " << VERSION_TAG << endl;
-    cout << endl << "Usage: " << argv[0] << " [options]" << endl << endl;
-    cout << "\
+    std::cout << "Gasmeter " << VERSION_TAG << std::endl;
+    std::cout << std::endl << "Usage: " << argv[0] << " [options]" << std::endl << std::endl;
+    std::cout << "\
   -h --help              Show help message\n\
   -V --version           Show build info\n\
   -D --debug             Show debug messages\n\
@@ -133,23 +131,23 @@ int main(int argc, char* argv[])
   -H --host              Set MQTT broker host or ip\n\
   -p --port [int]        Set MQTT broker port\n\
   -t --topic             Set MQTT topic to publish"
-    << endl << endl;
+    << std::endl << std::endl;
     return 0;
   }
 
   if (version)
   {
-      cout << "Version " << VERSION_TAG 
-        << " (" << VERSION_BUILD << ") built " 
-        << VERSION_BUILD_DATE 
-        << " by " << VERSION_BUILD_MACHINE << endl;
-      return 0;
+    std::cout << "Version " << VERSION_TAG 
+      << " (" << VERSION_BUILD << ") built " 
+      << VERSION_BUILD_DATE 
+      << " by " << VERSION_BUILD_MACHINE << std::endl;
+    return 0;
   }
 
-  cout << "Gasmeter " << VERSION_TAG
-    << " (" << VERSION_BUILD << ")" << endl;
+  std::cout << "Gasmeter " << VERSION_TAG
+    << " (" << VERSION_BUILD << ")" << std::endl;
 
-  shared_ptr<Gas> meter(new Gas());
+  std::shared_ptr<Gas> meter(new Gas());
 
   if (debug) {
     meter->setDebug();
@@ -164,12 +162,12 @@ int main(int argc, char* argv[])
   meter->createObisPath(ramdisk, gas_factor);
   meter->initMqtt(mqtt_host, mqtt_port, mqtt_topic);
 
-  thread mag_thread;
-  mag_thread = thread(&Gas::runMagSensor, meter);
-  thread mqtt_thread;
-  mqtt_thread = thread(&Gas::runMqtt, meter);
-  thread rrd_thread;
-  rrd_thread = thread(&Gas::runRrdCounter, meter);
+  std::thread mag_thread;
+  mag_thread = std::thread(&Gas::runMagSensor, meter);
+  std::thread mqtt_thread;
+  mqtt_thread = std::thread(&Gas::runMqtt, meter);
+  std::thread rrd_thread;
+  rrd_thread = std::thread(&Gas::runRrdCounter, meter);
 
   if (mag_thread.joinable()) {
     mag_thread.join();
@@ -179,6 +177,11 @@ int main(int argc, char* argv[])
   }
   if (rrd_thread.joinable()) {
     rrd_thread.join();
+  }
+
+  meter->setGasCounter();
+  if (debug) {
+    std::cout << "Last meter reading: " << meter->getMeterReading() << " m³" << std::endl;
   }
 
   return 0;

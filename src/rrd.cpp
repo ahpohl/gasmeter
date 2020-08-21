@@ -117,6 +117,11 @@ void Gas::setMeterReading(double const& t_meter, double const& t_step)
     << static_cast<double>(m_counter) * t_step << " m³" << endl;
 }
 
+double Gas::getMeterReading(void) const
+{
+  return getGasCounter() * m_step;
+}
+
 void Gas::setGasCounter(void)
 {
 	time_t timestamp = time(nullptr);
@@ -159,7 +164,7 @@ void Gas::setGasCounter(void)
 	free(*argv);
 }
 
-unsigned long Gas::getGasCounter(void)
+unsigned long Gas::getGasCounter(void) const
 {
   int ret = rrdc_connect(m_socket);
   if (ret) {
