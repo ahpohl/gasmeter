@@ -36,9 +36,12 @@ void Gas::publishMqtt(void) const
     << "\"by\":" << m_by << ","
     << "\"bz\":" << m_bz << ","
     << "\"mag\":" << std::sqrt(m_bx*m_bx+m_by*m_by+m_bz*m_bz) << ","
-    << "\"volume\":" << m_counter*m_step << ","
+    << "\"volume\":" << std::setprecision(2) << m_counter*m_step << ","
     << "\"energy\":" << m_counter*m_step*m_factor
     << "},{"
+    << "\"trigger_level\":" << std::setprecision(0) << m_level << ","
+    << "\"hysteresis\":" << m_hyst << ","
+    << "\"step_size\":" << m_step << ","
     << "\"factor\":" << std::setprecision(3) << m_factor
     << "}]";
 
