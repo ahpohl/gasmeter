@@ -89,7 +89,6 @@ void Gas::runGasCounter(void)
 {
   while (true) {
     setGasCounter();
-    publishMqtt();
     this_thread::sleep_for(chrono::seconds(Gas::RUN_METER_INTERVAL));
   }
 }

@@ -52,6 +52,6 @@ void Gas::runMqtt(void) const
 {
   while (true) {
     publishMqtt();
-    std::this_thread::sleep_for(std::chrono::minutes(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 }
