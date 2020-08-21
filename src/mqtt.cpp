@@ -24,53 +24,28 @@ void Gas::initMqtt(char const* const t_host, int const& t_port, char const* cons
 
 void Gas::publishMqtt(void) const
 {
-  std::stringstream payload, topic;
   std::mutex mutex;
   std::lock_guard<std::mutex> guard(mutex);
+  std::string topic = m_topic + "/state";
+  std::stringstream payload;
 
-  // send volume in m³ 
-  payload << std::fixed << std::setprecision(2) << m_counter*m_step;
-  topic << m_topic << "/gas_volume/state";
-  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
-  topic=std::stringstream(); payload=std::stringstream();
+  // json string with influxdb fields and tags 
+  // magnetization in Gauss, volume in m³, energy in kWh
+  payload << "[{"
+    << "\"bx\":" << std::fixed << std::setprecision(0) << m_bx << ","
+    << "\"by\":" << m_by << ","
+    << "\"bz\":" << m_bz << ","
+    << "\"mag\":" << std::sqrt(m_bx*m_bx+m_by*m_by+m_bz*m_bz) << ","
+    << "\"volume\":" << m_counter*m_step << ","
+    << "\"energy\":" << m_counter*m_step*m_factor << ","
+    << "},{"
+    << "\"factor\":" << m_factor << ","
+    << "}]";
 
-  // send energy in kWh
-  payload << std::fixed << std::setprecision(2) << m_counter*m_step*m_factor;
-  topic << m_topic << "/gas_energy/state";
-  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
-  topic=std::stringstream(); payload=std::stringstream();
-}
-
-void Gas::publishMqttMag(void) const
-{
-  std::stringstream payload, topic;
-  std::mutex mutex;
-  std::lock_guard<std::mutex> guard(mutex);
-
-  // send x-axis magnetization in Gauss 
-  payload << std::fixed << std::setprecision(0) << m_bx; 
-  topic << m_topic << "/bx/state";
-  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
-  topic=std::stringstream(); payload=std::stringstream();
-
-  // send y-axis magnetization in Gauss
-  payload << std::fixed << std::setprecision(0) << m_by;
-  topic << m_topic << "/by/state";
-  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
-  topic=std::stringstream(); payload=std::stringstream();
-
-  // send z-axis magnetization in Gauss
-  payload << std::fixed << std::setprecision(0) << m_bz;
-  topic << m_topic << "/bz/state";
-  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
-  topic=std::stringstream(); payload=std::stringstream();
-
-  // send magitude of magnetization vectors in Gauss
-  payload << std::fixed << std::setprecision(0)
-    << std::sqrt(m_bx*m_bx+m_by*m_by+m_bz*m_bz);
-  topic << m_topic << "/mag/state";
-  m_mqtt->send_message(topic.str().c_str(), payload.str().c_str());
-  topic=std::stringstream(); payload=std::stringstream();
+  m_mqtt->send_message(topic.c_str(), payload.str().c_str());
+  if (m_debug) {
+    std::cout << payload.str() << std::endl;
+  }
 }
 
 void Gas::runMqtt(void) const

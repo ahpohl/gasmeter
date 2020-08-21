@@ -82,9 +82,6 @@ void Gas::runMagSensor(void)
     getMagneticField();
     increaseGasCounter();
     writeObisCodes();
-    if (m_debug) {
-      publishMqttMag();
-    }
   }
 }
 

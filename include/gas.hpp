@@ -39,7 +39,6 @@ public:
   void runMqtt(void) const;
   void initMqtt(char const* const t_host, int const& t_port, char const* const t_topic);
   void publishMqtt(void) const;
-  void publishMqttMag(void) const;
 
 private:
   bool m_debug;                 // debug flag
