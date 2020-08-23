@@ -6,6 +6,7 @@
 #include <thread>
 #include <mutex>
 #include <ctime>
+#include <gpiod.h>
 #include <unistd.h>
 #include <errno.h>
 #include "gas.hpp"
@@ -24,17 +25,26 @@ void Gas::openI2CDevice(const char* const t_device)
 
 void Gas::getMagneticField(void)
 {
-  MAG3110::getMag(&m_bx, &m_by, &m_bz);
-  if (m_debug) {
-    ofstream log;
-    log.open("mag.log", ios::app);
-    time_t timestamp = time(nullptr);
-    struct tm* tm = localtime(&timestamp);
-    char time_buffer[32] = {0};
-    strftime(time_buffer, 31, "%F %T", tm);
-    log << time_buffer << "," << timestamp << "," << m_bx << ","
-      << m_by << "," << m_bz << endl;
-    log.close();
+  struct gpiod_line_event event;
+  int ret = 0;
+
+  do {
+    ret = gpiod_line_event_wait(m_line, NULL);
+  } while (ret <= 0);
+  ret = gpiod_line_event_read(m_line, &event);
+  if (!ret && (event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)) {
+    MAG3110::getMag(&m_bx, &m_by, &m_bz);
+    if (m_debug) {
+      ofstream log;
+      log.open("mag.log", ios::app);
+      time_t timestamp = time(nullptr);
+      struct tm* tm = localtime(&timestamp);
+      char time_buffer[32] = {0};
+      strftime(time_buffer, 31, "%F %T", tm);
+      log << time_buffer << "," << timestamp << "," << m_bx << ","
+        << m_by << "," << m_bz << endl;
+      log.close();
+    }
   }
 }
 

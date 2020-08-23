@@ -21,6 +21,7 @@ public:
 
   void runMagSensor(void);
   void openI2CDevice(const char* const t_device);
+  void setupGpioDevice(const char* t_chip, unsigned int const& t_line);
   void getMagneticField(void);
   void setTriggerParameters(int const& t_level, int const& t_hyst);
   void increaseGasCounter(void);
@@ -45,6 +46,8 @@ private:
   double m_step;                // counter step size [m³]
   double m_factor;              // gas conversion factor to kWh
   unsigned long m_counter;      // gas counter in [m³ * 1/step]
+  struct gpiod_chip* m_chip;    // libgpiod gpio chip device
+  struct gpiod_line* m_line;    // libgpiod gpio line offset
 };
 
 #endif // GAS_HPP

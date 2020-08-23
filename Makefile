@@ -33,7 +33,7 @@ INCLUDES = -I./include
 LFLAGS =
 
 # define any libraries to link into executable:
-LIBS = -lmag3110 -lstdc++fs -lrrd
+LIBS = -lmag3110 -lgpiod -lstdc++fs -lrrd
 
 # define src and obj directories
 SRC_DIR = src
