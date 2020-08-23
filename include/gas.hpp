@@ -2,6 +2,7 @@
 #define GAS_HPP
 
 #include <mag3110>
+#include "mosq.hpp"
 
 class Gas : public MAG3110
 {
@@ -26,13 +27,18 @@ public:
   void setTriggerParameters(int const& t_level, int const& t_hyst);
   void increaseGasCounter(void);
   
-  void runGasCounter(void);
   void createRRD(const char* const t_path, const char* const t_socket);
   void setMeterReading(double const& t_meter, double const& t_step);
+  double getMeterReading(void) const;
   void setGasCounter(void);
-  unsigned long getGasCounter(void);
+  unsigned long getGasCounter(void) const;
+  void runRrdCounter(void);
+  
   void createObisPath(const char* const t_ramdisk, double const& t_factor);
   void writeObisCodes(void) const;
+  void runMqtt(void) const;
+  void initMqtt(char const* const t_host, int const& t_port, char const* const t_topic);
+  void publishMqtt(void) const;
 
 private:
   bool m_debug;                 // debug flag
@@ -48,6 +54,8 @@ private:
   unsigned long m_counter;      // gas counter in [m³ * 1/step]
   struct gpiod_chip* m_chip;    // libgpiod gpio chip device
   struct gpiod_line* m_line;    // libgpiod gpio line offset
+  Mosq* m_mqtt;                 // pointer to mosquitto client object
+  std::string m_topic;          // MQTT topic to publish to
 };
 
 #endif // GAS_HPP

@@ -20,6 +20,7 @@ void Gas::openI2CDevice(const char* const t_device)
   }
   MAG3110::initialize(t_device);
   MAG3110::reset();
+  MAG3110::setDR_OS(MAG3110::MAG3110_DR_OS_2_5_128);
   MAG3110::start();
 }
 
@@ -71,4 +72,12 @@ void Gas::increaseGasCounter(void)
     }
   }
   old_state = trigger_state;
+}
+
+void Gas::runMagSensor(void)
+{
+  while (true) {
+    getMagneticField();
+    increaseGasCounter();
+  }
 }

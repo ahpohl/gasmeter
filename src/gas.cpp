@@ -22,6 +22,7 @@ Gas::Gas(void)
   m_step = 0;
   m_chip = 0;
   m_line = 0;
+  m_mqtt = nullptr;
 }
 
 Gas::~Gas(void)
@@ -34,6 +35,7 @@ Gas::~Gas(void)
   if (m_chip) {
     gpiod_chip_close(m_chip);
   }
+  delete m_mqtt;
 }
 
 void Gas::setDebug(void)
@@ -71,23 +73,5 @@ void Gas::setupGpioDevice(const char* t_chip, unsigned int const& t_line)
   if (ret < 0) {
     gpiod_chip_close(m_chip);
     throw runtime_error("Request events failed");
-  }
-}
-
-void Gas::runMagSensor(void)
-{
-  while (true) {
-    getMagneticField();
-    increaseGasCounter();
-    writeObisCodes();
-    this_thread::sleep_for(chrono::seconds(1));
-  }
-}
-
-void Gas::runGasCounter(void)
-{
-  while (true) {
-    setGasCounter();
-    this_thread::sleep_for(chrono::seconds(Gas::RUN_METER_INTERVAL));
   }
 }
