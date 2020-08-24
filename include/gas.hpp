@@ -34,11 +34,11 @@ public:
   unsigned long getGasCounter(void) const;
   void runRrdCounter(void);
   
-  void createObisPath(const char* const t_ramdisk, double const& t_factor);
+  void createObisPath(const char* const t_ramdisk);
   void writeObisCodes(void) const;
   void runMqtt(void) const;
   void initMqtt(char const* const t_host, int const& t_port, char const* const t_topic);
-  void setTariff(double const& t_rate, double const& t_price);
+  void setTariff(double const& t_factor, double const& t_rate, double const& t_price);
   void publishMqtt(void) const;
   
 
@@ -52,12 +52,12 @@ private:
   int m_level;                  // trigger level
   int m_hyst;                   // trigger hysteresis
   double m_step;                // counter step size [m³]
-  double m_factor;              // gas conversion factor to kWh
   unsigned long m_counter;      // gas counter in [m³ * 1/step]
   struct gpiod_chip* m_chip;    // libgpiod gpio chip device
   struct gpiod_line* m_line;    // libgpiod gpio line offset
   Mosq* m_mqtt;                 // pointer to mosquitto client object
   std::string m_topic;          // MQTT topic to publish to
+  double m_factor;              // gas conversion factor to kWh
   double m_rate;                // gas tariff basic rate per year
   double m_price;               // gas tariff price per kWh
 };

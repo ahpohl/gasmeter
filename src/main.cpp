@@ -135,7 +135,6 @@ int main(int argc, char* argv[])
   -R --ramdisk      Set shared memory device\n\
   -m --meter        Set intial gas meter [m³]\n\
   -S --step         Set meter step [m³]\n\
-  -f --factor       Set gas conversion factor\n\
   -L --level        Set trigger level\n\
   -y --hyst         Set trigger hysteresis\n\
   -H --host         Set MQTT broker host or ip\n\
@@ -143,6 +142,7 @@ int main(int argc, char* argv[])
   -t --topic        Set MQTT topic to publish\n\
 \n\
 Gas tariff:\n\
+  -f --factor       Optional volume to energy factor\n\
   -b --rate         Optional basic rate per year\n\
   -k --price        Optional price per kWh"
     << std::endl << std::endl;
@@ -173,9 +173,9 @@ Gas tariff:\n\
   
   meter->createRRD(rrd_path, rrd_socket);
   meter->setMeterReading(meter_reading, meter_step);
-  meter->createObisPath(ramdisk, gas_factor);
+  meter->createObisPath(ramdisk);
   meter->initMqtt(mqtt_host, mqtt_port, mqtt_topic);
-  meter->setTariff(basic_rate, price_kwh);
+  meter->setTariff(gas_factor, basic_rate, price_kwh);
 
   std::thread mag_thread;
   mag_thread = std::thread(&Gas::runMagSensor, meter);

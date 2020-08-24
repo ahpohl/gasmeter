@@ -76,14 +76,18 @@ void Gas::setupGpioDevice(const char* t_chip, unsigned int const& t_line)
   }
 }
 
-void Gas::setTariff(double const& t_rate, double const& t_price)
+void Gas::setTariff(double const& t_factor, double const& t_rate, double const& t_price)
 {
+  if (t_factor < 0) {
+    throw std::runtime_error("Conversion factor  must be greater than zero");
+  }
   if (t_rate < 0) {
     throw std::runtime_error("Basic rate must be greater than zero");
   }
   if (t_price < 0) {
     throw std::runtime_error("Price per kWh must be greater than zero");
   }
+  m_factor = t_factor;
   m_rate = t_rate;
   m_price = t_price;
 }

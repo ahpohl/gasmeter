@@ -12,15 +12,11 @@ const char* const Gas::OBIS_GAS_X_MAG =  "gas_bx";
 const char* const Gas::OBIS_GAS_Y_MAG =  "gas_by";
 const char* const Gas::OBIS_GAS_Z_MAG =  "gas_bz";
 
-void Gas::createObisPath(const char* const t_ramdisk, double const& t_factor)
+void Gas::createObisPath(const char* const t_ramdisk)
 {
   if (!t_ramdisk) {
     throw runtime_error("Shared memory device not set");
   }
-  if (!t_factor) {
-    throw runtime_error("Gas conversion factor not set");
-  }
-  m_factor = t_factor;
   fs::path dir(t_ramdisk);
   dir /= "obis";
   if (!fs::exists(dir)) {
