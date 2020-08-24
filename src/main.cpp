@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
   -p --port         Set MQTT broker port\n\
   -t --topic        Set MQTT topic to publish\n\
 \n\
-Electricity tariff:\n\
+Gas tariff:\n\
   -b --rate         Optional basic rate per year\n\
   -k --price        Optional price per kWh"
     << std::endl << std::endl;

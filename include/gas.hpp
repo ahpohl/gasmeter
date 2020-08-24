@@ -58,8 +58,8 @@ private:
   struct gpiod_line* m_line;    // libgpiod gpio line offset
   Mosq* m_mqtt;                 // pointer to mosquitto client object
   std::string m_topic;          // MQTT topic to publish to
-  double m_rate;                // electricity tariff basic rate per year
-  double m_price;               // electricity tariff price per kWh
+  double m_rate;                // gas tariff basic rate per year
+  double m_price;               // gas tariff price per kWh
 };
 
 #endif // GAS_HPP
