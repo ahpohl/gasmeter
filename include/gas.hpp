@@ -38,7 +38,9 @@ public:
   void writeObisCodes(void) const;
   void runMqtt(void) const;
   void initMqtt(char const* const t_host, int const& t_port, char const* const t_topic);
+  void setTariff(double const& t_rate, double const& t_price);
   void publishMqtt(void) const;
+  
 
 private:
   bool m_debug;                 // debug flag
@@ -56,6 +58,8 @@ private:
   struct gpiod_line* m_line;    // libgpiod gpio line offset
   Mosq* m_mqtt;                 // pointer to mosquitto client object
   std::string m_topic;          // MQTT topic to publish to
+  double m_rate;                // electricity tariff basic rate per year
+  double m_price;               // electricity tariff price per kWh
 };
 
 #endif // GAS_HPP

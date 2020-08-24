@@ -75,3 +75,15 @@ void Gas::setupGpioDevice(const char* t_chip, unsigned int const& t_line)
     throw runtime_error("Request events failed");
   }
 }
+
+void Gas::setTariff(double const& t_rate, double const& t_price)
+{
+  if (t_rate < 0) {
+    throw std::runtime_error("Basic rate must be greater than zero");
+  }
+  if (t_price < 0) {
+    throw std::runtime_error("Price per kWh must be greater than zero");
+  }
+  m_rate = t_rate;
+  m_price = t_price;
+}

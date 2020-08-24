@@ -42,7 +42,9 @@ void Gas::publishMqtt(void) const
     << "\"trigger_level\":" << std::setprecision(0) << m_level << ","
     << "\"hysteresis\":" << m_hyst << ","
     << "\"step_size\":" << std::setprecision(0) << m_step << ","
-    << "\"factor\":" << std::setprecision(3) << m_factor
+    << "\"factor\":" << std::setprecision(3) << m_factor << ","
+    << "\"rate\":" << std::setprecision(2) << m_rate << ","
+    << "\"price\":" << std::setprecision(4) << m_price
     << "}]";
 
   m_mqtt->send_message(topic.c_str(), payload.str().c_str());

@@ -22,6 +22,8 @@ int main(int argc, char* argv[])
   char const* mqtt_host = nullptr;
   char const* mqtt_topic = nullptr;
   int mqtt_port = 0;
+  double basic_rate = 0;
+  double price_kwh = 0;
 
   const struct option longOpts[] = {
     { "help", no_argument, nullptr, 'h' },
@@ -41,10 +43,12 @@ int main(int argc, char* argv[])
     { "host", required_argument, nullptr, 'H' },
     { "port", required_argument, nullptr, 'p' },
     { "topic", required_argument, nullptr, 't' },
+    { "rate", required_argument, nullptr, 'b' },
+    { "price", required_argument, nullptr, 'P' },
     { nullptr, 0, nullptr, 0 }
   };
 
-  const char* const optString = "hVDG:O:d:s:r:R:m:S:f:L:y:H:p:t:";
+  const char* const optString = "hVDG:O:d:s:r:R:m:S:f:L:y:H:p:t:b:P:";
 
   int opt = 0;
   int longIndex = 0;
@@ -103,6 +107,12 @@ int main(int argc, char* argv[])
     case 't':
       mqtt_topic = optarg;
       break;
+    case 'b':
+      basic_rate = atof(optarg);
+      break;
+    case 'P':
+      price_kwh = atof(optarg);
+      break;
     default:
       break;
     }
@@ -114,23 +124,27 @@ int main(int argc, char* argv[])
     std::cout << "Gasmeter " << VERSION_TAG << std::endl;
     std::cout << std::endl << "Usage: " << argv[0] << " [options]" << std::endl << std::endl;
     std::cout << "\
-  -h --help              Show help message\n\
-  -V --version           Show build info\n\
-  -D --debug             Show debug messages\n\
-  -G --chip              Set libgpiod gpio chip device\n\
-  -O --line              Set libgpiod line offset\n\
-  -d --device [dev]      Set MAG3110 I²C device\n\
-  -s --socket [fd]       Set socket of rrdcached daemon\n\
-  -r --rrd [path]        Set path of gas.rrd database\n\
-  -R --ramdisk [dev]     Set shared memory device\n\
-  -m --meter [float]     Set intial gas meter [m³]\n\
-  -S --step [float]      Set meter step [m³]\n\
-  -f --factor [float]    Set gas conversion factor\n\
-  -L --level [int]       Set trigger level\n\
-  -y --hyst [int]        Set trigger hysteresis\n\
-  -H --host              Set MQTT broker host or ip\n\
-  -p --port [int]        Set MQTT broker port\n\
-  -t --topic             Set MQTT topic to publish"
+  -h --help         Show help message\n\
+  -V --version      Show build info\n\
+  -D --debug        Show debug messages\n\
+  -G --chip         Set libgpiod gpio chip device\n\
+  -O --line         Set libgpiod line offset\n\
+  -d --device       Set MAG3110 I²C device\n\
+  -s --socket       Set socket of rrdcached daemon\n\
+  -r --rrd          Set path of gas.rrd database\n\
+  -R --ramdisk      Set shared memory device\n\
+  -m --meter        Set intial gas meter [m³]\n\
+  -S --step         Set meter step [m³]\n\
+  -f --factor       Set gas conversion factor\n\
+  -L --level        Set trigger level\n\
+  -y --hyst         Set trigger hysteresis\n\
+  -H --host         Set MQTT broker host or ip\n\
+  -p --port         Set MQTT broker port\n\
+  -t --topic        Set MQTT topic to publish\n\
+\n\
+Electricity tariff:\n\
+  -b --rate         Optional basic rate per year\n\
+  -k --price        Optional price per kWh"
     << std::endl << std::endl;
     return 0;
   }
@@ -161,6 +175,7 @@ int main(int argc, char* argv[])
   meter->setMeterReading(meter_reading, meter_step);
   meter->createObisPath(ramdisk, gas_factor);
   meter->initMqtt(mqtt_host, mqtt_port, mqtt_topic);
+  meter->setTariff(basic_rate, price_kwh);
 
   std::thread mag_thread;
   mag_thread = std::thread(&Gas::runMagSensor, meter);
