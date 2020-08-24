@@ -1,0 +1,16 @@
+CREATE DATABASE gasmeter
+CREATE USER "mqtt" WITH PASSWORD "mqtt"
+GRANT ALL ON "gasmeter" TO "mqtt"
+
+CREATE RETENTION POLICY "rp28h" ON "gasmeter" DURATION 28h REPLICATION 1 DEFAULT
+CREATE RETENTION POLICY "rp370d" ON "gasmeter" DURATION 370d REPLICATION 1
+
+CREATE CONTINUOUS QUERY "cq1h" ON "gasmeter" BEGIN SELECT last(volume)-first(volume) AS volume, last(energy)-first(energy) AS energy, (last(energy)-first(energy))*0.0583+0.029885845 AS bill INTO gasmeter.rp28h.hourly FROM gasmeter.rp28h.state GROUP BY time(1h) TZ('Europe/Berlin') END
+
+CREATE CONTINUOUS QUERY "cq1d" ON "gasmeter" BEGIN SELECT last(volume)-first(volume) AS volume, last(energy)-first(energy) AS energy, (last(energy)-first(energy))*0.0583+0.7173 AS bill INTO gasmeter.rp370d.daily FROM gasmeter.rp28h.state GROUP BY time(1d) TZ('Europe/Berlin') END
+
+CREATE CONTINUOUS QUERY "cq7d" ON "gasmeter" BEGIN SELECT sum(volume) AS volume, sum(energy) AS energy, sum(bill) AS bill INTO gasmeter.autogen.weekly FROM gasmeter.rp370d.daily GROUP BY time(7d) TZ('Europe/Berlin') END 
+
+CREATE CONTINUOUS QUERY "cq30d" ON "gasmeter" BEGIN SELECT sum(volume) AS volume, sum(energy) AS energy, sum(bill) AS bill INTO gasmeter.autogen.monthly FROM gasmeter.rp370d.daily GROUP BY time(30d) TZ('Europe/Berlin') END
+
+CREATE CONTINUOUS QUERY "cq365d" ON "gasmeter" BEGIN SELECT sum(volume) AS volume, sum(energy) AS energy, sum(bill) AS bill INTO gasmeter.autogen.yearly FROM gasmeter.rp370d.daily GROUP BY time(365d) TZ('Europe/Berlin') END
