@@ -31,21 +31,20 @@ void Gas::publishMqtt(void) const
 
   // json string with influxdb fields and tags 
   // magnetization in Gauss, volume in m³, energy in kWh
-  payload << "[{"
+  payload << "{"
     << "\"bx\":" << std::fixed << std::setprecision(0) << m_bx << ","
     << "\"by\":" << m_by << ","
     << "\"bz\":" << m_bz << ","
     << "\"mag\":" << std::sqrt(m_bx*m_bx+m_by*m_by+m_bz*m_bz) << ","
-    << "\"volume\":" << std::setprecision(2) << m_counter*m_step << ","
-    << "\"energy\":" << m_counter*m_step*m_factor
-    << "},{"
-    << "\"trigger_level\":" << std::setprecision(0) << m_level << ","
+    << "\"trigger_level\":" << m_level << ","
     << "\"hysteresis\":" << m_hyst << ","
-    << "\"step_size\":" << std::setprecision(0) << m_step << ","
+    << "\"step_size\":" << std::setprecision(2) << m_step << ","
+    << "\"volume\":" << m_counter*m_step << ","
+    << "\"energy\":" << m_counter*m_step*m_factor << ","
+    << "\"rate\":" << m_rate << ","
     << "\"factor\":" << std::setprecision(3) << m_factor << ","
-    << "\"rate\":" << std::setprecision(2) << m_rate << ","
     << "\"price\":" << std::setprecision(4) << m_price
-    << "}]";
+    << "}";
 
   m_mqtt->send_message(topic.c_str(), payload.str().c_str());
   if (m_debug) {
