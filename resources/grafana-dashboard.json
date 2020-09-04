@@ -14,7 +14,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "7.1.0"
+      "version": "7.1.1"
     },
     {
       "type": "panel",
@@ -89,7 +89,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.1.1",
       "targets": [
         {
           "alias": "Volume",
@@ -139,7 +139,7 @@
       "fieldConfig": {
         "defaults": {
           "custom": {},
-          "decimals": 1,
+          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -176,7 +176,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.1.1",
       "targets": [
         {
           "alias": "Energy",
@@ -194,7 +194,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "state",
+          "measurement": "daily",
           "orderByTime": "ASC",
           "policy": "rp370d",
           "refId": "A",
@@ -226,7 +226,7 @@
       "fieldConfig": {
         "defaults": {
           "custom": {},
-          "decimals": 1,
+          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -263,7 +263,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.1.1",
       "targets": [
         {
           "alias": "Energy",
@@ -313,7 +313,7 @@
       "fieldConfig": {
         "defaults": {
           "custom": {},
-          "decimals": 1,
+          "decimals": 2,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -350,7 +350,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.1.1",
       "targets": [
         {
           "alias": "Energy",
@@ -403,21 +403,7 @@
       "datasource": "${DS_INFLUXDB_GASMETER}",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
+          "custom": {}
         },
         "overrides": []
       },
@@ -445,7 +431,7 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "percentage": false,
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.1.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -623,7 +609,7 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "percentage": false,
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.1.1",
       "pointradius": 1,
       "points": true,
       "renderer": "flot",
@@ -721,21 +707,7 @@
       "datasource": "${DS_INFLUXDB_GASMETER}",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
+          "custom": {}
         },
         "overrides": []
       },
@@ -763,7 +735,7 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "percentage": false,
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.1.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -911,21 +883,7 @@
       "datasource": "${DS_INFLUXDB_GASMETER}",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
+          "custom": {}
         },
         "overrides": []
       },
@@ -953,7 +911,7 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "percentage": false,
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.1.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -1109,5 +1067,5 @@
   "timezone": "",
   "title": "Gasmeter",
   "uid": "001lzX4Gk",
-  "version": 50
+  "version": 7
 }
