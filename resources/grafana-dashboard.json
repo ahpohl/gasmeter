@@ -179,7 +179,7 @@
       "pluginVersion": "7.1.1",
       "targets": [
         {
-          "alias": "Energy",
+          "alias": "Cost",
           "groupBy": [
             {
               "params": [
@@ -203,7 +203,7 @@
             [
               {
                 "params": [
-                  "energy"
+                  "bill"
                 ],
                 "type": "field"
               },
@@ -266,7 +266,7 @@
       "pluginVersion": "7.1.1",
       "targets": [
         {
-          "alias": "Energy",
+          "alias": "Volume",
           "groupBy": [
             {
               "params": [
@@ -353,7 +353,7 @@
       "pluginVersion": "7.1.1",
       "targets": [
         {
-          "alias": "Energy",
+          "alias": "Cost",
           "groupBy": [
             {
               "params": [
@@ -832,7 +832,17 @@
           "tags": []
         }
       ],
-      "thresholds": [],
+      "thresholds": [
+        {
+          "$$hashKey": "object:474",
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 5,
+          "yaxis": "left"
+        }
+      ],
       "timeFrom": "15d",
       "timeRegions": [],
       "timeShift": null,
@@ -949,9 +959,9 @@
               "type": "fill"
             }
           ],
-          "measurement": "daily",
+          "measurement": "monthly",
           "orderByTime": "ASC",
-          "policy": "autogen",
+          "policy": "rp370d",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -986,9 +996,9 @@
               "type": "fill"
             }
           ],
-          "measurement": "daily",
+          "measurement": "monthly",
           "orderByTime": "ASC",
-          "policy": "autogen",
+          "policy": "rp370d",
           "refId": "B",
           "resultFormat": "time_series",
           "select": [
@@ -1030,7 +1040,7 @@
         {
           "$$hashKey": "object:5630",
           "format": "m3",
-          "label": null,
+          "label": "",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -1067,5 +1077,5 @@
   "timezone": "",
   "title": "Gasmeter",
   "uid": "001lzX4Gk",
-  "version": 7
+  "version": 14
 }
