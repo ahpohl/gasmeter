@@ -1,0 +1,264 @@
+#include <iostream>
+#include <cstring>
+#include <sstream>
+#include <ctime>
+#include "Gasmeter.h"
+#include "GasmeterStrings.h"
+
+const int Gasmeter::SendBufferSize = 10;
+const int Gasmeter::ReceiveBufferSize = 8;
+const time_t Gasmeter::InverterEpoch = 946684800;
+
+Gasmeter::Gasmeter(void) : Address(2)
+{
+}
+
+Gasmeter::Gasmeter(const unsigned char &addr) : Address(addr)
+{
+}
+
+Gasmeter::~Gasmeter(void)
+{
+  if (ReceiveData) { delete[] ReceiveData; }
+  if (Serial) { delete Serial; }
+}
+
+bool Gasmeter::Setup(const std::string &device, const speed_t baudrate)
+{
+  ReceiveData = new uint8_t[Gasmeter::ReceiveBufferSize] ();
+  Serial = new GasmeterSerial();
+  if (!Serial->Begin(device, baudrate))
+  {
+    ErrorMessage = Serial->GetErrorMessage();
+    return false;
+  }
+  return true;
+}
+
+void Gasmeter::SetAddress(const unsigned char &addr)
+{
+  Address = addr;
+}
+
+unsigned char Gasmeter::GetAddress(void) const
+{
+  return Address;
+}
+
+std::string Gasmeter::GetErrorMessage(void) const
+{
+  return ErrorMessage;
+}
+
+bool Gasmeter::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7)
+{
+  uint8_t SendData[Gasmeter::SendBufferSize] = {0};
+
+  SendData[0] = Address;
+  SendData[1] = static_cast<uint8_t>(cmd);
+  SendData[2] = b2;
+  SendData[3] = b3;
+  SendData[4] = b4;
+  SendData[5] = b5;
+  SendData[6] = b6;
+  SendData[7] = b7;
+
+  uint16_t crc = Serial->Crc16(SendData, 0, 8);
+  SendData[8] = Serial->LowByte(crc);
+  SendData[9] = Serial->HighByte(crc);
+
+  memset(ReceiveData, '\0', Gasmeter::ReceiveBufferSize);
+
+  if (Serial->WriteBytes(SendData, Gasmeter::SendBufferSize) < 0)
+  {
+    ErrorMessage = std::string("Write bytes failed: ") + Serial->GetErrorMessage();
+    return false;
+  }
+  if (Serial->ReadBytes(ReceiveData, Gasmeter::ReceiveBufferSize) < 0) 
+  {
+    ErrorMessage = std::string("Read bytes failed: ") + Serial->GetErrorMessage();
+    return false;
+  }
+  if (!(Serial->Word(ReceiveData[7], ReceiveData[6]) == Serial->Crc16(ReceiveData, 0, 6)))
+  {
+    ErrorMessage = "Received serial package with CRC mismatch";
+    return false;
+  }
+  if ((cmd != SendCommandEnum::PN_READING) && (cmd != SendCommandEnum::SERIAL_NUMBER_READING) && ReceiveData[0])
+  {
+    ErrorMessage = std::string("Transmission error: ") + GasmeterStrings::TransmissionState(ReceiveData[0]) + " (" + std::to_string(ReceiveData[0]) + ")";
+    return false;
+  }
+  return true;
+}
+
+long int Gasmeter::GetGmtOffset(void)
+{
+  time_t now = time(NULL);
+  struct tm tm;
+  gmtime_r(&now, &tm);
+  tm.tm_isdst = -1;
+  time_t gmt = mktime(&tm);
+
+  return difftime(now, gmt);
+}
+
+// Inverter commands
+
+bool Gasmeter::ReadState(Gasmeter::State &state)
+{
+  if (!Send(SendCommandEnum::STATE_REQUEST, 0, 0, 0, 0, 0, 0))
+  {
+    return false;
+  }
+  state.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  state.InverterState = GasmeterStrings::InverterState(ReceiveData[2]);
+  state.Channel1State = GasmeterStrings::DcDcState(ReceiveData[3]);
+  state.Channel2State = GasmeterStrings::DcDcState(ReceiveData[4]);
+  state.AlarmState = GasmeterStrings::AlarmState(ReceiveData[5]);
+  return true;
+}
+
+bool Gasmeter::ReadPartNumber(std::string &pn)
+{
+  if (!Send(SendCommandEnum::PN_READING, 0, 0, 0, 0, 0, 0))
+  {
+    return false;
+  }
+  std::ostringstream oss;
+  for (int c = 0; c < 6; c++)
+  {
+    oss << ReceiveData[c];
+  }
+  pn = oss.str();
+  return true;
+}
+
+bool Gasmeter::ReadVersion(Gasmeter::Version &version)
+{
+  if (!Send(SendCommandEnum::VERSION_READING, 0, 0, 0, 0, 0, 0))
+  {
+    return false;
+  }
+  version.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  version.Par1 = GasmeterStrings::VersionPart1(ReceiveData[2]);
+  version.Par2 = GasmeterStrings::VersionPart2(ReceiveData[3]);
+  version.Par3 = GasmeterStrings::VersionPart3(ReceiveData[4]);
+  version.Par4 = GasmeterStrings::VersionPart4(ReceiveData[5]);
+
+  return true;
+}
+
+bool Gasmeter::ReadDspValue(float &value, const DspValueEnum &type, const DspGlobalEnum &global)
+{
+  if (!Send(SendCommandEnum::MEASURE_REQUEST_DSP, static_cast<uint8_t>(type), static_cast<uint8_t>(global), 0, 0, 0, 0))
+  {
+    return false;
+  }
+  if (ReceiveData[1] != 6) // global state "Run"
+  {
+    ErrorMessage = std::string("Warning DSP value not trusted: Inverter state \"") + GasmeterStrings::GlobalState(ReceiveData[1]) + "\" (" + std::to_string(ReceiveData[1]) + ")";
+    return false;
+  }
+  uint8_t b[] = {ReceiveData[5], ReceiveData[4], ReceiveData[3], ReceiveData[2]};
+  memcpy(&value, &b, sizeof(b));
+  return true;
+}
+
+bool Gasmeter::ReadSerialNumber(std::string &sn)
+{
+  if (!Send(SendCommandEnum::SERIAL_NUMBER_READING, 0, 0, 0, 0, 0, 0))
+  {
+    return false;
+  }
+  std::ostringstream oss;
+  for (int c = 0; c < 6; c++) {
+    oss << ReceiveData[c];
+  }
+  sn = oss.str();
+
+  return true;
+}
+
+bool Gasmeter::ReadManufacturingDate(Gasmeter::ManufacturingDate &date)
+{
+  if (!Send(SendCommandEnum::MANUFACTURING_DATE, 0, 0, 0, 0, 0, 0))
+  {
+    return false;
+  }
+  date.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  std::ostringstream oss;
+  oss << ReceiveData[2] << ReceiveData[3];
+  date.Week = oss.str();
+  oss.str("");
+  oss << ReceiveData[4] << ReceiveData[5];
+  date.Year = oss.str();
+
+  return true;
+}
+
+bool Gasmeter::ReadTimeDate(Gasmeter::TimeDate &date)
+{
+  if (!Send(SendCommandEnum::TIME_DATE_READING, 0, 0, 0, 0, 0, 0))
+  {
+    return false;
+  }  
+  date.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  uint8_t b[] = {ReceiveData[5], ReceiveData[4], ReceiveData[3], ReceiveData[2]};
+  date.InverterTime = 0;
+  memcpy(&date.InverterTime, &b, sizeof(b));
+  date.EpochTime = date.InverterTime + InverterEpoch - GetGmtOffset();
+  struct tm tm;
+  localtime_r(&date.EpochTime, &tm);
+  char buffer[80];
+  strftime(buffer, 80, "%d-%b-%Y %H:%M:%S", &tm);
+  date.TimeDate.assign(buffer);
+  return true;
+}
+
+bool Gasmeter::ReadFirmwareRelease(Gasmeter::FirmwareRelease &firmware)
+{
+  if (!Send(SendCommandEnum::FIRMWARE_RELEASE_READING, 0, 0, 0, 0, 0, 0))
+  {
+    return false;
+  }
+  firmware.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  std::ostringstream oss;
+  for (int c = 2; c < 6; c++)
+  {
+    oss << ReceiveData[c];
+    if (c < 5)
+    {
+      oss << ".";
+    }
+  }
+  firmware.Release = oss.str();
+  return true;
+}
+
+bool Gasmeter::ReadCumulatedEnergy(Gasmeter::CumulatedEnergy &cumulated, const CumulatedEnergyEnum &period)
+{
+  if (!Send(SendCommandEnum::CUMULATED_ENERGY_READINGS, static_cast<uint8_t>(period), 0, 0, 0, 0, 0))
+  {
+    return false;
+  }
+  cumulated.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  uint8_t b[] = {ReceiveData[5], ReceiveData[4], ReceiveData[3], ReceiveData[2]};
+  cumulated.Energy = 0;
+  memcpy(&cumulated.Energy, &b, sizeof(b));
+  return true;
+}
+
+bool Gasmeter::ReadLastFourAlarms(Gasmeter::LastFourAlarms &alarm)
+{
+  if (!Send(SendCommandEnum::LAST_FOUR_ALARMS, 0, 0, 0, 0, 0, 0))
+  {
+    return false;
+  } 
+  alarm.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  alarm.Alarms1 = GasmeterStrings::AlarmState(ReceiveData[2]);
+  alarm.Alarms2 = GasmeterStrings::AlarmState(ReceiveData[3]);
+  alarm.Alarms3 = GasmeterStrings::AlarmState(ReceiveData[4]);
+  alarm.Alarms4 = GasmeterStrings::AlarmState(ReceiveData[5]);
+  return true;
+}
