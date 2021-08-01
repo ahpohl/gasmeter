@@ -1,55 +1,42 @@
 #include <iostream>
-#include <thread>
+#include <iomanip>
+#include <memory>
 #include <getopt.h>
-#include "gas.hpp"
+#include <csignal>
+#include <thread>
+#include <chrono>
+#include <Gasmeter.h>
+
+volatile sig_atomic_t shutdown = false;
+
+void sig_handler(int)
+{
+  shutdown = true;
+}
 
 int main(int argc, char* argv[])
 {
-  bool help = false;
+  struct sigaction action;
+  action.sa_handler = sig_handler;
+  sigemptyset(&action.sa_mask);
+  action.sa_flags = SA_RESTART;
+  sigaction(SIGINT, &action, NULL);
+  sigaction(SIGTERM, &action, NULL);
+  
+  int verbose_level = 0;
   bool version = false;
-  bool debug = false; 
-  char const* i2c_device = nullptr;
-  char const* rrd_socket = nullptr;
-  char const* rrd_path = nullptr;
-  char const* ramdisk = nullptr;
-  double meter_reading = 0;
-  double meter_step = 0;
-  double gas_factor = 0;
-  int trigger_level = 0;
-  int trigger_hyst = 0;
-  char const* gpio_chip = nullptr;
-  unsigned int gpio_line = 0;
-  char const* mqtt_host = nullptr;
-  char const* mqtt_topic = nullptr;
-  int mqtt_port = 0;
-  double basic_rate = 0;
-  double price_kwh = 0;
+  bool help = false;
+  std::string config;
 
   const struct option longOpts[] = {
     { "help", no_argument, nullptr, 'h' },
     { "version", no_argument, nullptr, 'V' },
-    { "debug", no_argument, nullptr, 'D' },
-    { "chip", required_argument, nullptr, 'G' },
-    { "line", required_argument, nullptr, 'O' },
-    { "device", required_argument, nullptr, 'd' },
-    { "socket", required_argument, nullptr, 's'},
-    { "rrd", required_argument, nullptr, 'r' },
-    { "ramdisk", required_argument, nullptr, 'R' },
-    { "meter", required_argument, nullptr, 'm'},
-    { "step", required_argument, nullptr, 'S'},
-    { "factor", required_argument, nullptr, 'f' },
-    { "level", required_argument, nullptr, 'L' },
-    { "hyst", required_argument, nullptr, 'y' },
-    { "host", required_argument, nullptr, 'H' },
-    { "port", required_argument, nullptr, 'p' },
-    { "topic", required_argument, nullptr, 't' },
-    { "rate", required_argument, nullptr, 'b' },
-    { "price", required_argument, nullptr, 'P' },
+    { "verbose", no_argument, nullptr, 'v' },
+    { "config", required_argument, nullptr, 'c' },
     { nullptr, 0, nullptr, 0 }
   };
 
-  const char* const optString = "hVDG:O:d:s:r:R:m:S:f:L:y:H:p:t:b:P:";
-
+  const char optString[] = "hVvc:";
   int opt = 0;
   int longIndex = 0;
 
@@ -62,56 +49,11 @@ int main(int argc, char* argv[])
     case 'V':
       version = true;
       break;
-    case 'D':
-      debug = true;
+    case 'v':
+      ++verbose_level;
       break;
-    case 'G':
-      gpio_chip = optarg;
-      break;
-    case 'O':
-      gpio_line = atoi(optarg);
-      break;
-    case 'd':
-      i2c_device = optarg;
-      break;
-    case 's':
-      rrd_socket = optarg;
-      break;
-    case 'r':
-      rrd_path = optarg;
-      break;
-    case 'R':
-      ramdisk = optarg;
-      break;
-    case 'm':
-      meter_reading = atof(optarg);
-      break;
-    case 'S':
-      meter_step = atof(optarg);
-      break;
-    case 'f':
-      gas_factor = atof(optarg);
-      break;
-    case 'L':
-      trigger_level = atoi(optarg);
-      break;
-    case 'y':
-      trigger_hyst = atoi(optarg);
-      break;
-    case 'H':
-      mqtt_host = optarg;
-      break;
-    case 'p':
-      mqtt_port = atoi(optarg);
-      break;
-    case 't':
-      mqtt_topic = optarg;
-      break;
-    case 'b':
-      basic_rate = atof(optarg);
-      break;
-    case 'P':
-      price_kwh = atof(optarg);
+    case 'c':
+      config = optarg;
       break;
     default:
       break;
@@ -122,31 +64,14 @@ int main(int argc, char* argv[])
   if (help)
   {
     std::cout << "Gasmeter " << VERSION_TAG << std::endl;
-    std::cout << std::endl << "Usage: " << argv[0] << " [options]" << std::endl << std::endl;
-    std::cout << "\
+    std::cout << std::endl << "Usage: " << argv[0] << " [-vv] -c [file]" << std::endl;
+    std::cout << "\n\
   -h --help         Show help message\n\
   -V --version      Show build info\n\
-  -D --debug        Show debug messages\n\
-  -G --chip         Set libgpiod gpio chip device\n\
-  -O --line         Set libgpiod line offset\n\
-  -d --device       Set MAG3110 I²C device\n\
-  -s --socket       Set socket of rrdcached daemon\n\
-  -r --rrd          Set path of gas.rrd database\n\
-  -R --ramdisk      Set shared memory device\n\
-  -m --meter        Set intial gas meter [m³]\n\
-  -S --step         Set meter step [m³]\n\
-  -L --level        Set trigger level\n\
-  -y --hyst         Set trigger hysteresis\n\
-  -H --host         Set MQTT broker host or ip\n\
-  -p --port         Set MQTT broker port\n\
-  -t --topic        Set MQTT topic to publish\n\
-\n\
-Gas tariff:\n\
-  -f --factor       Optional volume to energy factor\n\
-  -b --rate         Optional basic rate per year\n\
-  -k --price        Optional price per kWh"
+  -v --verbose      Set verbose output level\n\
+  -c --config       Set config file"
     << std::endl << std::endl;
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   if (version)
@@ -155,49 +80,48 @@ Gas tariff:\n\
       << " (" << VERSION_BUILD << ") built " 
       << VERSION_BUILD_DATE 
       << " by " << VERSION_BUILD_MACHINE << std::endl;
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   std::cout << "Gasmeter " << VERSION_TAG
     << " (" << VERSION_BUILD << ")" << std::endl;
 
-  std::shared_ptr<Gas> meter(new Gas());
-
-  if (debug) {
-    meter->setDebug();
-  }
-
-  meter->openI2CDevice(i2c_device);
-  meter->setupGpioDevice(gpio_chip, gpio_line);
-  meter->setTriggerParameters(trigger_level, trigger_hyst);
+  bool log = (verbose_level == 2) ? true : false;
+  std::unique_ptr<Gasmeter> meter(new Gasmeter(log));
   
-  meter->createRRD(rrd_path, rrd_socket);
-  meter->setMeterReading(meter_reading, meter_step);
-  meter->createObisPath(ramdisk);
-  meter->initMqtt(mqtt_host, mqtt_port, mqtt_topic);
-  meter->setTariff(gas_factor, basic_rate, price_kwh);
-
-  std::thread mag_thread;
-  mag_thread = std::thread(&Gas::runMagSensor, meter);
-  std::thread mqtt_thread;
-  mqtt_thread = std::thread(&Gas::runMqtt, meter);
-  std::thread rrd_thread;
-  rrd_thread = std::thread(&Gas::runRrdCounter, meter);
-
-  if (mag_thread.joinable()) {
-    mag_thread.join();
-  }
-  if (mqtt_thread.joinable()) {
-    mqtt_thread.join();
-  }
-  if (rrd_thread.joinable()) {
-    rrd_thread.join();
+  if (!meter->Setup(config))
+  {
+    std::cout << meter->GetErrorMessage() << std::endl;
+    return EXIT_FAILURE;
   }
 
-  meter->setGasCounter();
-  if (debug) {
-    std::cout << "Last meter reading: " << meter->getMeterReading() << " m³" << std::endl;
+  static int timeout = 0;
+
+  while (shutdown == false)
+  {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+	  if (!meter->Receive())
+	  {
+      if (timeout < 5)
+      {
+	      std::cout << meter->GetErrorMessage() << std::endl;
+        ++timeout;
+      }
+      continue;
+ 	  }
+    else
+    {
+      timeout = 0;
+    }
+    if (!meter->Publish())
+    {
+      std::cout << meter->GetErrorMessage() << std::endl;
+    }
+    if (verbose_level == 1)
+    {
+      std::cout << meter->GetPayload() << std::endl;
+    }
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
