@@ -16,35 +16,27 @@ CREATE TABLE "sensors" (
   serial_num VARCHAR(50),
   part_num VARCHAR(50),
   mfg_date VARCHAR(50),
-  firmware VARCHAR(50),
-  inverter_type VARCHAR(50),
   grid_standard VARCHAR(50)
 );
 
 CREATE TABLE "plan" (
   id SERIAL PRIMARY KEY,
-  payment DOUBLE PRECISION
+  price DOUBLE PRECISION,
+  rate DOUBLE PRECISION,
+  factor DOUBLE PRECISION
 );
 
 CREATE TABLE "live" (
   time TIMESTAMPTZ NOT NULL,
   sensor_id INTEGER NOT NULL,
   plan_id INTEGER NOT NULL,
-  total_energy DOUBLE PRECISION,
-  voltage_p1 DOUBLE PRECISION,
-  current_p1 DOUBLE PRECISION,
-  power_p1 DOUBLE PRECISION,
-  voltage_p2 DOUBLE PRECISION,
-  current_p2 DOUBLE PRECISION,
-  power_p2 DOUBLE PRECISION,
-  grid_voltage DOUBLE PRECISION,
-  grid_current DOUBLE PRECISION,
-  grid_power DOUBLE PRECISION,
-  frequency DOUBLE PRECISION,
-  efficiency DOUBLE PRECISION,
-  inverter_temp DOUBLE PRECISION,
-  booster_temp DOUBLE PRECISION,
-  r_iso DOUBLE PRECISION,
+  volume DOUBLE PRECISION,
+  energy DOUBLE PRECISION,
+  temperature DOUBLE PRECISION,
+  humidity DOUBLE PRECISION,
+  price DOUBLE PRECISION,
+  rate DOUBLE PRECISION,
+  factor DOUBLE PRECISION,
   CONSTRAINT sensor_id FOREIGN KEY (sensor_id) REFERENCES sensors (id),
   CONSTRAINT plan_id FOREIGN KEY (plan_id) REFERENCES plan (id)
 );
@@ -55,7 +47,7 @@ SELECT add_retention_policy('live', INTERVAL '7 days');
 INSERT INTO sensors(id, serial_num, part_num, mfg_date, firmware, inverter_type, grid_standard) VALUES
 (1, '126014', '-3G79-', 'Year 10 Week 20', 'C.0.2.2', 'Aurora 4.2kW new', 'VDE0126');
 
-INSERT INTO plan(id, payment) VALUES
+INSERT INTO plan(id, price, rate, factor) VALUES
 (1, 0.3914);
 
 GRANT INSERT, SELECT ON TABLE live TO nodejs;
