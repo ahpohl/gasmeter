@@ -14,9 +14,9 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE TABLE "sensors" (
   id SERIAL PRIMARY KEY,
   serial_num VARCHAR(50),
+  customer_id VARCHAR(50),
   part_num VARCHAR(50),
   mfg_date VARCHAR(50),
-  grid_standard VARCHAR(50)
 );
 
 CREATE TABLE "plan" (
@@ -44,11 +44,11 @@ CREATE TABLE "live" (
 SELECT create_hypertable('live', 'time');
 SELECT add_retention_policy('live', INTERVAL '7 days');
 
-INSERT INTO sensors(id, serial_num, part_num, mfg_date, firmware, inverter_type, grid_standard) VALUES
-(1, '126014', '-3G79-', 'Year 10 Week 20', 'C.0.2.2', 'Aurora 4.2kW new', 'VDE0126');
+INSERT INTO sensors(id, serial_num, customer_id, part_num, mfg_date) VALUES
+(1, '42010646', '20141182555', 'G4RF1c', '2020');
 
 INSERT INTO plan(id, price, rate, factor) VALUES
-(1, 0.3914);
+(1, 0.0583, 261.80, 10.835);
 
 GRANT INSERT, SELECT ON TABLE live TO nodejs;
 GRANT SELECT ON TABLE live TO grafana;
