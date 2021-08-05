@@ -1,5 +1,5 @@
-#ifndef GasmeterEnums_h
-#define GasmeterEnums_h
+#ifndef ABBAuroraEnums_h
+#define ABBAuroraEnums_h
 
 /** @file */ 
 

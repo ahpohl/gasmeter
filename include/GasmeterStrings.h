@@ -1,10 +1,10 @@
-#ifndef GasmeterStrings_h
-#define GasmeterStrings_h
+#ifndef ABBAuroraStrings_h
+#define ABBAuroraStrings_h
 
 /** @file */ 
 
 /// Aurora strings
-class GasmeterStrings {
+class ABBAuroraStrings {
     private:
 
     public:

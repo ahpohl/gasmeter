@@ -1,7 +1,7 @@
-#ifndef GasmeterFirmware_h
-#define GasmeterFirmware_h
-#include "GasmeterEnums.h"
-#include "GasmeterSerial.h"
+#ifndef ABBAurora_h
+#define ABBAurora_h
+#include "ABBAuroraEnums.h"
+#include "ABBAuroraSerial.h"
 
 /** @brief Communication protocol between host and supervisor microprocessor 
  
@@ -16,14 +16,14 @@
 
     @author Alexander Pohl <alex@ahpohl.com>
     */
-class GasmeterFirmware
+class ABBAurora
 {
   static const int SendBufferSize; ///< Fixed send buffer size (8 bytes)
   static const int ReceiveBufferSize; ///< Fixed receive buffer size (10 bytes)
   static const time_t InverterEpoch; ///< Seconds since midnight of January 1, 2000.
 
 private:
-  GasmeterSerial *Serial; ///< Serial object which handles the communication with the device
+  ABBAuroraSerial *Serial; ///< Serial object which handles the communication with the device
   unsigned char Address; ///< Address of the serial device
   uint8_t *ReceiveData; ///< Array to hold the answer from the device
   std::string ErrorMessage; ///< String which holds the possible error message
@@ -46,19 +46,19 @@ public:
       
       Initialises the class object with the default bus address
       */
-  GasmeterFirmware(void);
+  ABBAurora(void);
   /** @brief Overloaded class constructor
       
       Initialises the class object with a custom bus address
 
       @param addr RS485 device address, range 2-63
       */
-  GasmeterFirmware(const unsigned char &addr);
+  ABBAurora(const unsigned char &addr);
   /** @brief Default class destructor
       
       Closes the serial port and destroys the class object.
       */
-  ~GasmeterFirmware(void);
+  ~ABBAurora(void);
   /** @brief Setup serial device communication
       
       Opens the host serial device and sets the communication parameters.
@@ -189,39 +189,34 @@ public:
 
       Reads the firmware release. For Aurora grid-tied inverters you will read always the MCU firmware version (the field var is not interpreted)
 
-      @param release Firmware release
+      @param firmware Firmware release
       */
   bool ReadFirmwareRelease(FirmwareRelease &firmware);
 
-  struct CumulatedEnergy /// Data structure for the read cumulated energy command
-  {
-    std::string GlobalState; ///< Global state
-    unsigned long Energy; ///< Cumulated energy in Wh
-  };
   /** @brief Read cumulated energy
 
       Reads the cumumlated energy (Aurora grid-tied inverters only)
 
-      @param cumulated Cumulated energy 
+      @param cum_energy Cumulated energy 
       @param period Energy period
       */
-  bool ReadCumulatedEnergy(CumulatedEnergy &cumulated, const CumulatedEnergyEnum &period);
+  bool ReadCumulatedEnergy(float &cum_energy, const CumulatedEnergyEnum &period);
 
   struct LastFourAlarms /// Data structure for last four alarms command
   {
     std::string GlobalState; ///< Global state
-    std::string Alarms1; ///< Alarm 1
-    std::string Alarms2; ///< Alarm 2
-    std::string Alarms3; ///< Alarm 3
-    std::string Alarms4; ///< Alarm 4
+    std::string Alarm1; ///< Alarm 1
+    std::string Alarm2; ///< Alarm 2
+    std::string Alarm3; ///< Alarm 3
+    std::string Alarm4; ///< Alarm 4
   };
   /** @brief Read last four alarms
 
       The command returns the codes of the last four alarms in form of a FIFO queue from the first to the last one. When this command is used the queue is emptied.
 
-      @param alarm Last four alarms
+      @param alarms Last four alarms
       */
-  bool ReadLastFourAlarms(LastFourAlarms &alarm);
+  bool ReadLastFourAlarms(LastFourAlarms &alarms);
 };
 
 #endif
