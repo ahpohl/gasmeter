@@ -2,31 +2,31 @@
 #include <cstring>
 #include <sstream>
 #include <ctime>
-#include "ABBAurora.h"
-#include "ABBAuroraStrings.h"
+#include "Gasmeter.h"
+#include "GasmeterStrings.h"
 
-const int ABBAurora::SendBufferSize = 10;
-const int ABBAurora::ReceiveBufferSize = 8;
-const time_t ABBAurora::InverterEpoch = 946684800;
+const int GasmeterFirmware::SendBufferSize = 10;
+const int GasmeterFirmware::ReceiveBufferSize = 8;
+const time_t GasmeterFirmware::InverterEpoch = 946684800;
 
-ABBAurora::ABBAurora(void) : Address(2)
+GasmeterFirmware::Gasmeter(void) : Address(2)
 {
 }
 
-ABBAurora::ABBAurora(const unsigned char &addr) : Address(addr)
+GasmeterFirmware::Gasmeter(const unsigned char &addr) : Address(addr)
 {
 }
 
-ABBAurora::~ABBAurora(void)
+GasmeterFirmware::~Gasmeter(void)
 {
   if (ReceiveData) { delete[] ReceiveData; }
   if (Serial) { delete Serial; }
 }
 
-bool ABBAurora::Setup(const std::string &device, const speed_t baudrate)
+bool GasmeterFirmware::Setup(const std::string &device, const speed_t baudrate)
 {
-  ReceiveData = new uint8_t[ABBAurora::ReceiveBufferSize] ();
-  Serial = new ABBAuroraSerial();
+  ReceiveData = new uint8_t[GasmeterFirmware::ReceiveBufferSize] ();
+  Serial = new GasmeterSerial();
   if (!Serial->Begin(device, baudrate))
   {
     ErrorMessage = Serial->GetErrorMessage();
@@ -35,24 +35,24 @@ bool ABBAurora::Setup(const std::string &device, const speed_t baudrate)
   return true;
 }
 
-void ABBAurora::SetAddress(const unsigned char &addr)
+void GasmeterFirmware::SetAddress(const unsigned char &addr)
 {
   Address = addr;
 }
 
-unsigned char ABBAurora::GetAddress(void) const
+unsigned char GasmeterFirmware::GetAddress(void) const
 {
   return Address;
 }
 
-std::string ABBAurora::GetErrorMessage(void) const
+std::string GasmeterFirmware::GetErrorMessage(void) const
 {
   return ErrorMessage;
 }
 
-bool ABBAurora::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7)
+bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7)
 {
-  uint8_t SendData[ABBAurora::SendBufferSize] = {0};
+  uint8_t SendData[GasmeterFirmware::SendBufferSize] = {0};
 
   SendData[0] = Address;
   SendData[1] = static_cast<uint8_t>(cmd);
@@ -67,15 +67,15 @@ bool ABBAurora::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, ui
   SendData[8] = Serial->LowByte(crc);
   SendData[9] = Serial->HighByte(crc);
 
-  memset(ReceiveData, '\0', ABBAurora::ReceiveBufferSize);
+  memset(ReceiveData, '\0', GasmeterFirmware::ReceiveBufferSize);
 
-  if (Serial->WriteBytes(SendData, ABBAurora::SendBufferSize) < 0)
+  if (Serial->WriteBytes(SendData, GasmeterFirmware::SendBufferSize) < 0)
   {
     ErrorMessage = std::string("Write bytes failed: ") + Serial->GetErrorMessage();
     Serial->Flush();
     return false;
   }
-  if (Serial->ReadBytes(ReceiveData, ABBAurora::ReceiveBufferSize) < 0) 
+  if (Serial->ReadBytes(ReceiveData, GasmeterFirmware::ReceiveBufferSize) < 0) 
   {
     ErrorMessage = std::string("Read bytes failed: ") + Serial->GetErrorMessage();
     Serial->Flush();
@@ -89,13 +89,13 @@ bool ABBAurora::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, ui
   }
   if ((cmd != SendCommandEnum::PN_READING) && (cmd != SendCommandEnum::SERIAL_NUMBER_READING) && ReceiveData[0])
   {
-    ErrorMessage = std::string("Transmission error: ") + ABBAuroraStrings::TransmissionState(ReceiveData[0]) + " (" + std::to_string(ReceiveData[0]) + ")";
+    ErrorMessage = std::string("Transmission error: ") + GasmeterStrings::TransmissionState(ReceiveData[0]) + " (" + std::to_string(ReceiveData[0]) + ")";
     return false;
   }
   return true;
 }
 
-long int ABBAurora::GetGmtOffset(void)
+long int GasmeterFirmware::GetGmtOffset(void)
 {
   time_t now = time(NULL);
   struct tm tm;
@@ -108,21 +108,21 @@ long int ABBAurora::GetGmtOffset(void)
 
 // Inverter commands
 
-bool ABBAurora::ReadState(ABBAurora::State &state)
+bool GasmeterFirmware::ReadState(GasmeterFirmware::State &state)
 {
   if (!Send(SendCommandEnum::STATE_REQUEST, 0, 0, 0, 0, 0, 0))
   {
     return false;
   }
-  state.GlobalState = ABBAuroraStrings::GlobalState(ReceiveData[1]);
-  state.InverterState = ABBAuroraStrings::InverterState(ReceiveData[2]);
-  state.Channel1State = ABBAuroraStrings::DcDcState(ReceiveData[3]);
-  state.Channel2State = ABBAuroraStrings::DcDcState(ReceiveData[4]);
-  state.AlarmState = ABBAuroraStrings::AlarmState(ReceiveData[5]);
+  state.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  state.InverterState = GasmeterStrings::InverterState(ReceiveData[2]);
+  state.Channel1State = GasmeterStrings::DcDcState(ReceiveData[3]);
+  state.Channel2State = GasmeterStrings::DcDcState(ReceiveData[4]);
+  state.AlarmState = GasmeterStrings::AlarmState(ReceiveData[5]);
   return true;
 }
 
-bool ABBAurora::ReadPartNumber(std::string &pn)
+bool GasmeterFirmware::ReadPartNumber(std::string &pn)
 {
   if (!Send(SendCommandEnum::PN_READING, 0, 0, 0, 0, 0, 0))
   {
@@ -137,22 +137,22 @@ bool ABBAurora::ReadPartNumber(std::string &pn)
   return true;
 }
 
-bool ABBAurora::ReadVersion(ABBAurora::Version &version)
+bool GasmeterFirmware::ReadVersion(GasmeterFirmware::Version &version)
 {
   if (!Send(SendCommandEnum::VERSION_READING, 0, 0, 0, 0, 0, 0))
   {
     return false;
   }
-  version.GlobalState = ABBAuroraStrings::GlobalState(ReceiveData[1]);
-  version.Par1 = ABBAuroraStrings::VersionPart1(ReceiveData[2]);
-  version.Par2 = ABBAuroraStrings::VersionPart2(ReceiveData[3]);
-  version.Par3 = ABBAuroraStrings::VersionPart3(ReceiveData[4]);
-  version.Par4 = ABBAuroraStrings::VersionPart4(ReceiveData[5]);
+  version.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  version.Par1 = GasmeterStrings::VersionPart1(ReceiveData[2]);
+  version.Par2 = GasmeterStrings::VersionPart2(ReceiveData[3]);
+  version.Par3 = GasmeterStrings::VersionPart3(ReceiveData[4]);
+  version.Par4 = GasmeterStrings::VersionPart4(ReceiveData[5]);
 
   return true;
 }
 
-bool ABBAurora::ReadDspValue(float &value, const DspValueEnum &type, const DspGlobalEnum &global)
+bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type, const DspGlobalEnum &global)
 {
   if (!Send(SendCommandEnum::MEASURE_REQUEST_DSP, static_cast<uint8_t>(type), static_cast<uint8_t>(global), 0, 0, 0, 0))
   {
@@ -160,7 +160,7 @@ bool ABBAurora::ReadDspValue(float &value, const DspValueEnum &type, const DspGl
   }
   if (ReceiveData[1] != 6) // global state "Run"
   {
-    ErrorMessage = std::string("Warning DSP value not trusted: Inverter state \"") + ABBAuroraStrings::GlobalState(ReceiveData[1]) + "\" (" + std::to_string(ReceiveData[1]) + ")";
+    ErrorMessage = std::string("Warning DSP value not trusted: Inverter state \"") + GasmeterStrings::GlobalState(ReceiveData[1]) + "\" (" + std::to_string(ReceiveData[1]) + ")";
     return false;
   }
   uint8_t b[] = {ReceiveData[5], ReceiveData[4], ReceiveData[3], ReceiveData[2]};
@@ -168,7 +168,7 @@ bool ABBAurora::ReadDspValue(float &value, const DspValueEnum &type, const DspGl
   return true;
 }
 
-bool ABBAurora::ReadSerialNumber(std::string &sn)
+bool GasmeterFirmware::ReadSerialNumber(std::string &sn)
 {
   if (!Send(SendCommandEnum::SERIAL_NUMBER_READING, 0, 0, 0, 0, 0, 0))
   {
@@ -183,13 +183,13 @@ bool ABBAurora::ReadSerialNumber(std::string &sn)
   return true;
 }
 
-bool ABBAurora::ReadManufacturingDate(ABBAurora::ManufacturingDate &date)
+bool GasmeterFirmware::ReadManufacturingDate(GasmeterFirmware::ManufacturingDate &date)
 {
   if (!Send(SendCommandEnum::MANUFACTURING_DATE, 0, 0, 0, 0, 0, 0))
   {
     return false;
   }
-  date.GlobalState = ABBAuroraStrings::GlobalState(ReceiveData[1]);
+  date.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
   std::ostringstream oss;
   oss << ReceiveData[2] << ReceiveData[3];
   date.Week = oss.str();
@@ -200,13 +200,13 @@ bool ABBAurora::ReadManufacturingDate(ABBAurora::ManufacturingDate &date)
   return true;
 }
 
-bool ABBAurora::ReadTimeDate(ABBAurora::TimeDate &date)
+bool GasmeterFirmware::ReadTimeDate(GasmeterFirmware::TimeDate &date)
 {
   if (!Send(SendCommandEnum::TIME_DATE_READING, 0, 0, 0, 0, 0, 0))
   {
     return false;
   }  
-  date.GlobalState = ABBAuroraStrings::GlobalState(ReceiveData[1]);
+  date.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
   uint8_t b[] = {ReceiveData[5], ReceiveData[4], ReceiveData[3], ReceiveData[2]};
   date.InverterTime = 0;
   memcpy(&date.InverterTime, &b, sizeof(b));
@@ -219,13 +219,13 @@ bool ABBAurora::ReadTimeDate(ABBAurora::TimeDate &date)
   return true;
 }
 
-bool ABBAurora::ReadFirmwareRelease(ABBAurora::FirmwareRelease &firmware)
+bool GasmeterFirmware::ReadFirmwareRelease(GasmeterFirmware::FirmwareRelease &firmware)
 {
   if (!Send(SendCommandEnum::FIRMWARE_RELEASE_READING, 0, 0, 0, 0, 0, 0))
   {
     return false;
   }
-  firmware.GlobalState = ABBAuroraStrings::GlobalState(ReceiveData[1]);
+  firmware.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
   std::ostringstream oss;
   for (int c = 2; c < 6; c++)
   {
@@ -239,7 +239,7 @@ bool ABBAurora::ReadFirmwareRelease(ABBAurora::FirmwareRelease &firmware)
   return true;
 }
 
-bool ABBAurora::ReadCumulatedEnergy(float &cum_energy, const CumulatedEnergyEnum &period)
+bool GasmeterFirmware::ReadCumulatedEnergy(float &cum_energy, const CumulatedEnergyEnum &period)
 {
   if (!Send(SendCommandEnum::CUMULATED_ENERGY_READINGS, static_cast<uint8_t>(period), 0, 0, 0, 0, 0))
   {
@@ -247,7 +247,7 @@ bool ABBAurora::ReadCumulatedEnergy(float &cum_energy, const CumulatedEnergyEnum
   }
   if (ReceiveData[1] != 6) // global state "Run"
   {
-    ErrorMessage = std::string("Warning cumulated energy not trusted: Inverter state \"") + ABBAuroraStrings::GlobalState(ReceiveData[1]) + "\" (" + std::to_string(ReceiveData[1]) + ")";
+    ErrorMessage = std::string("Warning cumulated energy not trusted: Inverter state \"") + GasmeterStrings::GlobalState(ReceiveData[1]) + "\" (" + std::to_string(ReceiveData[1]) + ")";
     return false;
   }
   uint8_t b[] = {ReceiveData[5], ReceiveData[4], ReceiveData[3], ReceiveData[2]};
@@ -257,16 +257,16 @@ bool ABBAurora::ReadCumulatedEnergy(float &cum_energy, const CumulatedEnergyEnum
   return true;
 }
 
-bool ABBAurora::ReadLastFourAlarms(ABBAurora::LastFourAlarms &alarms)
+bool GasmeterFirmware::ReadLastFourAlarms(GasmeterFirmware::LastFourAlarms &alarms)
 {
   if (!Send(SendCommandEnum::LAST_FOUR_ALARMS, 0, 0, 0, 0, 0, 0))
   {
     return false;
   } 
-  alarms.GlobalState = ABBAuroraStrings::GlobalState(ReceiveData[1]);
-  alarms.Alarm1 = ABBAuroraStrings::AlarmState(ReceiveData[2]);
-  alarms.Alarm2 = ABBAuroraStrings::AlarmState(ReceiveData[3]);
-  alarms.Alarm3 = ABBAuroraStrings::AlarmState(ReceiveData[4]);
-  alarms.Alarm4 = ABBAuroraStrings::AlarmState(ReceiveData[5]);
+  alarms.GlobalState = GasmeterStrings::GlobalState(ReceiveData[1]);
+  alarms.Alarm1 = GasmeterStrings::AlarmState(ReceiveData[2]);
+  alarms.Alarm2 = GasmeterStrings::AlarmState(ReceiveData[3]);
+  alarms.Alarm3 = GasmeterStrings::AlarmState(ReceiveData[4]);
+  alarms.Alarm4 = GasmeterStrings::AlarmState(ReceiveData[5]);
   return true;
 }

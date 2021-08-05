@@ -1,7 +1,7 @@
-#ifndef ABBAurora_h
-#define ABBAurora_h
-#include "ABBAuroraEnums.h"
-#include "ABBAuroraSerial.h"
+#ifndef GasmeterFirmware_h
+#define GasmeterFirmware_h
+#include "GasmeterEnums.h"
+#include "GasmeterSerial.h"
 
 /** @brief Communication protocol between host and supervisor microprocessor 
  
@@ -16,14 +16,14 @@
 
     @author Alexander Pohl <alex@ahpohl.com>
     */
-class ABBAurora
+class GasmeterFirmware
 {
   static const int SendBufferSize; ///< Fixed send buffer size (8 bytes)
   static const int ReceiveBufferSize; ///< Fixed receive buffer size (10 bytes)
   static const time_t InverterEpoch; ///< Seconds since midnight of January 1, 2000.
 
 private:
-  ABBAuroraSerial *Serial; ///< Serial object which handles the communication with the device
+  GasmeterSerial *Serial; ///< Serial object which handles the communication with the device
   unsigned char Address; ///< Address of the serial device
   uint8_t *ReceiveData; ///< Array to hold the answer from the device
   std::string ErrorMessage; ///< String which holds the possible error message
@@ -46,19 +46,19 @@ public:
       
       Initialises the class object with the default bus address
       */
-  ABBAurora(void);
+  GasmeterFirmware(void);
   /** @brief Overloaded class constructor
       
       Initialises the class object with a custom bus address
 
       @param addr RS485 device address, range 2-63
       */
-  ABBAurora(const unsigned char &addr);
+  GasmeterFirmware(const unsigned char &addr);
   /** @brief Default class destructor
       
       Closes the serial port and destroys the class object.
       */
-  ~ABBAurora(void);
+  ~GasmeterFirmware(void);
   /** @brief Setup serial device communication
       
       Opens the host serial device and sets the communication parameters.
