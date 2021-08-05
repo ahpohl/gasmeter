@@ -2,30 +2,30 @@
 #include <cstring>
 #include <sstream>
 #include <ctime>
-#include "Gasmeter.h"
+#include "GasmeterFirmware.h"
 #include "GasmeterStrings.h"
 
-const int Gasmeter::SendBufferSize = 10;
-const int Gasmeter::ReceiveBufferSize = 8;
-const time_t Gasmeter::InverterEpoch = 946684800;
+const int GasmeterFirmware::SendBufferSize = 10;
+const int GasmeterFirmware::ReceiveBufferSize = 8;
+const time_t GasmeterFirmware::InverterEpoch = 946684800;
 
-Gasmeter::Gasmeter(void) : Address(2)
+GasmeterFirmware::Gasmeter(void) : Address(2)
 {
 }
 
-Gasmeter::Gasmeter(const unsigned char &addr) : Address(addr)
+GasmeterFirmware::Gasmeter(const unsigned char &addr) : Address(addr)
 {
 }
 
-Gasmeter::~Gasmeter(void)
+GasmeterFirmware::~Gasmeter(void)
 {
   if (ReceiveData) { delete[] ReceiveData; }
   if (Serial) { delete Serial; }
 }
 
-bool Gasmeter::Setup(const std::string &device, const speed_t baudrate)
+bool GasmeterFirmware::Setup(const std::string &device, const speed_t baudrate)
 {
-  ReceiveData = new uint8_t[Gasmeter::ReceiveBufferSize] ();
+  ReceiveData = new uint8_t[GasmeterFirmware::ReceiveBufferSize] ();
   Serial = new GasmeterSerial();
   if (!Serial->Begin(device, baudrate))
   {
@@ -35,24 +35,24 @@ bool Gasmeter::Setup(const std::string &device, const speed_t baudrate)
   return true;
 }
 
-void Gasmeter::SetAddress(const unsigned char &addr)
+void GasmeterFirmware::SetAddress(const unsigned char &addr)
 {
   Address = addr;
 }
 
-unsigned char Gasmeter::GetAddress(void) const
+unsigned char GasmeterFirmware::GetAddress(void) const
 {
   return Address;
 }
 
-std::string Gasmeter::GetErrorMessage(void) const
+std::string GasmeterFirmware::GetErrorMessage(void) const
 {
   return ErrorMessage;
 }
 
-bool Gasmeter::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7)
+bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7)
 {
-  uint8_t SendData[Gasmeter::SendBufferSize] = {0};
+  uint8_t SendData[GasmeterFirmware::SendBufferSize] = {0};
 
   SendData[0] = Address;
   SendData[1] = static_cast<uint8_t>(cmd);
@@ -67,14 +67,14 @@ bool Gasmeter::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, uin
   SendData[8] = Serial->LowByte(crc);
   SendData[9] = Serial->HighByte(crc);
 
-  memset(ReceiveData, '\0', Gasmeter::ReceiveBufferSize);
+  memset(ReceiveData, '\0', GasmeterFirmware::ReceiveBufferSize);
 
-  if (Serial->WriteBytes(SendData, Gasmeter::SendBufferSize) < 0)
+  if (Serial->WriteBytes(SendData, GasmeterFirmware::SendBufferSize) < 0)
   {
     ErrorMessage = std::string("Write bytes failed: ") + Serial->GetErrorMessage();
     return false;
   }
-  if (Serial->ReadBytes(ReceiveData, Gasmeter::ReceiveBufferSize) < 0) 
+  if (Serial->ReadBytes(ReceiveData, GasmeterFirmware::ReceiveBufferSize) < 0) 
   {
     ErrorMessage = std::string("Read bytes failed: ") + Serial->GetErrorMessage();
     return false;
@@ -92,7 +92,7 @@ bool Gasmeter::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t b4, uin
   return true;
 }
 
-long int Gasmeter::GetGmtOffset(void)
+long int GasmeterFirmware::GetGmtOffset(void)
 {
   time_t now = time(NULL);
   struct tm tm;
@@ -105,7 +105,7 @@ long int Gasmeter::GetGmtOffset(void)
 
 // Inverter commands
 
-bool Gasmeter::ReadState(Gasmeter::State &state)
+bool GasmeterFirmware::ReadState(GasmeterFirmware::State &state)
 {
   if (!Send(SendCommandEnum::STATE_REQUEST, 0, 0, 0, 0, 0, 0))
   {
@@ -119,7 +119,7 @@ bool Gasmeter::ReadState(Gasmeter::State &state)
   return true;
 }
 
-bool Gasmeter::ReadPartNumber(std::string &pn)
+bool GasmeterFirmware::ReadPartNumber(std::string &pn)
 {
   if (!Send(SendCommandEnum::PN_READING, 0, 0, 0, 0, 0, 0))
   {
@@ -134,7 +134,7 @@ bool Gasmeter::ReadPartNumber(std::string &pn)
   return true;
 }
 
-bool Gasmeter::ReadVersion(Gasmeter::Version &version)
+bool GasmeterFirmware::ReadVersion(GasmeterFirmware::Version &version)
 {
   if (!Send(SendCommandEnum::VERSION_READING, 0, 0, 0, 0, 0, 0))
   {
@@ -149,7 +149,7 @@ bool Gasmeter::ReadVersion(Gasmeter::Version &version)
   return true;
 }
 
-bool Gasmeter::ReadDspValue(float &value, const DspValueEnum &type, const DspGlobalEnum &global)
+bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type, const DspGlobalEnum &global)
 {
   if (!Send(SendCommandEnum::MEASURE_REQUEST_DSP, static_cast<uint8_t>(type), static_cast<uint8_t>(global), 0, 0, 0, 0))
   {
@@ -165,7 +165,7 @@ bool Gasmeter::ReadDspValue(float &value, const DspValueEnum &type, const DspGlo
   return true;
 }
 
-bool Gasmeter::ReadSerialNumber(std::string &sn)
+bool GasmeterFirmware::ReadSerialNumber(std::string &sn)
 {
   if (!Send(SendCommandEnum::SERIAL_NUMBER_READING, 0, 0, 0, 0, 0, 0))
   {
@@ -180,7 +180,7 @@ bool Gasmeter::ReadSerialNumber(std::string &sn)
   return true;
 }
 
-bool Gasmeter::ReadManufacturingDate(Gasmeter::ManufacturingDate &date)
+bool GasmeterFirmware::ReadManufacturingDate(GasmeterFirmware::ManufacturingDate &date)
 {
   if (!Send(SendCommandEnum::MANUFACTURING_DATE, 0, 0, 0, 0, 0, 0))
   {
@@ -197,7 +197,7 @@ bool Gasmeter::ReadManufacturingDate(Gasmeter::ManufacturingDate &date)
   return true;
 }
 
-bool Gasmeter::ReadTimeDate(Gasmeter::TimeDate &date)
+bool GasmeterFirmware::ReadTimeDate(GasmeterFirmware::TimeDate &date)
 {
   if (!Send(SendCommandEnum::TIME_DATE_READING, 0, 0, 0, 0, 0, 0))
   {
@@ -216,7 +216,7 @@ bool Gasmeter::ReadTimeDate(Gasmeter::TimeDate &date)
   return true;
 }
 
-bool Gasmeter::ReadFirmwareRelease(Gasmeter::FirmwareRelease &firmware)
+bool GasmeterFirmware::ReadFirmwareRelease(GasmeterFirmware::FirmwareRelease &firmware)
 {
   if (!Send(SendCommandEnum::FIRMWARE_RELEASE_READING, 0, 0, 0, 0, 0, 0))
   {
@@ -236,7 +236,7 @@ bool Gasmeter::ReadFirmwareRelease(Gasmeter::FirmwareRelease &firmware)
   return true;
 }
 
-bool Gasmeter::ReadCumulatedEnergy(Gasmeter::CumulatedEnergy &cumulated, const CumulatedEnergyEnum &period)
+bool GasmeterFirmware::ReadCumulatedEnergy(GasmeterFirmware::CumulatedEnergy &cumulated, const CumulatedEnergyEnum &period)
 {
   if (!Send(SendCommandEnum::CUMULATED_ENERGY_READINGS, static_cast<uint8_t>(period), 0, 0, 0, 0, 0))
   {
@@ -249,7 +249,7 @@ bool Gasmeter::ReadCumulatedEnergy(Gasmeter::CumulatedEnergy &cumulated, const C
   return true;
 }
 
-bool Gasmeter::ReadLastFourAlarms(Gasmeter::LastFourAlarms &alarm)
+bool GasmeterFirmware::ReadLastFourAlarms(GasmeterFirmware::LastFourAlarms &alarm)
 {
   if (!Send(SendCommandEnum::LAST_FOUR_ALARMS, 0, 0, 0, 0, 0, 0))
   {

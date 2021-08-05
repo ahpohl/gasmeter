@@ -1,5 +1,5 @@
-#ifndef Gasmeter_h
-#define Gasmeter_h
+#ifndef GasmeterFirmware_h
+#define GasmeterFirmware_h
 #include "GasmeterEnums.h"
 #include "GasmeterSerial.h"
 
@@ -16,7 +16,7 @@
 
     @author Alexander Pohl <alex@ahpohl.com>
     */
-class Gasmeter
+class GasmeterFirmware
 {
   static const int SendBufferSize; ///< Fixed send buffer size (8 bytes)
   static const int ReceiveBufferSize; ///< Fixed receive buffer size (10 bytes)
@@ -46,19 +46,19 @@ public:
       
       Initialises the class object with the default bus address
       */
-  Gasmeter(void);
+  GasmeterFirmware(void);
   /** @brief Overloaded class constructor
       
       Initialises the class object with a custom bus address
 
       @param addr RS485 device address, range 2-63
       */
-  Gasmeter(const unsigned char &addr);
+  GasmeterFirmware(const unsigned char &addr);
   /** @brief Default class destructor
       
       Closes the serial port and destroys the class object.
       */
-  ~Gasmeter(void);
+  ~GasmeterFirmware(void);
   /** @brief Setup serial device communication
       
       Opens the host serial device and sets the communication parameters.

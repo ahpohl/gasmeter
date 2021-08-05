@@ -1,5 +1,5 @@
-#ifndef ABBAuroraSerial_h
-#define ABBAuroraSerial_h
+#ifndef GasmeterSerial_h
+#define GasmeterSerial_h
 #include <string>
 #include <termios.h>
 
@@ -8,7 +8,7 @@
     Methods to handle the serial communication between host and device
 
     */
-class ABBAuroraSerial
+class GasmeterSerial
 {
 public:
 /** @brief Default destructor
@@ -16,7 +16,7 @@ public:
     Closes the serial port and deletes the serial object
 
     */
-  ~ABBAuroraSerial(void);
+  ~GasmeterSerial(void);
 /** @brief Begin communication
 
     Opens the serial port and sets communication parameters

@@ -7,11 +7,11 @@
 #include <stdexcept>
 #include "Gasmeter.h"
 
-const std::set<std::string> Gasmeter::ValidKeys {"mqtt_broker", "mqtt_password", "mqtt_port", "mqtt_topic", "mqtt_user", "mqtt_tls_cafile", "mqtt_tls_capath", "payment_kwh", "serial_device"};
+const std::set<std::string> Gasmeter::ValidKeys {"mqtt_broker", "mqtt_password", "mqtt_port", "mqtt_topic", "mqtt_user", "mqtt_tls_cafile", "mqtt_tls_capath", "serial_device", "gas_rate", "gas_price", "gas_factor"};
 
 Gasmeter::Gasmeter(const bool &log): Log(log)
 {
-  Inverter = new ABBAurora();;
+  Firmware = new GasmeterFirmware();
   Mqtt = new GasmeterMqtt(Log);
   Cfg = new GasmeterConfig();
 }
@@ -24,7 +24,7 @@ Gasmeter::~Gasmeter(void)
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
   if (Mqtt) { delete Mqtt; }
-  if (Inverter) { delete Inverter; }
+  if (Firmware) { delete Firmware; }
   if (Cfg) { delete Cfg; };
 }
 
@@ -54,9 +54,9 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-  if (!Inverter->Setup(Cfg->GetValue("serial_device")))
+  if (!Firmware->Setup(Cfg->GetValue("serial_device")))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
   if (!Mqtt->Begin())
@@ -116,114 +116,114 @@ bool Gasmeter::Setup(const std::string &config)
 
 bool Gasmeter::Receive(void)
 {
-  if (!Inverter->ReadState(State))
+  if (!Firmware->ReadState(State))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadPartNumber(Datagram.PartNum))
+  if (!Firmware->ReadPartNumber(Datagram.PartNum))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadSerialNumber(Datagram.SerialNum))
+  if (!Firmware->ReadSerialNumber(Datagram.SerialNum))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  ABBAurora::FirmwareRelease firmware;
-  if (!Inverter->ReadFirmwareRelease(firmware))
+  GasmeterFirmware::FirmwareRelease firmware;
+  if (!Firmware->ReadFirmwareRelease(firmware))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
   Datagram.Firmware = firmware.Release;
   
-  ABBAurora::ManufacturingDate mfg_date;
-  if (!Inverter->ReadManufacturingDate(mfg_date))
+  GasmeterFirmware::ManufacturingDate mfg_date;
+  if (!Firmware->ReadManufacturingDate(mfg_date))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
   Datagram.MfgDate = std::string("Year ") + mfg_date.Year + " Week " + mfg_date.Week;
 
-  ABBAurora::Version version;
-  if (!Inverter->ReadVersion(version))
+  GasmeterFirmware::Version version;
+  if (!Firmware->ReadVersion(version))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
   Datagram.InverterType = version.Par1;
   Datagram.GridStandard = version.Par2;
 
-  if (!Inverter->ReadCumulatedEnergy(Datagram.TotalEnergy, CumulatedEnergyEnum::LIFETIME_TOTAL))
+  if (!Firmware->ReadCumulatedEnergy(Datagram.TotalEnergy, CumulatedEnergyEnum::LIFETIME_TOTAL))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.VoltageP1, DspValueEnum::V_IN_1))
+  if (!Firmware->ReadDspValue(Datagram.VoltageP1, DspValueEnum::V_IN_1))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.CurrentP1, DspValueEnum::I_IN_1))
+  if (!Firmware->ReadDspValue(Datagram.CurrentP1, DspValueEnum::I_IN_1))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.PowerP1, DspValueEnum::POWER_IN_1))
+  if (!Firmware->ReadDspValue(Datagram.PowerP1, DspValueEnum::POWER_IN_1))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.VoltageP2, DspValueEnum::V_IN_2))
+  if (!Firmware->ReadDspValue(Datagram.VoltageP2, DspValueEnum::V_IN_2))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.CurrentP2, DspValueEnum::I_IN_2))
+  if (!Firmware->ReadDspValue(Datagram.CurrentP2, DspValueEnum::I_IN_2))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.PowerP2, DspValueEnum::POWER_IN_2))
+  if (!Firmware->ReadDspValue(Datagram.PowerP2, DspValueEnum::POWER_IN_2))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.GridVoltage, DspValueEnum::GRID_VOLTAGE))
+  if (!Firmware->ReadDspValue(Datagram.GridVoltage, DspValueEnum::GRID_VOLTAGE))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.GridCurrent, DspValueEnum::GRID_CURRENT))
+  if (!Firmware->ReadDspValue(Datagram.GridCurrent, DspValueEnum::GRID_CURRENT))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.GridPower, DspValueEnum::GRID_POWER))
+  if (!Firmware->ReadDspValue(Datagram.GridPower, DspValueEnum::GRID_POWER))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.Frequency, DspValueEnum::FREQUENCY))
+  if (!Firmware->ReadDspValue(Datagram.Frequency, DspValueEnum::FREQUENCY))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.InverterTemp, DspValueEnum::TEMPERATURE_INVERTER))
+  if (!Firmware->ReadDspValue(Datagram.InverterTemp, DspValueEnum::TEMPERATURE_INVERTER))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.BoosterTemp, DspValueEnum::TEMPERATURE_BOOSTER))
+  if (!Firmware->ReadDspValue(Datagram.BoosterTemp, DspValueEnum::TEMPERATURE_BOOSTER))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Inverter->ReadDspValue(Datagram.RIso, DspValueEnum::ISOLATION_RESISTANCE))
+  if (!Firmware->ReadDspValue(Datagram.RIso, DspValueEnum::ISOLATION_RESISTANCE))
   {
-    ErrorMessage = Inverter->GetErrorMessage();
+    ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
   try
@@ -245,7 +245,7 @@ bool Gasmeter::Receive(void)
 
 bool Gasmeter::Publish(void)
 {
-  static ABBAurora::State previous_state;
+  static GasmeterFirmware::State previous_state;
   if (!((previous_state.GlobalState == State.GlobalState) &&
         (previous_state.InverterState == State.InverterState) &&
         (previous_state.Channel1State == State.Channel1State) &&

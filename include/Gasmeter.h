@@ -2,16 +2,17 @@
 #define Gasmeter_h
 #include "GasmeterMqtt.h"
 #include "GasmeterConfig.h"
+#include "GasmeterFirmware.h"
 
 class Gasmeter
 {
   static const std::set<std::string> ValidKeys;
 
 private:
-  ABBAurora *Inverter;
+  GasmeterFirmware *Firmware;
   GasmeterMqtt *Mqtt;
   GasmeterConfig *Cfg;
-  ABBAurora::State State;
+  GasmeterFirmware::State State;
   std::stringstream Payload;
   std::string Config;
   std::string ErrorMessage;
