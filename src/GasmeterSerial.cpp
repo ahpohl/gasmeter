@@ -4,16 +4,16 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include "ABBAuroraSerial.h"
+#include "GasmeterSerial.h"
 
-ABBAuroraSerial::~ABBAuroraSerial(void)
+GasmeterSerial::~GasmeterSerial(void)
 {
   if (SerialPort) {
     close(SerialPort);
   }
 }
 
-bool ABBAuroraSerial::Begin(const std::string &device, const speed_t &baudrate)
+bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
 {
   if (device.empty()) {
     ErrorMessage = "Serial device argument empty";
@@ -68,7 +68,7 @@ bool ABBAuroraSerial::Begin(const std::string &device, const speed_t &baudrate)
   return true;
 }
 
-int ABBAuroraSerial::ReadBytes(uint8_t *buffer, const int &length)
+int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
 {
   int bytes_received, retval, iterations = 0;
   const int max_iterations = 1000;
@@ -106,7 +106,7 @@ int ABBAuroraSerial::ReadBytes(uint8_t *buffer, const int &length)
   return bytes_received;
 }
 
-int ABBAuroraSerial::WriteBytes(uint8_t const *buffer, const int &length)
+int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length)
 {
   int bytes_sent = 0;
 
@@ -120,17 +120,17 @@ int ABBAuroraSerial::WriteBytes(uint8_t const *buffer, const int &length)
   return bytes_sent;
 }
 
-void ABBAuroraSerial::Flush(void) const
+void GasmeterSerial::Flush(void) const
 {
   tcflush(SerialPort, TCIOFLUSH);
 }
 
-uint16_t ABBAuroraSerial::Word(const uint8_t &msb, const uint8_t &lsb) const
+uint16_t GasmeterSerial::Word(const uint8_t &msb, const uint8_t &lsb) const
 {
   return ((msb & 0xFF) << 8) | lsb;
 }
 
-uint16_t ABBAuroraSerial::Crc16(uint8_t *data, const int &offset, const int &count) const
+uint16_t GasmeterSerial::Crc16(uint8_t *data, const int &offset, const int &count) const
 {
   uint8_t BccLo = 0xFF;
   uint8_t BccHi = 0xFF;
@@ -152,17 +152,17 @@ uint16_t ABBAuroraSerial::Crc16(uint8_t *data, const int &offset, const int &cou
   return Word(~BccHi, ~BccLo);
 }
 
-uint8_t ABBAuroraSerial::LowByte(const uint16_t &bytes) const
+uint8_t GasmeterSerial::LowByte(const uint16_t &bytes) const
 {
   return static_cast<uint8_t>(bytes);
 }
 
-uint8_t ABBAuroraSerial::HighByte(const uint16_t &bytes) const
+uint8_t GasmeterSerial::HighByte(const uint16_t &bytes) const
 {
   return static_cast<uint8_t>((bytes >> 8) & 0xFF);
 }
 
-std::string ABBAuroraSerial::GetErrorMessage(void)
+std::string GasmeterSerial::GetErrorMessage(void)
 {
   return ErrorMessage;
 }

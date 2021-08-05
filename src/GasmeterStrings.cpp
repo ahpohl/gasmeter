@@ -1,7 +1,7 @@
 #include <string>
-#include "ABBAuroraStrings.h"
+#include "GasmeterStrings.h"
 
-std::string ABBAuroraStrings::TransmissionState(unsigned char id)
+std::string GasmeterStrings::TransmissionState(unsigned char id)
 {
   switch (id)
   {
@@ -28,7 +28,7 @@ std::string ABBAuroraStrings::TransmissionState(unsigned char id)
   }
 }
 
-std::string ABBAuroraStrings::GlobalState(unsigned char id)
+std::string GasmeterStrings::GlobalState(unsigned char id)
 {
   switch (id)
   {
@@ -119,7 +119,7 @@ std::string ABBAuroraStrings::GlobalState(unsigned char id)
   }
 }
 
-std::string ABBAuroraStrings::DcDcState(unsigned char id)
+std::string GasmeterStrings::DcDcState(unsigned char id)
 {
   switch (id)
   {
@@ -168,7 +168,7 @@ std::string ABBAuroraStrings::DcDcState(unsigned char id)
   }
 }
 
-std::string ABBAuroraStrings::InverterState(unsigned char id)
+std::string GasmeterStrings::InverterState(unsigned char id)
 {
   switch (id)
   {
@@ -257,7 +257,7 @@ std::string ABBAuroraStrings::InverterState(unsigned char id)
   }
 }
 
-std::string ABBAuroraStrings::AlarmState(unsigned char id)
+std::string GasmeterStrings::AlarmState(unsigned char id)
 {
   switch (id)
   {
@@ -396,7 +396,7 @@ std::string ABBAuroraStrings::AlarmState(unsigned char id)
   }
 }
 
-std::string ABBAuroraStrings::VersionPart1(char id)
+std::string GasmeterStrings::VersionPart1(char id)
 {
   switch (id)
   {
@@ -433,7 +433,7 @@ std::string ABBAuroraStrings::VersionPart1(char id)
   }
 }
 
-std::string ABBAuroraStrings::VersionPart2(char id)
+std::string GasmeterStrings::VersionPart2(char id)
 {
   switch (id)
   {
@@ -454,7 +454,7 @@ std::string ABBAuroraStrings::VersionPart2(char id)
   }
 }
 
-std::string ABBAuroraStrings::VersionPart3(char id)
+std::string GasmeterStrings::VersionPart3(char id)
 {
   switch (id)
   {
@@ -467,7 +467,7 @@ std::string ABBAuroraStrings::VersionPart3(char id)
   }
 }
 
-std::string ABBAuroraStrings::VersionPart4(char id)
+std::string GasmeterStrings::VersionPart4(char id)
 {
   switch (id)
   {

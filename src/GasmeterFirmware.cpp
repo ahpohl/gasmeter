@@ -9,15 +9,15 @@ const int GasmeterFirmware::SendBufferSize = 10;
 const int GasmeterFirmware::ReceiveBufferSize = 8;
 const time_t GasmeterFirmware::InverterEpoch = 946684800;
 
-GasmeterFirmware::Gasmeter(void) : Address(2)
+GasmeterFirmware::GasmeterFirmware(void) : Address(2)
 {
 }
 
-GasmeterFirmware::Gasmeter(const unsigned char &addr) : Address(addr)
+GasmeterFirmware::GasmeterFirmware(const unsigned char &addr) : Address(addr)
 {
 }
 
-GasmeterFirmware::~Gasmeter(void)
+GasmeterFirmware::~GasmeterFirmware(void)
 {
   if (ReceiveData) { delete[] ReceiveData; }
   if (Serial) { delete Serial; }
