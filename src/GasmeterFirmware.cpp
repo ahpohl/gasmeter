@@ -68,7 +68,7 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t
     Serial->Flush();
     return false;
   }
-  if ((cmd != SendCommandEnum::PN_READING) && (cmd != SendCommandEnum::SERIAL_NUMBER_READING) && ReceiveData[0])
+  if (ReceiveData[0])
   {
     ErrorMessage = std::string("Transmission error: ") + GasmeterStrings::TransmissionState(ReceiveData[0]) + " (" + std::to_string(ReceiveData[0]) + ")";
     return false;
@@ -76,15 +76,10 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b2, uint8_t b3, uint8_t
   return true;
 }
 
-bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type, const DspGlobalEnum &global)
+bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type)
 {
-  if (!Send(SendCommandEnum::MEASURE_REQUEST_DSP, static_cast<uint8_t>(type), static_cast<uint8_t>(global), 0, 0, 0, 0))
+  if (!Send(SendCommandEnum::MEASURE_REQUEST_DSP, static_cast<uint8_t>(type), 0, 0, 0, 0, 0))
   {
-    return false;
-  }
-  if (ReceiveData[1] != 6) // global state "Run"
-  {
-    ErrorMessage = std::string("Warning DSP value not trusted: Inverter state \"") + GasmeterStrings::GlobalState(ReceiveData[1]) + "\" (" + std::to_string(ReceiveData[1]) + ")";
     return false;
   }
   uint8_t b[] = {ReceiveData[5], ReceiveData[4], ReceiveData[3], ReceiveData[2]};

@@ -35,9 +35,6 @@ public:
     float Energy;             // Gas energy [kWh]
     float Temperature;        // DHT22 temperature [°C]
     float Humidity;           // DHT22 humidity [%rH]
-    float Rate;               // Fixed rate per year [€]
-    float Price;              // Price per kWh gas [€]
-    float Factor;             // Gas factor
   } Datagram;
 };
 

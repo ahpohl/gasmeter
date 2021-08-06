@@ -44,7 +44,17 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-  if (!(Cfg->KeyExists("payment_kwh")))
+  if (!(Cfg->KeyExists("gas_rate")))
+  {
+    ErrorMessage = Cfg->GetErrorMessage();
+    return false;
+  }
+  if (!(Cfg->KeyExists("gas_price")))
+  {
+    ErrorMessage = Cfg->GetErrorMessage();
+    return false;
+  }
+  if (!(Cfg->KeyExists("gas_factor")))
   {
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
@@ -116,22 +126,17 @@ bool Gasmeter::Setup(const std::string &config)
 
 bool Gasmeter::Receive(void)
 {
-  if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::V_IN_1))
+  if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::GAS_VOLUME))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.Energy, DspValueEnum::I_IN_1))
+  if (!Firmware->ReadDspValue(Datagram.Temperature, DspValueEnum::DHT22_TEMP))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.Temperature, DspValueEnum::POWER_IN_1))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.Humidity, DspValueEnum::V_IN_2))
+  if (!Firmware->ReadDspValue(Datagram.Humidity, DspValueEnum::DHT22_HUMIDITY))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
@@ -150,13 +155,13 @@ bool Gasmeter::Publish(void)
   Payload << "[{"
     << "\"time\":" << now << ","
     << "\"volume\":" << std::setprecision(2) << Datagram.Volume << "," 
-    << "\"energy\":" << std::setprecision(2) << Datagram.Energy << ","
+    << "\"energy\":" << std::setprecision(2) << Datagram.Volume * StringTo<float>(Cfg->GetValue("gas_factor")) << ","
     << "\"temperature\":" << std::setprecision(2) << Datagram.Temperature << ","
     << "\"humidity\":" << std::setprecision(2) << Datagram.Humidity
     << "},{"
-    << "\"rate\":\"" << Datagram.Rate << "\","
-    << "\"price\":\"" << Datagram.Price << "\","
-    << "\"factor\":\"" << Datagram.Factor
+    << "\"rate\":\"" << Cfg->GetValue("gas_rate") << "\","
+    << "\"price\":\"" << Cfg->GetValue("gas_price") << "\","
+    << "\"factor\":\"" << Cfg->GetValue("gas_factor")
     << "}]";
 
   static bool last_connect_status = true;
