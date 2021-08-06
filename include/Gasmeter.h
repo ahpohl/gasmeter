@@ -12,7 +12,6 @@ private:
   GasmeterFirmware *Firmware;
   GasmeterMqtt *Mqtt;
   GasmeterConfig *Cfg;
-  GasmeterFirmware::State State;
   std::stringstream Payload;
   std::string Config;
   std::string ErrorMessage;

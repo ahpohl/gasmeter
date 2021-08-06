@@ -116,51 +116,6 @@ bool Gasmeter::Setup(const std::string &config)
 
 bool Gasmeter::Receive(void)
 {
-  if (!Firmware->ReadState(State))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadPartNumber(Datagram.PartNum))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadSerialNumber(Datagram.SerialNum))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  GasmeterFirmware::FirmwareRelease firmware;
-  if (!Firmware->ReadFirmwareRelease(firmware))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  Datagram.Firmware = firmware.Release;
-  
-  GasmeterFirmware::ManufacturingDate mfg_date;
-  if (!Firmware->ReadManufacturingDate(mfg_date))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  Datagram.MfgDate = std::string("Year ") + mfg_date.Year + " Week " + mfg_date.Week;
-
-  GasmeterFirmware::Version version;
-  if (!Firmware->ReadVersion(version))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  Datagram.InverterType = version.Par1;
-  Datagram.GridStandard = version.Par2;
-
-  if (!Firmware->ReadCumulatedEnergy(Datagram.TotalEnergy, CumulatedEnergyEnum::LIFETIME_TOTAL))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
   if (!Firmware->ReadDspValue(Datagram.VoltageP1, DspValueEnum::V_IN_1))
   {
     ErrorMessage = Firmware->GetErrorMessage();
@@ -245,29 +200,6 @@ bool Gasmeter::Receive(void)
 
 bool Gasmeter::Publish(void)
 {
-  static GasmeterFirmware::State previous_state;
-  if (!((previous_state.GlobalState == State.GlobalState) &&
-        (previous_state.InverterState == State.InverterState) &&
-        (previous_state.Channel1State == State.Channel1State) &&
-        (previous_state.Channel2State == State.Channel2State) &&
-        (previous_state.AlarmState == State.AlarmState)))
-  {
-    std::ostringstream oss;
-    oss << "[{"
-      << "\"global_state\":\"" << State.GlobalState << "\"" << ","
-      << "\"inverter_state\":\"" << State.InverterState << "\"" << ","
-      << "\"ch1_state\":\"" << State.Channel1State << "\"" << ","
-      << "\"ch2_state\":\"" << State.Channel2State << "\"" << ","
-      << "\"alarm_state\":\"" << State.AlarmState << "\"" << "}]";
-
-    if (!(Mqtt->PublishMessage(oss.str(), Cfg->GetValue("mqtt_topic") + "/state", 1, true)))
-    {
-      ErrorMessage = Mqtt->GetErrorMessage();
-      return false;
-    }
-  }
-  previous_state = State;
-
   unsigned long long now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
   
   std::ios::fmtflags old_settings = Payload.flags();
