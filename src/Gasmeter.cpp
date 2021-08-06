@@ -116,83 +116,24 @@ bool Gasmeter::Setup(const std::string &config)
 
 bool Gasmeter::Receive(void)
 {
-  if (!Firmware->ReadDspValue(Datagram.VoltageP1, DspValueEnum::V_IN_1))
+  if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::V_IN_1))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.CurrentP1, DspValueEnum::I_IN_1))
+  if (!Firmware->ReadDspValue(Datagram.Energy, DspValueEnum::I_IN_1))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.PowerP1, DspValueEnum::POWER_IN_1))
+  if (!Firmware->ReadDspValue(Datagram.Temperature, DspValueEnum::POWER_IN_1))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.VoltageP2, DspValueEnum::V_IN_2))
+  if (!Firmware->ReadDspValue(Datagram.Humidity, DspValueEnum::V_IN_2))
   {
     ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.CurrentP2, DspValueEnum::I_IN_2))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.PowerP2, DspValueEnum::POWER_IN_2))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.GridVoltage, DspValueEnum::GRID_VOLTAGE))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.GridCurrent, DspValueEnum::GRID_CURRENT))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.GridPower, DspValueEnum::GRID_POWER))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.Frequency, DspValueEnum::FREQUENCY))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.InverterTemp, DspValueEnum::TEMPERATURE_INVERTER))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.BoosterTemp, DspValueEnum::TEMPERATURE_BOOSTER))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.RIso, DspValueEnum::ISOLATION_RESISTANCE))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  try
-  {
-    float denominator = Datagram.PowerP1 + Datagram.PowerP2;
-    if (denominator == 0)
-    {
-      throw std::runtime_error("Math error: Attempted to divide by Zero");
-    } 
-    Datagram.Efficiency = Datagram.GridPower / denominator * 100.0f;
-  }
-  catch (std::runtime_error& e)
-  {
-    ErrorMessage = e.what();
     return false;
   }
   return true;
@@ -208,29 +149,14 @@ bool Gasmeter::Publish(void)
 
   Payload << "[{"
     << "\"time\":" << now << ","
-    << "\"total_energy\":" << std::setprecision(2) << Datagram.TotalEnergy << "," 
-    << "\"voltage_p1\":" << std::setprecision(2) << Datagram.VoltageP1 << ","
-    << "\"current_p1\":" << std::setprecision(5) << Datagram.CurrentP1 << ","
-    << "\"power_p1\":" << std::setprecision(2) << Datagram.PowerP1 << ","
-    << "\"voltage_p2\":" << std::setprecision(2) << Datagram.VoltageP2 << ","
-    << "\"current_p2\":" << std::setprecision(5) << Datagram.CurrentP2 << ","
-    << "\"power_p2\":" << std::setprecision(2) << Datagram.PowerP2 << ","
-    << "\"grid_voltage\":" << std::setprecision(2) << Datagram.GridVoltage << ","
-    << "\"grid_current\":" << std::setprecision(5) << Datagram.GridCurrent << ","
-    << "\"grid_power\":" << std::setprecision(2) << Datagram.GridPower << ","
-    << "\"frequency\":" << std::setprecision(3) << Datagram.Frequency << ","
-    << "\"efficiency\":" << std::setprecision(2) << Datagram.Efficiency << ","
-    << "\"inverter_temp\":" << std::setprecision(2) << Datagram.InverterTemp << ","
-    << "\"booster_temp\":" << std::setprecision(2) << Datagram.BoosterTemp << ","
-    << "\"r_iso\":" << std::setprecision(3) << Datagram.RIso << ","
-    << "\"payment\":" << Cfg->GetValue("payment_kwh")
+    << "\"volume\":" << std::setprecision(2) << Datagram.Volume << "," 
+    << "\"energy\":" << std::setprecision(2) << Datagram.Energy << ","
+    << "\"temperature\":" << std::setprecision(2) << Datagram.Temperature << ","
+    << "\"humidity\":" << std::setprecision(2) << Datagram.Humidity
     << "},{"
-    << "\"serial_num\":\"" << Datagram.SerialNum << "\","
-    << "\"part_num\":\"" << Datagram.PartNum << "\","
-    << "\"mfg_date\":\"" << Datagram.MfgDate << "\","
-    << "\"firmware\":\"" << Datagram.Firmware << "\","
-    << "\"inverter_type\":\"" << Datagram.InverterType << "\"," 
-    << "\"grid_standard\":\"" << Datagram.GridStandard << "\""
+    << "\"rate\":\"" << Datagram.Rate << "\","
+    << "\"price\":\"" << Datagram.Price << "\","
+    << "\"factor\":\"" << Datagram.Factor
     << "}]";
 
   static bool last_connect_status = true;

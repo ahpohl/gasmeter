@@ -31,28 +31,13 @@ public:
   
   struct Datagram
   {
-    std::string SerialNum;    // Serial number
-    std::string PartNum;      // Part number
-    std::string MfgDate;      // Manufacturing date
-    std::string Firmware;     // Firmware version
-    std::string InverterType; // Inverter type indoor/outdoor
-    std::string GridStandard; // Grid standard
-    float VoltageP1;          // Voltage pin 1 [V]
-    float CurrentP1;          // Current pin 1 [A]
-    float PowerP1;            // Power pin 1 [W]
-    float VoltageP2;          // Voltage pin 2 [V]
-    float CurrentP2;          // Current pin 2 [A]
-    float PowerP2;            // Power pin 2 [W]
-    float GridVoltage;        // Grid voltage [V]
-    float GridCurrent;        // Grid current [A]
-    float GridPower;          // Grid power [W]
-    float Frequency;          // Grid frequency [Hz]
-    float Efficiency;         // AC/DC conversion efficiency [%]
-    float InverterTemp;       // Inverter temperature [°C]
-    float BoosterTemp;        // Booster temperature [°C]
-    float RIso;               // Isolation resistance [MOhm] 
-    float TotalEnergy;        // Lifetime total energy [kWh]
-    float PaymentKwh;         // Payment per kWh
+    float Volume;             // Gas volume [m³]
+    float Energy;             // Gas energy [kWh]
+    float Temperature;        // DHT22 temperature [°C]
+    float Humidity;           // DHT22 humidity [%rH]
+    float Rate;               // Fixed rate per year [€]
+    float Price;              // Price per kWh gas [€]
+    float Factor;             // Gas factor
   } Datagram;
 };
 
