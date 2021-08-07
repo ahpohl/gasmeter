@@ -18,6 +18,7 @@ public:
   ~GasmeterFirmware(void);
   bool Setup(const std::string &device, const speed_t baudrate = B19200);
   std::string GetErrorMessage(void) const;
+  bool SetMeterVolume(const float &volume);
   bool ReadDspValue(float &value, const DspValueEnum &type);
 };
 

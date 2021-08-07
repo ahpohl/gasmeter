@@ -11,7 +11,7 @@ enum class DspValueEnum : unsigned char
 /// Send command enum
 enum class SendCommandEnum : unsigned char
 {
-  SET_METER_VOLUME = 1
+  SET_METER_VOLUME = 1,
   MEASURE_REQUEST_DSP = 2
 };
 

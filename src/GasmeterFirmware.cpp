@@ -36,7 +36,7 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2, uint8_t
   uint8_t SendData[GasmeterFirmware::SendBufferSize] = {0};
 
   SendData[0] = static_cast<uint8_t>(cmd);
-  SendData[1] = b1
+  SendData[1] = b1;
   SendData[2] = b2;
   SendData[3] = b3;
   SendData[4] = b4;
@@ -69,6 +69,17 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2, uint8_t
   if (ReceiveData[0])
   {
     ErrorMessage = std::string("Transmission error: ") + GasmeterStrings::TransmissionState(ReceiveData[0]) + " (" + std::to_string(ReceiveData[0]) + ")";
+    return false;
+  }
+  return true;
+}
+
+bool GasmeterFirmware::SetMeterVolume(const float &volume)
+{
+  uint8_t b[4];
+  memcpy(&b, &volume, sizeof(volume));
+  if (!Send(SendCommandEnum::SET_METER_VOLUME, 0, b[3], b[2], b[1], b[0]))
+  {
     return false;
   }
   return true;

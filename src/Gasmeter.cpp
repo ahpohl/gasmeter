@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include "Gasmeter.h"
 
-const std::set<std::string> Gasmeter::ValidKeys {"mqtt_broker", "mqtt_password", "mqtt_port", "mqtt_topic", "mqtt_user", "mqtt_tls_cafile", "mqtt_tls_capath", "serial_device", "gas_rate", "gas_price", "gas_factor"};
+const std::set<std::string> Gasmeter::ValidKeys {"mqtt_broker", "mqtt_password", "mqtt_port", "mqtt_topic", "mqtt_user", "mqtt_tls_cafile", "mqtt_tls_capath", "serial_device", "gas_rate", "gas_price", "gas_factor", "gas_meter"};
 
 Gasmeter::Gasmeter(const bool &log): Log(log)
 {
@@ -59,12 +59,22 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
+  if (!(Cfg->KeyExists("gas_meter")))
+  {
+    ErrorMessage = Cfg->GetErrorMessage();
+    return false;
+  }
   if (!(Cfg->KeyExists("serial_device")))
   {
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
   if (!Firmware->Setup(Cfg->GetValue("serial_device")))
+  {
+    ErrorMessage = Firmware->GetErrorMessage();
+    return false;
+  }
+  if (!Firmware->SetMeterVolume(StringTo<float>(Cfg->GetValue("gas_meter"))))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
@@ -131,12 +141,12 @@ bool Gasmeter::Receive(void)
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.Temperature, DspValueEnum::DHT22_TEMP))
+  if (!Firmware->ReadDspValue(Datagram.Temperature, DspValueEnum::TEMPERATURE))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.Humidity, DspValueEnum::DHT22_HUMIDITY))
+  if (!Firmware->ReadDspValue(Datagram.Humidity, DspValueEnum::HUMIDITY))
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
