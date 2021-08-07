@@ -16,7 +16,7 @@ CREATE TABLE "sensors" (
   serial_num VARCHAR(50),
   customer_id VARCHAR(50),
   part_num VARCHAR(50),
-  mfg_date VARCHAR(50),
+  mfg_date VARCHAR(50)
 );
 
 CREATE TABLE "plan" (
