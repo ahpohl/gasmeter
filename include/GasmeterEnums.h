@@ -4,14 +4,15 @@
 enum class DspValueEnum : unsigned char
 {
   GAS_VOLUME = 1,
-  DHT22_TEMP = 2,
-  DHT22_HUMIDITY = 3
+  TEMPERATURE = 2,
+  HUMIDITY = 3
 };
 
 /// Send command enum
 enum class SendCommandEnum : unsigned char
 {
-  MEASURE_REQUEST_DSP = 1
+  SET_METER_VOLUME = 1
+  MEASURE_REQUEST_DSP = 2
 };
 
 #endif

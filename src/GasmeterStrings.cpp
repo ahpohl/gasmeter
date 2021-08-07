@@ -7,22 +7,24 @@ std::string GasmeterStrings::TransmissionState(unsigned char id)
   {
   case 0:
     return "Everything is OK.";
-  case 51:
+  case 1:
     return "Command is not implemented";
-  case 52:
+  case 2:
     return "Variable does not exist";
-  case 53:
+  case 3:
     return "Variable value is out of range";
-  case 54:
+  case 4:
     return "EEprom not accessible";
-  case 55:
-    return "Not Toggled Service Mode";
-  case 56:
-    return "Can not send the command to internal micro";
-  case 57:
+  case 5:
     return "Command not Executed";
-  case 58:
+  case 6:
     return "The variable is not available, retry";
+  case 7:
+    return "Unable to read counter";
+  case 8:
+    return "Temp/humidity sensor error";
+  case 9:
+    return "CRC checksum error";
   default:
     return "Unknown";
   }
