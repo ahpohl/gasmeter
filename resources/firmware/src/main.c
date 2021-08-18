@@ -5,24 +5,25 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "uart.h"
-#include "main.h"
+#include "gasmeter.h"
 #include "util.h"
 
-volatile uint8_t aread = 0;
-volatile uint16_t avalue = 0;
-volatile uint8_t txready = 0;
+volatile uint8_t adc_ready = 0;
+volatile uint16_t adc_value = 0;
+volatile uint8_t tx_ready = 0;
+volatile gasmeter_t gasmeter = {};
 
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
 {
   // must read low byte first
-  avalue = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
+  adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
 
   // reset timer interrupt flag, set OCF0A bit
   TIFR0 |= _BV(OCF0A);
 
   // done reading
-  aread = 1;
+  adc_ready = 1;
 }
 
 // Interrupt service routine for timer/counter1 output compare A match
@@ -32,30 +33,30 @@ ISR(TIMER1_COMPA_vect)
   TIFR1 |= _BV(OCF1A);
 
   // ready to transmit packet
-  txready = 1;
+  tx_ready = 1;
 }
 
-void read_sensor(void)
+void GetVolume(void)
 {
   // check if new ADC value ready
-  if (!aread) {
+  if (!adc_ready) {
     return;
   }
 
   // reset ADC ready flag
-  aread = 0;
+  adc_ready = 0;
 }
 
-void transmit_packet(void)
+void SendPacket(void)
 {
-  if (!txready) {
+  if (!tx_ready) {
     return;
   }
 
-  send_value(avalue);
+  SendValue(adc_value);
 
   // reset txready flag
-  txready = 0;
+  tx_ready = 0;
 }
 
 int main(void)
@@ -65,23 +66,22 @@ int main(void)
   //
 
   // set OC0A pin as output, required for output toggling
-  OC0A_DDR |= _BV(OC0A_PIN);
+  IRLED_DDR |= _BV(IRLED_PIN);
 
-  // enable toggle OC0A output on compare match, enable CTC mode
-  TCCR0A = _BV(COM0A0) | _BV(WGM01);
+  // CLK/256 prescale value  
+  TCCR0B = _BV(CS02);
 
-  // use CLK/1024 prescale value
-  TCCR0B = _BV(CS02) | _BV(CS00);
+  // phase correct PWM
+  // f = F_CPU/(510*prescaler)
+  // f = 12 MHz / (510 * 256) = 92 Hz
+  TCCR0A = _BV(COM0A1) | _BV(WGM00);
 
-  // preset timer0 high/low byte
-  OCR0A = (F_CPU/2/1024/TIMER0_CLOCK) - 1;
+  // duty cycle = 20 / 255 = 8 %
+  OCR0A = 20;
 
   //
   // timer 1
   //
-
-  // set OC1A pin as output, required for output toggling
-  OC1A_DDR |= _BV(OC1A_PIN);
 
   // enable toggle OC1A output on compare match, enable CTC mode
   TCCR1A = _BV(COM1A0);
@@ -133,8 +133,8 @@ int main(void)
   // now enable global interrupt
   sei();
 
-  // test UART
-  uart_puts("String stored in SRAM\n\r");
+  // say hello
+  uart_puts("Gasmeter IR Sensor\n\r");
 
   //
   // main loop
@@ -143,9 +143,9 @@ int main(void)
   for (;;)
   {
     // read IR sensor
-    read_sensor();
+    GetVolume();
 
     // transmit packet
-    transmit_packet();
+    SendPacket();
   }
 }

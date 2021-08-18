@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include "uart.h"
 
-void send_buffer(unsigned char const* input, size_t len)
+void SendBuffer(const unsigned char *input, size_t len)
 {
   char buffer[4];
   for (size_t i = 0; i < len; ++i) {
@@ -13,11 +13,38 @@ void send_buffer(unsigned char const* input, size_t len)
   uart_putc('\r');
 }
 
-void send_value(uint32_t value)
+void SendValue(uint32_t value)
 {
   char buffer[9];
   snprintf(buffer, 9, "%08ld", value);
   uart_puts(buffer);
   uart_putc('\n');
   uart_putc('\r');
+}
+
+uint16_t Word(const uint8_t msb, const uint8_t lsb)
+{
+  return ((msb & 0xFF) << 8) | lsb;
+}
+
+uint16_t Crc16(uint8_t *data, const int offset, const int count)
+{
+  uint8_t BccLo = 0xFF;
+  uint8_t BccHi = 0xFF;
+
+  for (int i = offset; i < count; i++)
+  { 
+    uint8_t New = data[i] ^ BccLo;
+    uint8_t Tmp = New << 4;
+    New = Tmp ^ New;
+    Tmp = New >> 5;
+    BccLo = BccHi;
+    BccHi = New ^ Tmp;
+    Tmp = New << 3; 
+    BccLo = BccLo ^ Tmp;
+    Tmp = New >> 4; 
+    BccLo = BccLo ^ Tmp;
+  }
+  
+  return Word(~BccHi, ~BccLo);
 }
