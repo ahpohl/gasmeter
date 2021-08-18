@@ -47,7 +47,7 @@ void GetVolume(void)
   adc_ready = 0;
 }
 
-void SendPacket(void)
+void SendRawAdc(void)
 {
   if (!tx_ready) {
     return;
@@ -142,10 +142,13 @@ int main(void)
 
   for (;;)
   {
+    // receive packet from uart
+    ReceivePacket();
+
     // read IR sensor
     GetVolume();
 
-    // transmit packet
-    SendPacket();
+    // send raw ADC value
+    //SendRawAdc();
   }
 }

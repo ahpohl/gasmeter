@@ -93,7 +93,7 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
 
   if (iterations == max_iterations)
   {
-    ErrorMessage = "Timeout, inverter could not be reached";
+    ErrorMessage = "Timeout, gasmeter could not be reached";
     return -1;
   }
 
@@ -135,9 +135,9 @@ uint16_t GasmeterSerial::Crc16(uint8_t *data, const int &offset, const int &coun
   uint8_t BccLo = 0xFF;
   uint8_t BccHi = 0xFF;
 
-  for (int i = offset; i < (offset + count); i++)
+  for (int i = offset; i < count; i++)
   {
-    uint8_t New = data[offset + i] ^ BccLo;
+    uint8_t New = data[i] ^ BccLo;
     uint8_t Tmp = New << 4;
     New = Tmp ^ New;
     Tmp = New >> 5;

@@ -18,12 +18,15 @@
 #define UART_CRC_ERROR 0x2000      // checksum error
 #define UART_COMM_ERROR 0x4000     // communication error
 
+#define TX_SIZE 7                  // fixed send message
+#define RX_SIZE 8                  // fixed receive message
+
 extern volatile uint8_t adc_ready;  // ADC ready flag
 extern volatile uint16_t adc_value; // ADC raw value
 extern volatile uint8_t tx_ready;   // transmit timer ready
 
-extern uint8_t receive_buffer[8];
-extern uint8_t transmit_buffer[7];
+extern uint8_t transmit_buffer[TX_SIZE];
+extern uint8_t receive_buffer[RX_SIZE];
 
 // packet definition
 typedef struct gasmeter {
@@ -36,7 +39,9 @@ typedef struct gasmeter {
 } gasmeter_t;
 
 // functions
+extern void SendRawAdc(void);
 extern void GetVolume(void);
 extern void SendPacket(void);
+extern unsigned int ReceivePacket(void);
 
 #endif
