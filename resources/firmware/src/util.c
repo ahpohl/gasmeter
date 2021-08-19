@@ -27,6 +27,11 @@ uint16_t Word(const uint8_t msb, const uint8_t lsb)
   return ((msb & 0xFF) << 8) | lsb;
 }
 
+uint32_t LongInt(const uint8_t b3, const uint8_t b2, const uint8_t b1, const uint8_t b0)
+{
+  return (uint32_t)(b3 & 0xFF) << 24 | (uint32_t)b2 << 16 | (uint32_t)b1 << 8 | (uint32_t)b0;
+}
+
 uint16_t Crc16(uint8_t *data, const int offset, const int count)
 {
   uint8_t BccLo = 0xFF;

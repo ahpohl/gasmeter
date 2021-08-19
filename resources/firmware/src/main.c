@@ -12,7 +12,6 @@
 volatile uint8_t adc_ready = 0;
 volatile uint16_t adc_value = 0;
 volatile uint8_t tx_ready = 0;
-volatile gasmeter_t gasmeter = {};
 
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
@@ -37,7 +36,7 @@ ISR(TIMER1_COMPA_vect)
   tx_ready = 1;
 }
 
-void GetVolume(void)
+void ReadAdc(void)
 {
   // check if new ADC value ready
   if (!adc_ready) {
@@ -146,10 +145,13 @@ int main(void)
     // receive packet from uart
     ReceivePacket();
 
+    // process packet
+    ProcessPacket();
+
     // read IR sensor
-    GetVolume();
+    //ReadAdc();
 
     // send raw ADC value
-    SendRawAdc();
+    //SendRawAdc();
   }
 }
