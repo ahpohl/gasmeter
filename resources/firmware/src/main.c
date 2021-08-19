@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include "main.h"
 #include "uart.h"
 #include "gasmeter.h"
 #include "util.h"
@@ -149,6 +150,6 @@ int main(void)
     GetVolume();
 
     // send raw ADC value
-    //SendRawAdc();
+    SendRawAdc();
   }
 }

@@ -1,18 +1,6 @@
 #ifndef GASMETER_H
 #define GASMETER_H
 
-#if __AVR_ATmega328P__
-
-#define IRLED_PIN PD6              // IR LED pin
-#define IRLED_DDR DDRD             // IR LED output register
-
-#else
-#error "Adapt pin definitions to your MCU"
-#endif
-
-#define TIMER1_CLOCK 4             // Raw value resolution in Hz
-
-#define UART_BAUD_RATE 9600        // baud rate
 #define UART_BUFFER_SIZE 32        // serial character buffer
 #define UART_PACKET_SUCCESS 0x0000 // packet received or transmitted      
 #define UART_CRC_ERROR 0x2000      // checksum error
@@ -21,27 +9,10 @@
 #define TX_SIZE 7                  // fixed send message
 #define RX_SIZE 8                  // fixed receive message
 
-extern volatile uint8_t adc_ready;  // ADC ready flag
-extern volatile uint16_t adc_value; // ADC raw value
-extern volatile uint8_t tx_ready;   // transmit timer ready
-
-extern uint8_t transmit_buffer[TX_SIZE];
 extern uint8_t receive_buffer[RX_SIZE];
 
-// packet definition
-typedef struct gasmeter {
-  uint8_t volume_H;
-  uint8_t volume_L;
-  uint8_t temperature_H;
-  uint8_t temperature_L;
-  uint8_t humidity_H;
-  uint8_t humidity_L;
-} gasmeter_t;
-
 // functions
-extern void SendRawAdc(void);
-extern void GetVolume(void);
-extern void SendPacket(void);
+extern void SendPacket(uint8_t state, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4);
 extern unsigned int ReceivePacket(void);
 
 #endif
