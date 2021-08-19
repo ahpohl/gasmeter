@@ -68,9 +68,12 @@ void SendPacket(uint8_t state, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4)
   tx_buffer[4] = b4;
 
   uint16_t crc_payload = Crc16(tx_buffer, 0, TX_SIZE-2);
-  tx_buffer[5] = crc_payload >> 8;
-  tx_buffer[6] = crc_payload & 0xFF;
-  SendBuffer(tx_buffer, TX_SIZE);
+  tx_buffer[5] = (uint8_t) ((crc_payload >> 8) & 0xFF);
+  tx_buffer[6] = (uint8_t) crc_payload;
+  for (int i = 0; i < TX_SIZE; i++)
+  {
+    uart_putc(tx_buffer[i]);
+  }
 }
 
 void ProcessPacket(void)
@@ -80,12 +83,13 @@ void ProcessPacket(void)
     return;
   }
   uint8_t status = EVERYTHING_IS_OK;
-  uint8_t b1 = 0, b2 = 0, b3 = 0, b4 = 0;
+  uint8_t b[4] = {0};
 
   switch (rx_packet[0])
   {
   case 1: // pre-set volume
-    uint32_t volume = LongInt(rx_packet[2], rx_packet[3], rx_packet[4], rx_packet[5]);
+    uint32_t volume;
+    memcpy(&volume, rx_packet+2, sizeof(volume));
     if (volume > gasmeter.volume)
     {
       gasmeter.volume = volume;
@@ -95,18 +99,18 @@ void ProcessPacket(void)
     switch (rx_packet[1])
     {
     case 1: // meter reading
-      b1 = (uint8_t) (gasmeter.volume >> 24);
-      b2 = (uint8_t) (gasmeter.volume >> 16);
-      b3 = (uint8_t) (gasmeter.volume >> 8);
-      b4 = (uint8_t) (gasmeter.volume & 0xFF);
+      b[0] = (uint8_t) (gasmeter.volume >> 24);
+      b[1] = (uint8_t) (gasmeter.volume >> 16);
+      b[2] = (uint8_t) (gasmeter.volume >> 8);
+      b[3] = (uint8_t) gasmeter.volume;
       break;
     case 2: // temperature
-      b3 = (uint8_t) (gasmeter.temperature >> 8);
-      b4 = (uint8_t) (gasmeter.temperature & 0xFF);
+      b[2] = (uint8_t) ((gasmeter.temperature >> 8) & 0xFF);
+      b[3] = (uint8_t) gasmeter.temperature;
       break;
     case 3: // humidity
-      b3 = (uint8_t) (gasmeter.humidity >> 8);
-      b4 = (uint8_t) (gasmeter.humidity & 0xFF);
+      b[2] = (uint8_t) ((gasmeter.humidity >> 8) & 0xFF);
+      b[3] = (uint8_t) gasmeter.humidity;
       break;
     default:
       status = VARIABLE_DOES_NOT_EXIST;
@@ -117,6 +121,6 @@ void ProcessPacket(void)
     status = COMMAND_NOT_IMPLEMENTED;
     break;
   }
-  SendPacket(status, b1, b2, b3, b4);
+  SendPacket(status, b[0], b[1], b[2], b[3]);
   packet_ready = 0;
 }

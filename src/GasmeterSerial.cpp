@@ -1,5 +1,6 @@
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 #include <thread>
 #include <fcntl.h>
 #include <unistd.h>
@@ -47,7 +48,7 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
   cfmakeraw(&serial_port_settings);
 
   // configure serial port
-  // speed: 19200 baud, data bits: 8, stop bits: 1, parity: no
+  // speed: 9600 baud, data bits: 8, stop bits: 1, parity: no
   cfsetispeed(&serial_port_settings, baudrate);
   cfsetospeed(&serial_port_settings, baudrate);
 
@@ -81,8 +82,8 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
       ErrorMessage = "Serial FIONREAD ioctl failed";
       return -1;
     }
-    // intercharacter delay: 1 / baud rate * 1e6 = 52 µs
-    std::this_thread::sleep_for(std::chrono::microseconds(50));
+    // intercharacter delay: 1 / baud rate * 1e6 = 104 µs
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
     if (bytes_available >= length)
       break;
     iterations++;
@@ -91,17 +92,25 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
   //std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   //std::cout << "Iterations: " << iterations << std::endl;
 
+  /*
   if (iterations == max_iterations)
   {
     ErrorMessage = "Timeout, gasmeter could not be reached";
     return -1;
   }
+  */
 
   bytes_received = read(SerialPort, buffer, length);
   if (bytes_received < 0) {
     ErrorMessage = "Read on serial device failed";
     return -1;
   }
+
+  std::cout << "Receive: ";
+  for (int i = 0; i < length; ++i) {
+    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+  }
+  std::cout << std::endl;
 
   return bytes_received;
 }
@@ -116,6 +125,12 @@ int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length)
     return -1;
   }
   tcdrain(SerialPort);
+
+  std::cout << "Send: ";
+  for (int i = 0; i < length; ++i) {
+    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+  }
+  std::cout << std::endl;
 
   return bytes_sent;
 }
