@@ -27,24 +27,36 @@ uint16_t Word(const uint8_t msb, const uint8_t lsb)
   return ((msb & 0xFF) << 8) | lsb;
 }
 
-uint16_t Crc16(uint8_t *data, const int offset, const int count)
-{
-  uint8_t BccLo = 0xFF;
-  uint8_t BccHi = 0xFF;
+//  crc16
+//                                       16   12   5
+//  this is the CCITT CRC 16 polynomial X  + X  + X  + 1.
+//  This is 0x1021 when x is 2, but the way the algorithm works
+//  we use 0x8408 (the reverse of the bit pattern).  The high
+//  bit is always assumed to be set, thus we only use 16 bits to
+//  represent the 17 bit value.
 
-  for (int i = offset; i < count; i++)
-  { 
-    uint8_t New = data[i] ^ BccLo;
-    uint8_t Tmp = New << 4;
-    New = Tmp ^ New;
-    Tmp = New >> 5;
-    BccLo = BccHi;
-    BccHi = New ^ Tmp;
-    Tmp = New << 3; 
-    BccLo = BccLo ^ Tmp;
-    Tmp = New >> 4; 
-    BccLo = BccLo ^ Tmp;
+uint16_t GasmeterSerial::Crc16Ccitt(const uint8_t *packet, size_t length) const
+{
+  // crc16 polynomial, 1021H bit reversed
+  const uint16_t POLY = 0x8408;
+  uint16_t crc = 0xffff;
+  if (!length) {
+    return (~crc);
   }
-  
-  return Word(~BccHi, ~BccLo);
+  uint16_t data;
+  uint8_t i;
+
+  do {
+    for (i = 0, data = 0xff & *packet++; i < 8; i++, data >>= 1)
+    {
+      if ((crc & 0x0001) ^ (data & 0x0001)) {
+        crc = (crc >> 1) ^ POLY;
+      } else {
+        crc >>= 1;
+      }
+    }
+  } while (--length);
+  crc = ~crc;
+
+  return crc;
 }

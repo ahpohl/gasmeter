@@ -12,7 +12,6 @@ unsigned int ReceivePacket(void)
   unsigned int c;
   static int bytes_received = 0;
   static unsigned char rx_buffer[UART_BUFFER_SIZE] = {0};
-
   // Get received character from ringbuffer
   // uart_getc() returns in the lower byte the received character and 
   // in the higher byte (bitmask) the last receive error
@@ -70,6 +69,7 @@ void SendPacket(uint8_t state, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4)
   uint16_t crc_payload = Crc16(tx_buffer, 0, TX_SIZE-2);
   tx_buffer[5] = (uint8_t) ((crc_payload >> 8) & 0xFF);
   tx_buffer[6] = (uint8_t) crc_payload;
+  
   for (int i = 0; i < TX_SIZE; i++)
   {
     uart_putc(tx_buffer[i]);
@@ -94,15 +94,13 @@ void ProcessPacket(void)
     {
       gasmeter.volume = volume;
     }
+    memcpy(&b, &gasmeter.volume, sizeof(b));
     break;
   case 2: // measure request to DSP
     switch (rx_packet[1])
     {
     case 1: // meter reading
-      b[0] = (uint8_t) (gasmeter.volume >> 24);
-      b[1] = (uint8_t) (gasmeter.volume >> 16);
-      b[2] = (uint8_t) (gasmeter.volume >> 8);
-      b[3] = (uint8_t) gasmeter.volume;
+      memcpy(&b, &gasmeter.volume, sizeof(b));
       break;
     case 2: // temperature
       b[2] = (uint8_t) ((gasmeter.temperature >> 8) & 0xFF);

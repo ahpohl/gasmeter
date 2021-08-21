@@ -60,10 +60,9 @@ public:
     Calculate a CCITT CRC 16 checksum  
 
     @param data Buffer with data
-    @param offset Start calucation at an offset
-    @param count Number of bytes to include
+    @param length Number of bytes to include
     */
-  uint16_t Crc16(uint8_t *data, const int &offset, const int &count) const;
+  uint16_t Crc16Ccitt(uint8_t const* packet, size_t length) const;
 /** @brief Return low byte
   
     Return the least significant (low) byte of a word

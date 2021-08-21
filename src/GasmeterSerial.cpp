@@ -72,7 +72,7 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
 int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
 {
   int bytes_received, retval, iterations = 0;
-  const int max_iterations = 1000;
+  const int max_iterations = 20000;
   //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now(); 
  
   while (iterations < max_iterations) {
@@ -89,16 +89,14 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
     iterations++;
   }
   //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  //std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+  //std::cout << std::dec << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
   //std::cout << "Iterations: " << iterations << std::endl;
 
-  /*
   if (iterations == max_iterations)
   {
     ErrorMessage = "Timeout, gasmeter could not be reached";
     return -1;
   }
-  */
 
   bytes_received = read(SerialPort, buffer, length);
   if (bytes_received < 0) {
@@ -140,31 +138,38 @@ void GasmeterSerial::Flush(void) const
   tcflush(SerialPort, TCIOFLUSH);
 }
 
-uint16_t GasmeterSerial::Word(const uint8_t &msb, const uint8_t &lsb) const
-{
-  return ((msb & 0xFF) << 8) | lsb;
-}
+//  crc16
+//                                       16   12   5
+//  this is the CCITT CRC 16 polynomial X  + X  + X  + 1.
+//  This is 0x1021 when x is 2, but the way the algorithm works
+//  we use 0x8408 (the reverse of the bit pattern).  The high
+//  bit is always assumed to be set, thus we only use 16 bits to
+//  represent the 17 bit value.
 
-uint16_t GasmeterSerial::Crc16(uint8_t *data, const int &offset, const int &count) const
+uint16_t GasmeterSerial::Crc16Ccitt(const uint8_t *packet, size_t length) const
 {
-  uint8_t BccLo = 0xFF;
-  uint8_t BccHi = 0xFF;
-
-  for (int i = offset; i < count; i++)
-  {
-    uint8_t New = data[i] ^ BccLo;
-    uint8_t Tmp = New << 4;
-    New = Tmp ^ New;
-    Tmp = New >> 5;
-    BccLo = BccHi;
-    BccHi = New ^ Tmp;
-    Tmp = New << 3;
-    BccLo = BccLo ^ Tmp;
-    Tmp = New >> 4;
-    BccLo = BccLo ^ Tmp;
+  // crc16 polynomial, 1021H bit reversed
+  const uint16_t POLY = 0x8408;
+  uint16_t crc = 0xffff;
+  if (!length) {
+    return (~crc);
   }
+  uint16_t data;
+  uint8_t i;
 
-  return Word(~BccHi, ~BccLo);
+  do {
+    for (i = 0, data = 0xff & *packet++; i < 8; i++, data >>= 1)
+    {
+      if ((crc & 0x0001) ^ (data & 0x0001)) {
+        crc = (crc >> 1) ^ POLY;
+      } else {
+        crc >>= 1;
+      }
+    }
+  } while (--length);
+  crc = ~crc;
+
+  return crc;
 }
 
 uint8_t GasmeterSerial::LowByte(const uint16_t &bytes) const
@@ -175,6 +180,11 @@ uint8_t GasmeterSerial::LowByte(const uint16_t &bytes) const
 uint8_t GasmeterSerial::HighByte(const uint16_t &bytes) const
 {
   return static_cast<uint8_t>((bytes >> 8) & 0xFF);
+}
+
+uint16_t GasmeterSerial::Word(const uint8_t &msb, const uint8_t &lsb) const
+{
+  return ((msb & 0xFF) << 8) | lsb;
 }
 
 std::string GasmeterSerial::GetErrorMessage(void)

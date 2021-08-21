@@ -42,7 +42,7 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2, uint8_t
   SendData[4] = b4;
   SendData[5] = b5;
 
-  uint16_t crc = Serial->Crc16(SendData, 0, 6);
+  uint16_t crc = Serial->Crc16Ccitt(SendData, 6);
   SendData[6] = Serial->LowByte(crc);
   SendData[7] = Serial->HighByte(crc);
 
@@ -60,7 +60,7 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2, uint8_t
     Serial->Flush();
     return false;
   }
-  if (!(Serial->Word(ReceiveData[6], ReceiveData[5]) == Serial->Crc16(ReceiveData, 0, 5)))
+  if (!(Serial->Word(ReceiveData[5], ReceiveData[6]) == Serial->Crc16Ccitt(ReceiveData, 5)))
   {
     ErrorMessage = "Received serial package with CRC mismatch";
     Serial->Flush();
