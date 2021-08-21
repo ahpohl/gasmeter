@@ -72,7 +72,7 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
 int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
 {
   int bytes_received, retval, iterations = 0;
-  const int max_iterations = 20000;
+  const int max_iterations = 500;
   //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now(); 
  
   while (iterations < max_iterations) {
@@ -104,11 +104,11 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
     return -1;
   }
 
-  std::cout << "Receive: ";
-  for (int i = 0; i < length; ++i) {
-    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
-  }
-  std::cout << std::endl;
+  //std::cout << "Receive: ";
+  //for (int i = 0; i < length; ++i) {
+  //  std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+  //}
+  //std::cout << std::endl;
 
   return bytes_received;
 }
@@ -124,11 +124,11 @@ int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length)
   }
   tcdrain(SerialPort);
 
-  std::cout << "Send: ";
-  for (int i = 0; i < length; ++i) {
-    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
-  }
-  std::cout << std::endl;
+  //std::cout << "Send: ";
+  //for (int i = 0; i < length; ++i) {
+  //  std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+  //}
+  //std::cout << std::endl;
 
   return bytes_sent;
 }
