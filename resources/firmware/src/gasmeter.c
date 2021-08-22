@@ -6,6 +6,7 @@
 uint8_t rx_packet[RX_SIZE] = {0};
 gasmeter_t gasmeter = {};
 uint8_t error_code;
+volatile uint8_t packet_ready = 0;
 
 void ReceivePacket(void)
 {
@@ -55,6 +56,7 @@ void ReceivePacket(void)
       return;
     }
     memcpy(rx_packet, rx_buffer, RX_SIZE);
+    packet_ready = 1;
   }
 }
 
@@ -84,6 +86,10 @@ void ProcessPacket(void)
   {
     SendPacket(0, 0, 0, 0);
     error_code = 0;
+    return;
+  }
+  if (!packet_ready)
+  {
     return;
   }
   uint8_t b[4] = {0};
@@ -124,4 +130,5 @@ void ProcessPacket(void)
   }
   SendPacket(b[0], b[1], b[2], b[3]);
   error_code = 0;
+  packet_ready = 0;
 }

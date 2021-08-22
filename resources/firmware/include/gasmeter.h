@@ -12,6 +12,7 @@
 
 extern uint8_t receive_buffer[RX_SIZE];
 extern uint8_t error_code;
+extern volatile uint8_t packet_ready;
 
 // packet definition
 typedef struct gasmeter {
