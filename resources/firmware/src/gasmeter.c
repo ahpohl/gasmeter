@@ -4,9 +4,9 @@
 #include "gasmeter.h"
 
 uint8_t rx_packet[RX_SIZE] = {0};
+volatile uint8_t packet_ready = 0;
 gasmeter_t gasmeter = {};
 uint8_t error_code;
-volatile uint8_t packet_ready = 0;
 
 void ReceivePacket(void)
 {
@@ -71,8 +71,8 @@ void SendPacket(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4)
   tx_buffer[4] = b4;
 
   uint16_t crc_payload = Crc16(tx_buffer, TX_SIZE-2);
-  tx_buffer[5] = (uint8_t) ((crc_payload >> 8) & 0xFF);
-  tx_buffer[6] = (uint8_t) crc_payload;
+  tx_buffer[5] = crc_payload >> 8;
+  tx_buffer[6] = crc_payload & 0xFF;
   
   for (int i = 0; i < TX_SIZE; i++)
   {
@@ -112,12 +112,10 @@ void ProcessPacket(void)
       memcpy(&b, &gasmeter.volume, sizeof(b));
       break;
     case 2: // temperature
-      b[2] = (uint8_t) ((gasmeter.temperature >> 8) & 0xFF);
-      b[3] = (uint8_t) gasmeter.temperature;
+      memcpy(&b, &gasmeter.temperature, sizeof(b));
       break;
     case 3: // humidity
-      b[2] = (uint8_t) ((gasmeter.humidity >> 8) & 0xFF);
-      b[3] = (uint8_t) gasmeter.humidity;
+      memcpy(&b, &gasmeter.humidity, sizeof(b));
       break;
     default:
       error_code = (uint8_t) (VARIABLE_DOES_NOT_EXIST >> 8);

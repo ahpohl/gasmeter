@@ -16,9 +16,9 @@ extern volatile uint8_t packet_ready;
 
 // packet definition
 typedef struct gasmeter {
-  uint32_t volume;
-  int16_t temperature;
-  int16_t humidity;
+  int32_t volume;
+  int32_t temperature;
+  int32_t humidity;
 } gasmeter_t;
 
 extern gasmeter_t gasmeter;

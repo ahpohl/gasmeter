@@ -22,11 +22,6 @@ void SendValue(uint32_t value)
   uart_putc('\r');
 }
 
-uint16_t Word(const uint8_t msb, const uint8_t lsb)
-{
-  return ((msb & 0xFF) << 8) | lsb;
-}
-
 //  crc16
 //                                       16   12   5
 //  this is the CCITT CRC 16 polynomial X  + X  + X  + 1.

@@ -16,7 +16,7 @@ void GetTempHumidity(void)
   // measure temperature and humidity
   if (((current_millis - previous_millis) > 60000) || startup)
   {
-    static int16_t offset = 0; 
+    static int32_t offset = 0; 
     gasmeter.temperature = -2000 + offset;
     gasmeter.humidity = 5000 + offset;
     offset += 100;
