@@ -9,6 +9,7 @@
 #include "gasmeter.h"
 #include "util.h"
 #include "millis.h"
+#include "dht.h"
 
 volatile uint8_t adc_ready = 0;
 volatile uint16_t adc_value = 0;
@@ -138,7 +139,7 @@ int main(void)
   sei();
 
   // say hello
-  uart_puts("Gasmeter IR Sensor\n\r");
+  //uart_puts("Gasmeter IR Sensor\n\r");
 
   //
   // main loop
@@ -157,5 +158,8 @@ int main(void)
 
     // send raw ADC value
     //SendRawAdc();
+
+    // read DHT22 sensor
+    GetTempHumidity();
   }
 }

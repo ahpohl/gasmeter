@@ -21,6 +21,8 @@ typedef struct gasmeter {
   int16_t humidity;
 } gasmeter_t;
 
+extern gasmeter_t gasmeter;
+
 // functions
 void SendPacket(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4);
 void ReceivePacket(void);

@@ -7,7 +7,7 @@
 #define DHT_DDR DDRB             // DHT22 output register
 #define DHT_PORT PORTB           // DHT22 port
 
-int GetTempHumidity(uint16_t *temperature, uint16_t *humidity);
+void GetTempHumidity(void);
 
 #else
 #error "Adapt pin definitions to your MCU"
