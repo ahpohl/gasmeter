@@ -50,7 +50,7 @@ void ReceivePacket(void)
     bytes_received = 0;
     // check CRC inside packet match packet payload
     uint16_t crc_packet = (rx_buffer[RX_SIZE-1] << 8) | (rx_buffer[RX_SIZE-2] & 0xFF);
-    uint16_t crc_payload = Crc16Ccitt(rx_buffer, RX_SIZE-2);
+    uint16_t crc_payload = Crc16(rx_buffer, RX_SIZE-2);
     if (crc_packet != crc_payload) {
       error_code = (uint8_t) (UART_CRC_ERROR >> 8);
       return;
@@ -70,7 +70,7 @@ void SendPacket(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4)
   tx_buffer[3] = b3;
   tx_buffer[4] = b4;
 
-  uint16_t crc_payload = Crc16Ccitt(tx_buffer, TX_SIZE-2);
+  uint16_t crc_payload = Crc16(tx_buffer, TX_SIZE-2);
   tx_buffer[5] = (uint8_t) ((crc_payload >> 8) & 0xFF);
   tx_buffer[6] = (uint8_t) crc_payload;
   

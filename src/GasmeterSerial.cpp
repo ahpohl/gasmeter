@@ -58,6 +58,9 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
   serial_port_settings.c_cc[VMIN] = 0;
   serial_port_settings.c_cc[VTIME] = 0;
 
+  // disable reset after modem hangup
+  serial_port_settings.c_cflag &= ~HUPCL;
+
   ret = tcsetattr(SerialPort, TCSANOW, &serial_port_settings);
   if (ret != 0) {
     ErrorMessage = std::string("Error setting serial port attributes: ") 
@@ -104,11 +107,11 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
     return -1;
   }
 
-  //std::cout << "Receive: ";
-  //for (int i = 0; i < length; ++i) {
-  //  std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
-  //}
-  //std::cout << std::endl;
+  std::cout << "Receive: ";
+  for (int i = 0; i < length; ++i) {
+    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+  }
+  std::cout << std::endl;
 
   return bytes_received;
 }
@@ -124,11 +127,11 @@ int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length)
   }
   tcdrain(SerialPort);
 
-  //std::cout << "Send: ";
-  //for (int i = 0; i < length; ++i) {
-  //  std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
-  //}
-  //std::cout << std::endl;
+  std::cout << "Send: ";
+  for (int i = 0; i < length; ++i) {
+    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+  }
+  std::cout << std::endl;
 
   return bytes_sent;
 }

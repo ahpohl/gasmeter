@@ -35,7 +35,7 @@ uint16_t Word(const uint8_t msb, const uint8_t lsb)
 //  bit is always assumed to be set, thus we only use 16 bits to
 //  represent the 17 bit value.
 
-uint16_t Crc16Ccitt(const uint8_t *packet, size_t length)
+uint16_t Crc16(const uint8_t *packet, size_t length)
 {
   // crc16 polynomial, 1021H bit reversed
   const uint16_t POLY = 0x8408;
