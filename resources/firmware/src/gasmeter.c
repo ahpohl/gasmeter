@@ -97,7 +97,7 @@ void ProcessPacket(void)
   switch (rx_packet[0])
   {
   case 1: // pre-set volume
-    float volume;
+    int32_t volume;
     memcpy(&volume, rx_packet+2, sizeof(volume));
     if (volume > gasmeter.volume)
     {
@@ -113,6 +113,10 @@ void ProcessPacket(void)
       break;
     case 2: // temperature
       memcpy(&b, &gasmeter.temperature, sizeof(b));
+      //b[0] = (uint8_t) (gasmeter.temperature >> 24);
+      //b[1] = (uint8_t) ((gasmeter.temperature >> 16) & 0xFF);
+      //b[2] = (uint8_t) ((gasmeter.temperature >> 8) & 0xFF);
+      //b[3] = (uint8_t) (gasmeter.temperature & 0xFF);
       break;
     case 3: // humidity
       memcpy(&b, &gasmeter.humidity, sizeof(b));

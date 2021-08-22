@@ -14,17 +14,17 @@ void GetTempHumidity(void)
   static uint8_t startup = 1;
   
   // measure temperature and humidity
-  if (((current_millis - previous_millis) > 5000) || startup)
+  if (((current_millis - previous_millis) > 10000) || startup)
   {
-    static float offset = 0; 
-    gasmeter.temperature = -20 + offset;
-    gasmeter.humidity = 50 + offset;
+    static int32_t offset = 0; 
+    gasmeter.temperature = -2000 + offset;
+    gasmeter.humidity = 5000 + offset;
 
-    //uint8_t b[sizeof(float)] = {0};
+    //uint8_t b[4] = {0};
     //memcpy(&b, &gasmeter.temperature, sizeof(b));
     //SendBuffer(b, 4);
 
-    offset += 0.1;
+    offset += 100;
     previous_millis = current_millis;
     startup = 0;
   }
