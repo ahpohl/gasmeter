@@ -97,7 +97,7 @@ void ProcessPacket(void)
   switch (rx_packet[0])
   {
   case 1: // pre-set volume
-    uint32_t volume;
+    float volume;
     memcpy(&volume, rx_packet+2, sizeof(volume));
     if (volume > gasmeter.volume)
     {
