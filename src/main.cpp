@@ -121,6 +121,7 @@ int main(int argc, char* argv[])
     {
       std::cout << meter->GetPayload() << std::endl;
     }
+    //break;
   }
 
   return EXIT_SUCCESS;
