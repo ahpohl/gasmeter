@@ -8,6 +8,7 @@
 #include "uart.h"
 #include "gasmeter.h"
 #include "util.h"
+#include "millis.h"
 
 volatile uint8_t adc_ready = 0;
 volatile uint16_t adc_value = 0;
@@ -129,6 +130,9 @@ int main(void)
 
   // init uart library
   uart_init(UART_BAUD_SELECT(UART_BAUD_RATE, F_CPU));
+
+  // init millis timer
+  millis_init();
 
   // now enable global interrupt
   sei();
