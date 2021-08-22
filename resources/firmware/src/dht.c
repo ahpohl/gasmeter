@@ -5,21 +5,26 @@
 #include "dht.h"
 #include "millis.h"
 #include "gasmeter.h"
+#include "util.h"
 
 void GetTempHumidity(void)
 {
   unsigned long current_millis = millis();
   static unsigned long previous_millis = 0;
-  // measure temperature and humidity every 5 minutes
-  if (((current_millis - previous_millis) < 60000))
+  static uint8_t startup = 1;
+  
+  // measure temperature and humidity
+  if (((current_millis - previous_millis) > 60000) || startup)
   {
-    return;
-  }
+    static int16_t offset = 0; 
+    gasmeter.temperature = -2000 + offset;
+    gasmeter.humidity = 5000 + offset;
+    offset += 100;
 
-  static int16_t offset = 0; 
-  gasmeter.temperature = -2000 + offset;
-  gasmeter.humidity = 5000 + offset;
-  offset += 100;
+    //SendValue(gasmeter.temperature);
+    previous_millis = current_millis;
+    startup = 0;
+  }
 
   /*
   uint8_t receive_buffer[5] = {0};
@@ -52,6 +57,4 @@ void GetTempHumidity(void)
   }
   _delay_us(80);
   */
-
-  previous_millis = current_millis;
 }
