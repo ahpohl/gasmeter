@@ -68,6 +68,7 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
     return false;
   }
   tcflush(SerialPort, TCIOFLUSH);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1800));
 
   return true;
 }

@@ -79,7 +79,7 @@ bool GasmeterFirmware::SetMeterVolume(const float &volume)
   uint8_t b[4];
   uint32_t counts = static_cast<uint32_t>(volume * 100);
   memcpy(&b, &counts, sizeof(b));
-  if (!Send(SendCommandEnum::SET_METER_VOLUME, 0, b[3], b[2], b[1], b[0]))
+  if (!Send(SendCommandEnum::SET_METER_VOLUME, 0, b[0], b[1], b[2], b[3]))
   {
     return false;
   }
@@ -92,8 +92,8 @@ bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type)
   {
     return false;
   }
-  uint8_t b[] = {ReceiveData[4], ReceiveData[3], ReceiveData[2], ReceiveData[1]};
-  uint32_t value_int;
+  uint8_t b[] = {ReceiveData[1], ReceiveData[2], ReceiveData[3], ReceiveData[4]};
+  int32_t value_int;
   memcpy(&value_int, &b, sizeof(b));
   value = static_cast<float>(value_int) / 100.0;
   return true;

@@ -20,10 +20,6 @@ void GetTempHumidity(void)
     gasmeter.temperature = -2000 + offset;
     gasmeter.humidity = 5000 + offset;
 
-    //uint8_t b[4] = {0};
-    //memcpy(&b, &gasmeter.temperature, sizeof(b));
-    //SendBuffer(b, 4);
-
     offset += 100;
     previous_millis = current_millis;
     startup = 0;

@@ -166,8 +166,8 @@ bool Gasmeter::Publish(void)
     << "\"time\":" << now << ","
     << "\"volume\":" << std::setprecision(2) << Datagram.Volume << "," 
     << "\"energy\":" << std::setprecision(2) << Datagram.Volume * StringTo<float>(Cfg->GetValue("gas_factor")) << ","
-    << "\"temperature\":" << std::setprecision(2) << Datagram.Temperature << ","
-    << "\"humidity\":" << std::setprecision(2) << Datagram.Humidity
+    << "\"temperature\":" << std::setprecision(1) << Datagram.Temperature << ","
+    << "\"humidity\":" << std::setprecision(1) << Datagram.Humidity
     << "},{"
     << "\"rate\":\"" << Cfg->GetValue("gas_rate") << "\","
     << "\"price\":\"" << Cfg->GetValue("gas_price") << "\","
