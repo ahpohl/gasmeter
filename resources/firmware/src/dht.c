@@ -14,7 +14,7 @@ void GetTempHumidity(void)
   static uint8_t startup = 1;
   
   // measure temperature and humidity
-  if (((current_millis - previous_millis) > 8000) || startup)
+  if (((current_millis - previous_millis) > 5000) || startup)
   {
     uint8_t buffer[5] = {0};
     memset(buffer, 0, sizeof(buffer));
@@ -28,18 +28,18 @@ void GetTempHumidity(void)
     // send measure request
     DHT_PORT &= ~(_BV(DHT_PIN)); // low
     _delay_ms(10);
-    DHT_PORT |= _BV(DHT_PIN); // high, enable pullup?
     DHT_DDR &= ~(_BV(DHT_PIN)); // input
+    DHT_PORT |= _BV(DHT_PIN); // high, enable pullup
     _delay_us(40);
 
-    // check first start condition
+    // check first start condition (AM2303 pulls bus low)
     if (DHT_INPUT & _BV(DHT_PIN))
     {
       return;
     }
     _delay_us(80);
 
-    // check second start condition
+    // check second start condition (AM2303 pulls bus high)
     if (!(DHT_INPUT & _BV(DHT_PIN)))
     {
       return;
@@ -53,31 +53,26 @@ void GetTempHumidity(void)
       uint8_t byte = 0;
       for (int i = 0; i < 8; i++) // for each bit in each byte (8 total)
       {
-        while (!(DHT_INPUT & _BV(DHT_PIN))) // wait for an high input (non blocking)
+        while (!(DHT_INPUT & _BV(DHT_PIN))) // wait for a high input (50 µs)
         {
         }
-        _delay_us(30);
+        _delay_us(40); // 26-28 µs = 0, 29-70 µs = 1
         if (DHT_INPUT & _BV(DHT_PIN))
         {
           byte |= (1 << (7-i));
         }
-        while (DHT_INPUT & _BV(DHT_PIN)) // wait for an low input (non blocking)
+        while (DHT_INPUT & _BV(DHT_PIN)) // wait for a low input
         {
         }
       }
       payload[j] = byte;
     }
 
-    // reset port
-    //DHT_DDR |= _BV(DHT_PIN); // output
-    //DHT_PORT |= _BV(DHT_PIN); // low
-
     // compare checksum
     if ((uint8_t) (payload[0] + payload[1] + payload[2] + payload[3]) == payload[4])
     {
       gasmeter.humidity = (int32_t) (payload[0] << 8 | payload[1]) * 10;
       gasmeter.temperature = (int32_t) (payload[2] << 8 | payload[3]) * 10; 
-      //SendBuffer(payload, 5);
     }
     previous_millis = current_millis;
     startup = 0;
