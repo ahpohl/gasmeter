@@ -34,9 +34,6 @@ CREATE TABLE "live" (
   energy DOUBLE PRECISION,
   temperature DOUBLE PRECISION,
   humidity DOUBLE PRECISION,
-  price DOUBLE PRECISION,
-  rate DOUBLE PRECISION,
-  factor DOUBLE PRECISION,
   CONSTRAINT sensor_id FOREIGN KEY (sensor_id) REFERENCES sensors (id),
   CONSTRAINT plan_id FOREIGN KEY (plan_id) REFERENCES plan (id)
 );

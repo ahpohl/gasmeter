@@ -74,6 +74,11 @@ void GetTempHumidity(void)
       gasmeter.humidity = (int32_t) (payload[0] << 8 | payload[1]) * 10;
       gasmeter.temperature = (int32_t) (payload[2] << 8 | payload[3]) * 10; 
     }
+    else 
+    {
+      gasmeter.humidity = 0;
+      gasmeter.temperature = 0;
+    }
     previous_millis = current_millis;
     startup = 0;
   }

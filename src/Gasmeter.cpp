@@ -167,11 +167,10 @@ bool Gasmeter::Publish(void)
     << "\"volume\":" << std::setprecision(2) << Datagram.Volume << "," 
     << "\"energy\":" << std::setprecision(2) << Datagram.Volume * StringTo<float>(Cfg->GetValue("gas_factor")) << ","
     << "\"temperature\":" << std::setprecision(1) << Datagram.Temperature << ","
-    << "\"humidity\":" << std::setprecision(1) << Datagram.Humidity
-    << "},{"
-    << "\"rate\":\"" << Cfg->GetValue("gas_rate") << "\","
-    << "\"price\":\"" << Cfg->GetValue("gas_price") << "\","
-    << "\"factor\":\"" << Cfg->GetValue("gas_factor")
+    << "\"humidity\":" << std::setprecision(1) << Datagram.Humidity << ","
+    << "\"rate\":" << Cfg->GetValue("gas_rate") << ","
+    << "\"price\":" << Cfg->GetValue("gas_price") << ","
+    << "\"factor\":" << Cfg->GetValue("gas_factor")
     << "}]";
 
   static bool last_connect_status = true;
