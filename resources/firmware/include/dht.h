@@ -3,9 +3,10 @@
 
 #if __AVR_ATmega328P__
 
-#define DHT_PIN PB0              // DHT22 pin
-#define DHT_DDR DDRB             // DHT22 output register
-#define DHT_PORT PORTB           // DHT22 port
+#define DHT_PIN PB0              // DHT22 physical pin
+#define DHT_DDR DDRB             // DHT22 data direction register
+#define DHT_PORT PORTB           // DHT22 port register
+#define DHT_INPUT PINB           // DHT22 pin input register
 
 void GetTempHumidity(void);
 

@@ -14,46 +14,72 @@ void GetTempHumidity(void)
   static uint8_t startup = 1;
   
   // measure temperature and humidity
-  if (((current_millis - previous_millis) > 10000) || startup)
+  if (((current_millis - previous_millis) > 5000) || startup)
   {
-    static int32_t offset = 0; 
-    gasmeter.temperature = -2000 + offset;
-    gasmeter.humidity = 5000 + offset;
+    uint8_t buffer[5] = {0};
+    memset(buffer, 0, sizeof(buffer));
 
-    offset += 100;
+    // set DHT pin as output
+    DHT_DDR |= _BV(DHT_PIN);
+    // set DHT pin high
+    DHT_PORT |= _BV(DHT_PIN);
+    _delay_ms(10);  
+
+    // send measure request
+    DHT_PORT &= ~(_BV(DHT_PIN)); // low
+    _delay_ms(10);
+    DHT_PORT |= _BV(DHT_PIN); // high, enable pullup?
+    DHT_DDR &= ~(_BV(DHT_PIN)); // input
+    _delay_us(40);
+
+    // check first start condition
+    if (DHT_INPUT & _BV(DHT_PIN))
+    {
+      return;
+    }
+    _delay_us(80);
+
+    // check second start condition
+    if (!(DHT_INPUT & _BV(DHT_PIN)))
+    {
+      return;
+    }
+    _delay_us(80);
+    
+    // read temperature (2 bytes), humidity (2 bytes) and checksum (1 byte)
+    uint8_t payload[5] = {0};
+    for (int j = 0; j < 5; j++) // for each byte (5 total)
+    {
+      uint8_t byte = 0;
+      for (int i = 0; i < 8; i++) // for each bit in each byte (8 total)
+      {
+        while (!(DHT_INPUT & _BV(DHT_PIN))) // wait for an high input (non blocking)
+        {
+        }
+        _delay_us(30);
+        if (DHT_INPUT & _BV(DHT_PIN))
+        {
+          byte |= (1 << (7-i));
+        }
+        while (DHT_INPUT & _BV(DHT_PIN)) // wait for an low input (non blocking)
+        {
+        }
+      }
+      payload[j] = byte;
+    }
+
+    // reset port
+    //DHT_DDR |= _BV(DHT_PIN); // output
+    //DHT_PORT |= _BV(DHT_PIN); // low
+
+    // compare checksum
+    if ((uint8_t) (payload[0] + payload[1] + payload[2] + payload[3]) == payload[4])
+    {
+      gasmeter.temperature = (int32_t) (payload[0] << 8 | payload[1]) * 1000;
+      gasmeter.humidity = (int32_t) (payload[2] << 8 | payload[3]) * 1000; 
+      SendBuffer(payload, 5);
+    }
     previous_millis = current_millis;
     startup = 0;
   }
-
-  /*
-  uint8_t receive_buffer[5] = {0};
-  memset(receive_buffer, 0, sizeof(receive_buffer));
-
-  // set DHT pin as output
-  DHT_DDR |= _BV(DHT_PIN);
-  // set DHT pin high
-  DHT_PORT |= _BV(DHT_PIN);
-  _delay_ms(10);  
-
-  // send measure request
-  DHT_PORT &= ~(_BV(DHT_PIN)); // low
-  _delay_ms(10);
-  DHT_PORT |= _BV(DHT_PIN); // high
-  DHT_DDR &= ~(_BV(DHT_PIN)); // input
-  _delay_us(40);
-
-  //check first start condition
-  if (DHT_PORT & _BV(DHT_PIN))
-  {
-    return;
-  }
-  _delay_us(80);
-
-  //check second start condition
-  if (!(DHT_PORT & _BV(DHT_PIN)))
-  {
-    return;
-  }
-  _delay_us(80);
-  */
 }

@@ -13,7 +13,7 @@ void SendBuffer(const unsigned char *input, size_t len)
   uart_putc('\r');
 }
 
-void SendValue(uint32_t value)
+void SendValue(int32_t value)
 {
   char buffer[9];
   snprintf(buffer, 9, "%08ld", value);
