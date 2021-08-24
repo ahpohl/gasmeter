@@ -14,7 +14,7 @@ void GetTempHumidity(void)
   static uint8_t startup = 1;
   
   // measure temperature and humidity
-  if (((current_millis - previous_millis) > 5000) || startup)
+  if (((current_millis - previous_millis) > 8000) || startup)
   {
     uint8_t buffer[5] = {0};
     memset(buffer, 0, sizeof(buffer));
@@ -75,9 +75,9 @@ void GetTempHumidity(void)
     // compare checksum
     if ((uint8_t) (payload[0] + payload[1] + payload[2] + payload[3]) == payload[4])
     {
-      gasmeter.temperature = (int32_t) (payload[0] << 8 | payload[1]) * 1000;
-      gasmeter.humidity = (int32_t) (payload[2] << 8 | payload[3]) * 1000; 
-      SendBuffer(payload, 5);
+      gasmeter.humidity = (int32_t) (payload[0] << 8 | payload[1]) * 10;
+      gasmeter.temperature = (int32_t) (payload[2] << 8 | payload[3]) * 10; 
+      //SendBuffer(payload, 5);
     }
     previous_millis = current_millis;
     startup = 0;
