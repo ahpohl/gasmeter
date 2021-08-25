@@ -23,46 +23,6 @@ Gasmeter::~Gasmeter(void)
   if (Cfg) { delete Cfg; };
 }
 
-bool Gasmeter::SetLogLevel(void)
-{
-  Log = 0;
-  if (!(Cfg->KeyExists("log_level")))
-  {
-    return false;
-  }
-  std::string line = Cfg->GetValue("log_level");
-  std::istringstream iss(line);
-  std::string token;
-  std::vector<std::string> log_level;
-  
-  while(std::getline(iss, token, ','))
-  {
-    log_level.push_back(token);
-  }
-  for (auto it = log_level.cbegin(); it != log_level.cend(); ++it)
-  {
-    if (!(*it).compare("config"))
-    {
-      Log |= static_cast<unsigned char>(LogLevelEnum::CONFIG);
-    }
-    else if (!(*it).compare("json"))
-    {
-      Log |= static_cast<unsigned char>(LogLevelEnum::JSON);
-    }
-    else if (!(*it).compare("mosquitto"))
-    {
-      Log |= static_cast<unsigned char>(LogLevelEnum::MQTT);
-    }
-    else if (!(*it).compare("serial"))
-    {
-      Log |= static_cast<unsigned char>(LogLevelEnum::SERIAL);
-    }
-  }
-  //std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << ((int)Log & 0xFF) << std::endl;  
-
-  return true;
-}
-
 bool Gasmeter::Setup(const std::string &config)
 {
   Cfg = new GasmeterConfig();
@@ -71,7 +31,7 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-  SetLogLevel();
+  this->SetLogLevel();
   if (Log & static_cast<unsigned char>(LogLevelEnum::CONFIG))
   {
     Cfg->ShowConfig();
@@ -171,6 +131,46 @@ bool Gasmeter::Setup(const std::string &config)
   }
 
   return true;
+}
+
+void Gasmeter::SetLogLevel(void)
+{
+  if (Cfg->KeyExists("log_level"))
+  {
+    std::string line = Cfg->GetValue("log_level");
+    std::istringstream iss(line);
+    std::string token;
+    std::vector<std::string> log_level;
+
+    while(std::getline(iss, token, ','))
+    {
+      log_level.push_back(token);
+    }
+    for (auto it = log_level.cbegin(); it != log_level.cend(); ++it)
+    {
+      if (!(*it).compare("config"))
+      {
+        Log |= static_cast<unsigned char>(LogLevelEnum::CONFIG);
+      }
+      else if (!(*it).compare("json"))
+      {
+        Log |= static_cast<unsigned char>(LogLevelEnum::JSON);
+      }
+      else if (!(*it).compare("mosquitto"))
+      {
+        Log |= static_cast<unsigned char>(LogLevelEnum::MQTT);
+      }
+      else if (!(*it).compare("serial"))
+      {
+        Log |= static_cast<unsigned char>(LogLevelEnum::SERIAL);
+      }
+    }
+  }
+  else
+  {
+    Log = 0;
+  }
+  //std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << ((int)Log & 0xFF) << std::endl;  
 }
 
 bool Gasmeter::Receive(void)

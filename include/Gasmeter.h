@@ -19,7 +19,7 @@ private:
 
   template <typename T>
   T StringTo(const std::string &str) const;
-  bool SetLogLevel(void);
+  void SetLogLevel(void);
  
 public:
   ~Gasmeter(void);
