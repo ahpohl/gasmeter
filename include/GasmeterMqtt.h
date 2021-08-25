@@ -13,10 +13,10 @@ private:
   void LogCallback(struct mosquitto *mosq, void *obj, int level, const char *str);
   std::string ErrorMessage;
   volatile bool IsConnected;
-  bool Log;
+  unsigned char Log;
 
 public:
-  GasmeterMqtt(const bool &log);
+  GasmeterMqtt(const unsigned char &log);
   ~GasmeterMqtt(void);
   bool Begin(void);
   bool Connect(const std::string &host, const int &port, const int &keepalive);

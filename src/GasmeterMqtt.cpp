@@ -3,7 +3,7 @@
 #include <chrono>
 #include "GasmeterMqtt.h"
 
-GasmeterMqtt::GasmeterMqtt(const bool &log): Log(log) 
+GasmeterMqtt::GasmeterMqtt(const unsigned char &log): Log(log) 
 {
   IsConnected = false;
 }

@@ -8,11 +8,18 @@ enum class DspValueEnum : unsigned char
   HUMIDITY = 3
 };
 
-/// Send command enum
 enum class SendCommandEnum : unsigned char
 {
   SET_METER_VOLUME = 1,
   MEASURE_REQUEST_DSP = 2
+};
+
+enum class LogLevelEnum : unsigned char
+{
+  CONFIG = 0x01,
+  PAYLOAD = 0x02,
+  MQTT = 0x04,
+  SERIAL = 0x08
 };
 
 #endif

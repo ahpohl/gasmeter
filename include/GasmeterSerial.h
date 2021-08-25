@@ -11,6 +11,12 @@
 class GasmeterSerial
 {
 public:
+/** @brief Default constructor
+
+    Sets the log level of the class
+
+    */
+  GasmeterSerial(const unsigned char &log);
 /** @brief Default destructor
 
     Closes the serial port and deletes the serial object
@@ -87,6 +93,7 @@ public:
 private:
   int SerialPort; ///< Serial port number
   std::string ErrorMessage; ///< Error message string
+  unsigned char Log;
 };
 
 #endif

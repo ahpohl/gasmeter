@@ -7,6 +7,10 @@
 #include <sys/ioctl.h>
 #include "GasmeterSerial.h"
 
+GasmeterSerial::GasmeterSerial(const unsigned char &log) : Log(log)
+{
+}
+
 GasmeterSerial::~GasmeterSerial(void)
 {
   if (SerialPort) {

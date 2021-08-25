@@ -8,6 +8,10 @@
 const int GasmeterFirmware::SendBufferSize = 8;
 const int GasmeterFirmware::ReceiveBufferSize = 7;
 
+GasmeterFirmware::GasmeterFirmware(const unsigned char &log) : Log(log)
+{
+}
+
 GasmeterFirmware::~GasmeterFirmware(void)
 {
   if (ReceiveData) { delete[] ReceiveData; }
@@ -17,7 +21,7 @@ GasmeterFirmware::~GasmeterFirmware(void)
 bool GasmeterFirmware::Setup(const std::string &device, const speed_t baudrate)
 {
   ReceiveData = new uint8_t[GasmeterFirmware::ReceiveBufferSize] ();
-  Serial = new GasmeterSerial();
+  Serial = new GasmeterSerial(Log);
   if (!Serial->Begin(device, baudrate))
   {
     ErrorMessage = Serial->GetErrorMessage();

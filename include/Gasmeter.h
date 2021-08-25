@@ -15,13 +15,13 @@ private:
   std::stringstream Payload;
   std::string Config;
   std::string ErrorMessage;
-  bool Log;
+  unsigned char Log;
 
   template <typename T>
   T StringTo(const std::string &str) const;
+  void GetLogLevel(const std::string &log_level);
  
 public:
-  Gasmeter(const bool &log);
   ~Gasmeter(void);
   bool Setup(const std::string &config);
   bool Receive(void);
