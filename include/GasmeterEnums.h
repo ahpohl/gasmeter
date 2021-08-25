@@ -17,7 +17,7 @@ enum class SendCommandEnum : unsigned char
 enum class LogLevelEnum : unsigned char
 {
   CONFIG = 0x01,
-  PAYLOAD = 0x02,
+  JSON = 0x02,
   MQTT = 0x04,
   SERIAL = 0x08
 };

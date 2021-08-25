@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include "GasmeterSerial.h"
+#include "GasmeterEnums.h"
 
 GasmeterSerial::GasmeterSerial(const unsigned char &log) : Log(log)
 {
@@ -111,12 +112,16 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
     ErrorMessage = "Read on serial device failed";
     return -1;
   }
-
-  std::cout << "Receive: ";
-  for (int i = 0; i < length; ++i) {
-    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+  
+  if (Log & static_cast<unsigned char>(LogLevelEnum::SERIAL))
+  {
+    std::cout << "Receive: ";
+    for (int i = 0; i < length; ++i)
+    {
+      std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+    }
+    std::cout << std::endl;
   }
-  std::cout << std::endl;
 
   return bytes_received;
 }
@@ -132,11 +137,15 @@ int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length)
   }
   tcdrain(SerialPort);
 
-  std::cout << "Send: ";
-  for (int i = 0; i < length; ++i) {
-    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+  if (Log & static_cast<unsigned char>(LogLevelEnum::SERIAL))
+  {
+    std::cout << "Send: ";
+    for (int i = 0; i < length; ++i)
+    {
+      std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+    }
+    std::cout << std::endl;
   }
-  std::cout << std::endl;
 
   return bytes_sent;
 }

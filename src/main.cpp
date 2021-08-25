@@ -110,7 +110,6 @@ int main(int argc, char* argv[])
     {
       std::cout << meter->GetErrorMessage() << std::endl;
     }
-    //std::cout << meter->GetPayload() << std::endl;
   }
 
   return EXIT_SUCCESS;

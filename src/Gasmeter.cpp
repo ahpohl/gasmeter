@@ -5,7 +5,9 @@
 #include <chrono>
 #include <thread>
 #include <stdexcept>
+#include <vector>
 #include "Gasmeter.h"
+#include "GasmeterEnums.h"
 
 const std::set<std::string> Gasmeter::ValidKeys {"mqtt_broker", "mqtt_password", "mqtt_port", "mqtt_topic", "mqtt_user", "mqtt_tls_cafile", "mqtt_tls_capath", "serial_device", "gas_rate", "gas_price", "gas_factor", "gas_meter", "log_level"};
 
@@ -21,9 +23,44 @@ Gasmeter::~Gasmeter(void)
   if (Cfg) { delete Cfg; };
 }
 
-void Gasmeter::GetLogLevel(const std::string &log_level)
+bool Gasmeter::SetLogLevel(void)
 {
+  Log = 0;
+  if (!(Cfg->KeyExists("log_level")))
+  {
+    return false;
+  }
+  std::string line = Cfg->GetValue("log_level");
+  std::istringstream iss(line);
+  std::string token;
+  std::vector<std::string> log_level;
+  
+  while(std::getline(iss, token, ','))
+  {
+    log_level.push_back(token);
+  }
+  for (auto it = log_level.cbegin(); it != log_level.cend(); ++it)
+  {
+    if (!(*it).compare("config"))
+    {
+      Log |= static_cast<unsigned char>(LogLevelEnum::CONFIG);
+    }
+    else if (!(*it).compare("json"))
+    {
+      Log |= static_cast<unsigned char>(LogLevelEnum::JSON);
+    }
+    else if (!(*it).compare("mosquitto"))
+    {
+      Log |= static_cast<unsigned char>(LogLevelEnum::MQTT);
+    }
+    else if (!(*it).compare("serial"))
+    {
+      Log |= static_cast<unsigned char>(LogLevelEnum::SERIAL);
+    }
+  }
+  //std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << ((int)Log & 0xFF) << std::endl;  
 
+  return true;
 }
 
 bool Gasmeter::Setup(const std::string &config)
@@ -34,8 +71,8 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-  GetLogLevel(Cfg->GetValue("log_level"));
-  if (Log)
+  SetLogLevel();
+  if (Log & static_cast<unsigned char>(LogLevelEnum::CONFIG))
   {
     Cfg->ShowConfig();
   }
@@ -174,6 +211,11 @@ bool Gasmeter::Publish(void)
     << "\"price\":" << Cfg->GetValue("gas_price") << ","
     << "\"factor\":" << Cfg->GetValue("gas_factor")
     << "}]";
+
+  if (Log & static_cast<unsigned char>(LogLevelEnum::JSON))
+  {
+    std::cout << Payload.str() << std::endl;
+  }
 
   static bool last_connect_status = true;
   if (Mqtt->GetConnectStatus())
