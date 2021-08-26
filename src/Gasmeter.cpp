@@ -31,15 +31,15 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-  this->SetLogLevel();
-  if (Log & static_cast<unsigned char>(LogLevelEnum::CONFIG))
-  {
-    Cfg->ShowConfig();
-  }
   if (!Cfg->ValidateKeys(Gasmeter::ValidKeys))
   {
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
+  }
+  this->SetLogLevel();
+  if (Log & static_cast<unsigned char>(LogLevelEnum::CONFIG))
+  {
+    Cfg->ShowConfig();
   }
   if (!(Cfg->KeyExists("gas_rate")))
   {
