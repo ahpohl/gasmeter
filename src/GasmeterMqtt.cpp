@@ -4,7 +4,7 @@
 #include "GasmeterMqtt.h"
 #include "GasmeterEnums.h"
 
-GasmeterMqtt::GasmeterMqtt(const unsigned char &log): Log(log) 
+GasmeterMqtt::GasmeterMqtt(void): Log(0) 
 {
   IsConnected = false;
 }
@@ -18,6 +18,11 @@ GasmeterMqtt::~GasmeterMqtt(void)
   mosquitto_loop_stop(Mosq, false);
   mosquitto_destroy(Mosq);
   mosquitto_lib_cleanup();
+}
+
+void GasmeterMqtt::SetLogLevel(const unsigned char &log_level)
+{
+  Log = log_level;
 }
 
 bool GasmeterMqtt::Begin(void)

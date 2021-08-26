@@ -8,7 +8,7 @@
 const int GasmeterFirmware::SendBufferSize = 8;
 const int GasmeterFirmware::ReceiveBufferSize = 7;
 
-GasmeterFirmware::GasmeterFirmware(const unsigned char &log) : Log(log)
+GasmeterFirmware::GasmeterFirmware(void) : Log(0)
 {
 }
 
@@ -16,6 +16,11 @@ GasmeterFirmware::~GasmeterFirmware(void)
 {
   if (ReceiveData) { delete[] ReceiveData; }
   if (Serial) { delete Serial; }
+}
+
+void GasmeterFirmware::SetLogLevel(const unsigned char &log_level)
+{
+  Log = log_level;
 }
 
 bool GasmeterFirmware::Setup(const std::string &device, const speed_t baudrate)

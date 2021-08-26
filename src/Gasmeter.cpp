@@ -11,6 +11,13 @@
 
 const std::set<std::string> Gasmeter::ValidKeys {"mqtt_broker", "mqtt_password", "mqtt_port", "mqtt_topic", "mqtt_user", "mqtt_tls_cafile", "mqtt_tls_capath", "serial_device", "gas_rate", "gas_price", "gas_factor", "gas_meter", "log_level"};
 
+Gasmeter::Gasmeter(void)
+{
+  Cfg = new GasmeterConfig();
+  Firmware = new GasmeterFirmware();
+  Mqtt = new GasmeterMqtt();
+}
+
 Gasmeter::~Gasmeter(void)
 {
   if (Mqtt->GetConnectStatus())
@@ -25,7 +32,6 @@ Gasmeter::~Gasmeter(void)
 
 bool Gasmeter::Setup(const std::string &config)
 {
-  Cfg = new GasmeterConfig();
   if (!Cfg->Begin(config))
   {
     ErrorMessage = Cfg->GetErrorMessage();
@@ -37,6 +43,8 @@ bool Gasmeter::Setup(const std::string &config)
     return false;
   }
   this->SetLogLevel();
+  Firmware->SetLogLevel(Log);
+  Mqtt->SetLogLevel(Log);
   if (Log & static_cast<unsigned char>(LogLevelEnum::CONFIG))
   {
     Cfg->ShowConfig();
@@ -66,7 +74,6 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-  Firmware = new GasmeterFirmware(Log);
   if (!Firmware->Setup(Cfg->GetValue("serial_device")))
   {
     ErrorMessage = Firmware->GetErrorMessage();
@@ -77,7 +84,6 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  Mqtt = new GasmeterMqtt(Log);
   if (!Mqtt->Begin())
   {
     ErrorMessage = Mqtt->GetErrorMessage();

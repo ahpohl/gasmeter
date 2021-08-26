@@ -22,6 +22,7 @@ private:
   void SetLogLevel(void);
  
 public:
+  Gasmeter(void);
   ~Gasmeter(void);
   bool Setup(const std::string &config);
   bool Receive(void);

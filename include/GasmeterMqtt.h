@@ -16,8 +16,9 @@ private:
   unsigned char Log;
 
 public:
-  GasmeterMqtt(const unsigned char &log);
+  GasmeterMqtt(void);
   ~GasmeterMqtt(void);
+  void SetLogLevel(const unsigned char &log_level);
   bool Begin(void);
   bool Connect(const std::string &host, const int &port, const int &keepalive);
   bool SetUserPassAuth(const std::string &user, const std::string &pass);
