@@ -75,8 +75,13 @@ int main(void)
 
   // phase correct PWM
   // f = F_CPU/(510*prescaler)
-  // f = 12 MHz / (510 * 256) = 92 Hz
-  TCCR0A = _BV(COM0A1) | _BV(WGM00);
+  // f = 12 MHz/(510*256) = 92 Hz
+  //TCCR0A = _BV(COM0A1) | _BV(WGM00);
+
+  // fast PWM mode, non-inverting mode
+  // f = F_CPU/(256*prescaler)
+  // f = 12 MHz/(256*256) = 184 Hz
+  TCCR0A = _BV(COM0A1) | _BV(WGM01) | _BV(WGM00);
 
   // duty cycle = 20 / 255 = 8 %
   OCR0A = 20;
@@ -148,18 +153,18 @@ int main(void)
   for (;;)
   {
     // receive packet from uart
-    ReceivePacket();
+    //ReceivePacket();
 
     // process packet
-    ProcessPacket();
+    //ProcessPacket();
 
     // read IR sensor
     ReadAdc();
 
     // send raw ADC value
-    //SendRawAdc();
+    SendRawAdc();
 
     // read DHT22 sensor
-    GetTempHumidity();
+    //GetTempHumidity();
   }
 }
