@@ -11,7 +11,8 @@ enum class DspValueEnum : unsigned char
 enum class SendCommandEnum : unsigned char
 {
   SET_METER_VOLUME = 1,
-  MEASURE_REQUEST_DSP = 2
+  SET_THRESHOLDS = 2,
+  MEASURE_REQUEST_DSP = 3
 };
 
 enum class LogLevelEnum : unsigned char

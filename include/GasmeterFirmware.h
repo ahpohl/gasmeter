@@ -22,6 +22,7 @@ public:
   bool Setup(const std::string &device, const speed_t baudrate = B9600);
   std::string GetErrorMessage(void) const;
   bool SetMeterVolume(const float &volume);
+  bool SetThresholdLevels(const short int &low_level, const short int &high_level);
   bool ReadDspValue(float &value, const DspValueEnum &type);
 };
 

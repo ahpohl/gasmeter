@@ -95,6 +95,20 @@ bool GasmeterFirmware::SetMeterVolume(const float &volume)
   return true;
 }
 
+bool GasmeterFirmware::SetThresholdLevels(const short int &low_level, const short int &high_level)
+{
+  uint8_t l[2], h[2];
+  l[0] = static_cast<uint8_t>(low_level);
+  l[1] = static_cast<uint8_t>((low_level >> 8) & 0xFF);
+  h[0] = static_cast<uint8_t>(high_level);
+  h[1] = static_cast<uint8_t>((high_level >> 8) & 0xFF);
+  if (!Send(SendCommandEnum::SET_THRESHOLDS, 0, l[0], l[1], h[0], h[1]))
+  {
+    return false;
+  }
+  return true;
+}
+
 bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type)
 {
   if (!Send(SendCommandEnum::MEASURE_REQUEST_DSP, static_cast<uint8_t>(type), 0, 0, 0, 0))

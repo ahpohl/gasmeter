@@ -19,6 +19,8 @@ typedef struct gasmeter {
   int32_t volume;
   int32_t temperature;
   int32_t humidity;
+  int16_t low_level;
+  int16_t high_level;
 } gasmeter_t;
 
 extern gasmeter_t gasmeter;

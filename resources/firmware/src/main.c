@@ -148,18 +148,18 @@ int main(void)
   for (;;)
   {
     // receive packet from uart
-    //ReceivePacket();
+    ReceivePacket();
 
     // process packet
-    //ProcessPacket();
+    ProcessPacket();
 
     // read IR sensor
     ReadAdc();
 
     // send raw ADC value
-    SendRawAdc();
+    //SendRawAdc();
 
     // read DHT22 sensor
-    //GetTempHumidity();
+    GetTempHumidity();
   }
 }

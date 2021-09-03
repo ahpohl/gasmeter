@@ -105,7 +105,11 @@ void ProcessPacket(void)
     }
     memcpy(&b, &gasmeter.volume, sizeof(b));
     break;
-  case 2: // measure request to DSP
+  case 2: // set threshold levels
+    memcpy(&gasmeter.low_level, rx_packet+2, sizeof(gasmeter.low_level));
+    memcpy(&gasmeter.high_level, rx_packet+4, sizeof(gasmeter.high_level));
+    break;
+  case 3: // measure request to DSP
     switch (rx_packet[1])
     {
     case 1: // meter reading
@@ -113,10 +117,6 @@ void ProcessPacket(void)
       break;
     case 2: // temperature
       memcpy(&b, &gasmeter.temperature, sizeof(b));
-      //b[0] = (uint8_t) (gasmeter.temperature >> 24);
-      //b[1] = (uint8_t) ((gasmeter.temperature >> 16) & 0xFF);
-      //b[2] = (uint8_t) ((gasmeter.temperature >> 8) & 0xFF);
-      //b[3] = (uint8_t) (gasmeter.temperature & 0xFF);
       break;
     case 3: // humidity
       memcpy(&b, &gasmeter.humidity, sizeof(b));
