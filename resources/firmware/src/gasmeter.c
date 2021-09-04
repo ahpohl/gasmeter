@@ -6,6 +6,7 @@
 
 volatile uint8_t adc_ready = 0;
 volatile uint16_t adc_value = 0;
+volatile uint8_t ir_ready = 0;
 uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
 gasmeter_t gasmeter = {};

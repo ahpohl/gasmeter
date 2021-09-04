@@ -22,6 +22,7 @@ typedef struct gasmeter {
 // global variables
 extern volatile uint8_t adc_ready;
 extern volatile uint16_t adc_value;
+extern volatile uint8_t ir_ready;
 extern gasmeter_t gasmeter;
 extern volatile uint8_t packet_ready;
 extern uint8_t receive_buffer[RX_SIZE];

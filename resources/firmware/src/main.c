@@ -5,11 +5,11 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "main.h"
-#include "uart.h"
 #include "gasmeter.h"
-#include "util.h"
-#include "millis.h"
 #include "dht.h"
+#include "util.h"
+#include "uart.h"
+#include "millis.h"
 
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
@@ -26,11 +26,18 @@ ISR(ADC_vect)
 
 ISR(TIMER0_COMPA_vect)
 {
-  // delay ADC start until signal is stable
-  while (TCNT0 < (OCR0A + 8)) {};
+  ir_ready = 1;
+}
 
-  // trigger single ADC measurement
-  ADCSRA |= _BV(ADSC);  
+void ReadAdc(void)
+{
+  if (ir_ready && (TCNT0 == (OCR0A + 8))) // delay ADC start
+  {
+    // trigger single ADC measurement
+    ADCSRA |= _BV(ADSC);
+
+    ir_ready = 0;
+  }
 }
 
 int main(void)
@@ -113,19 +120,22 @@ int main(void)
 
   for (;;)
   {
-    // receive packet from uart
-    ReceivePacket();
-
-    // process packet
-    ProcessPacket();
-
-    // read gas meter
-    ReadGasMeter();
+    // read IR sensor
+    ReadAdc();
 
     // send raw ADC value
-    //SendRawAdc();
+    SendRawAdc();
+
+    // receive packet from uart
+    //ReceivePacket();
+
+    // process packet
+    //ProcessPacket();
+
+    // read gas meter
+    //ReadGasMeter();
 
     // read DHT22 sensor
-    GetTempHumidity();
+    //GetTempHumidity();
   }
 }
