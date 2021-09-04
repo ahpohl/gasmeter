@@ -13,7 +13,6 @@
 
 volatile uint8_t adc_ready = 0;
 volatile uint16_t adc_value = 0;
-volatile uint8_t tx_ready = 0;
 
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
@@ -26,16 +25,6 @@ ISR(ADC_vect)
 
   // done reading
   adc_ready = 1;
-}
-
-// Interrupt service routine for timer/counter1 output compare A match
-ISR(TIMER1_COMPA_vect)
-{
-  // reset timer interrupt flag, set OCF1A bit
-  TIFR1 |= _BV(OCF1A);
-
-  // ready to transmit packet
-  tx_ready = 1;
 }
 
 void ReadAdc(void)
@@ -51,14 +40,14 @@ void ReadAdc(void)
 
 void SendRawAdc(void)
 {
-  if (!tx_ready) {
-    return;
+  unsigned long current_millis = millis();
+  static unsigned long previous_millis = 0;
+
+  if ((current_millis - previous_millis) > 250)
+  { 
+    SendValue(adc_value);
+    previous_millis = current_millis;
   }
-
-  SendValue(adc_value);
-
-  // reset txready flag
-  tx_ready = 0;
 }
 
 int main(void)
@@ -86,22 +75,6 @@ int main(void)
   // duty cycle = 20 / 255 = 8 %
   OCR0A = 20;
 
-  //
-  // timer 1
-  //
-
-  // enable toggle OC1A output on compare match, enable CTC mode
-  TCCR1A = _BV(COM1A0);
-
-  // use CLK/64 prescale value
-  TCCR1B = _BV(CS11) | _BV(CS10) | _BV(WGM12);
-
-  // preset timer1 high/low byte
-  OCR1A = (F_CPU/2/64/TIMER1_CLOCK) - 1;
-
-  // enable timer/counter1 output compare A match interrupt
-  TIMSK1 = _BV(OCIE1A);
-  
   //
   // ADC
   //
