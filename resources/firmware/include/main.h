@@ -14,5 +14,10 @@
 
 extern volatile uint8_t adc_ready;  // ADC ready flag
 extern volatile uint16_t adc_value; // ADC raw value
+extern volatile uint8_t ir_ready;
+
+void ReadAdc(void);
+void SendRawAdc(void);
+void ReadGasMeter(void);
 
 #endif
