@@ -82,8 +82,8 @@ int main(void)
   // f = 12 MHz/(256*256) = 184 Hz
   TCCR0A = _BV(WGM01) | _BV(WGM00) | _BV(COM0A1) | _BV(COM0A0);
 
-  // duty cycle = 200 / 255 = 78 % off, 22 % on
-  OCR0A = 200;
+  // duty cycle = 230 / 255 = 90 % off, 10 % on
+  OCR0A = 230;
 
   // enable output compare match A interupt
   TIMSK0 = _BV(OCIE0A);
