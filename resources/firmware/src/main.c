@@ -11,9 +11,6 @@
 #include "millis.h"
 #include "dht.h"
 
-volatile uint8_t adc_ready = 0;
-volatile uint16_t adc_value = 0;
-
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
 {
@@ -34,29 +31,6 @@ ISR(TIMER0_COMPA_vect)
 
   // trigger single ADC measurement
   ADCSRA |= _BV(ADSC);  
-}
-
-void ReadAdc(void)
-{
-  // check if new ADC value ready
-  if (!adc_ready) {
-    return;
-  }
-
-  // reset ADC ready flag
-  adc_ready = 0;
-}
-
-void SendRawAdc(void)
-{
-  unsigned long current_millis = millis();
-  static unsigned long previous_millis = 0;
-
-  if ((current_millis - previous_millis) > 250)
-  { 
-    SendValue(adc_value);
-    previous_millis = current_millis;
-  }
 }
 
 int main(void)
@@ -140,18 +114,18 @@ int main(void)
   for (;;)
   {
     // receive packet from uart
-    //ReceivePacket();
+    ReceivePacket();
 
     // process packet
-    //ProcessPacket();
+    ProcessPacket();
 
-    // read IR sensor
-    ReadAdc();
+    // read gas meter
+    ReadGasMeter();
 
     // send raw ADC value
-    SendRawAdc();
+    //SendRawAdc();
 
     // read DHT22 sensor
-    //GetTempHumidity();
+    GetTempHumidity();
   }
 }

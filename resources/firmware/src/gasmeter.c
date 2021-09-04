@@ -2,7 +2,10 @@
 #include "uart.h"
 #include "util.h"
 #include "gasmeter.h"
+#include "millis.h"
 
+volatile uint8_t adc_ready = 0;
+volatile uint16_t adc_value = 0;
 uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
 gasmeter_t gasmeter = {};
@@ -106,8 +109,8 @@ void ProcessPacket(void)
     memcpy(&b, &gasmeter.volume, sizeof(b));
     break;
   case 2: // set threshold levels
-    memcpy(&gasmeter.low_level, rx_packet+2, sizeof(gasmeter.low_level));
-    memcpy(&gasmeter.high_level, rx_packet+4, sizeof(gasmeter.high_level));
+    memcpy(&gasmeter.level_high, rx_packet+2, sizeof(gasmeter.level_low));
+    memcpy(&gasmeter.level_low, rx_packet+4, sizeof(gasmeter.level_high));
     break;
   case 3: // measure request to DSP
     switch (rx_packet[1])
@@ -133,4 +136,38 @@ void ProcessPacket(void)
   SendPacket(b[0], b[1], b[2], b[3]);
   error_code = 0;
   packet_ready = 0;
+}
+
+void SendRawAdc(void)
+{
+  unsigned long current_millis = millis();
+  static unsigned long previous_millis = 0;
+
+  if ((current_millis - previous_millis) > 250)
+  {
+    SendValue(adc_value);
+    previous_millis = current_millis;
+  }
+}
+
+void ReadGasMeter(void)
+{
+  // check if new ADC value ready
+  if (!adc_ready) {
+    return;
+  }
+
+  static uint8_t hysteresis = 0;
+  if (adc_value > gasmeter.level_high)
+  {
+    hysteresis = 1;
+  }
+  if ((adc_value < gasmeter.level_low) && hysteresis)
+  {
+    gasmeter.volume++;
+    hysteresis = 0;
+  }
+
+  // reset ADC ready flag
+  adc_ready = 0;
 }

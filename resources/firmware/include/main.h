@@ -15,8 +15,4 @@
 extern volatile uint8_t adc_ready;  // ADC ready flag
 extern volatile uint16_t adc_value; // ADC raw value
 
-// functions
-void ReadAdc(void);
-void SendRawAdc(void);
-
 #endif

@@ -1,5 +1,5 @@
-#ifndef DHT22_H
-#define DHT22_H
+#ifndef DHT_H
+#define DHT_H
 
 #if __AVR_ATmega328P__
 
