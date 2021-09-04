@@ -11,6 +11,10 @@
 #include "uart.h"
 #include "millis.h"
 
+volatile uint8_t adc_ready = 0;
+volatile uint16_t adc_value = 0;
+volatile uint8_t ir_ready = 0;
+
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
 {
@@ -26,18 +30,56 @@ ISR(ADC_vect)
 
 ISR(TIMER0_COMPA_vect)
 {
+  // delay ADC start until signal is stable
+  //while (TCNT0 < (OCR0A + 8)) {};
+
+  // trigger single ADC measurement
+  //ADCSRA |= _BV(ADSC);
+
   ir_ready = 1;
 }
 
 void ReadAdc(void)
 {
-  if (ir_ready && (TCNT0 == (OCR0A + 8))) // delay ADC start
+  if (ir_ready && (TCNT0 == OCR0A + 8))
   {
-    // trigger single ADC measurement
     ADCSRA |= _BV(ADSC);
-
     ir_ready = 0;
   }
+}
+
+void SendRawAdc(void)
+{
+  unsigned long current_millis = millis();
+  static unsigned long previous_millis = 0;
+
+  if ((current_millis - previous_millis) > 250)
+  {
+    SendValue(adc_value);
+    previous_millis = current_millis;
+  }
+}
+
+void ReadGasMeter(void)
+{
+  // check if new ADC value ready
+  if (!adc_ready) {
+    return;
+  }
+
+  static uint8_t hysteresis = 0;
+  if (adc_value > gasmeter.level_high)
+  {
+    hysteresis = 1;
+  }
+  if ((adc_value < gasmeter.level_low) && hysteresis)
+  {
+    gasmeter.volume++;
+    hysteresis = 0;
+  }
+
+  // reset ADC ready flag
+  adc_ready = 0;
 }
 
 int main(void)
@@ -122,9 +164,15 @@ int main(void)
   {
     // read IR sensor
     ReadAdc();
+<<<<<<< HEAD
 
     // send raw ADC value
     SendRawAdc();
+=======
+ 
+    // send raw ADC value
+    //SendRawAdc();
+>>>>>>> temp
 
     // receive packet from uart
     //ReceivePacket();
@@ -133,7 +181,11 @@ int main(void)
     //ProcessPacket();
 
     // read gas meter
+<<<<<<< HEAD
     //ReadGasMeter();
+=======
+    ReadGasMeter();
+>>>>>>> temp
 
     // read DHT22 sensor
     //GetTempHumidity();

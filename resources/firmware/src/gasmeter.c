@@ -4,9 +4,6 @@
 #include "gasmeter.h"
 #include "millis.h"
 
-volatile uint8_t adc_ready = 0;
-volatile uint16_t adc_value = 0;
-volatile uint8_t ir_ready = 0;
 uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
 gasmeter_t gasmeter = {};
@@ -137,38 +134,4 @@ void ProcessPacket(void)
   SendPacket(b[0], b[1], b[2], b[3]);
   error_code = 0;
   packet_ready = 0;
-}
-
-void SendRawAdc(void)
-{
-  unsigned long current_millis = millis();
-  static unsigned long previous_millis = 0;
-
-  if ((current_millis - previous_millis) > 250)
-  {
-    SendValue(adc_value);
-    previous_millis = current_millis;
-  }
-}
-
-void ReadGasMeter(void)
-{
-  // check if new ADC value ready
-  if (!adc_ready) {
-    return;
-  }
-
-  static uint8_t hysteresis = 0;
-  if (adc_value > gasmeter.level_high)
-  {
-    hysteresis = 1;
-  }
-  if ((adc_value < gasmeter.level_low) && hysteresis)
-  {
-    gasmeter.volume++;
-    hysteresis = 0;
-  }
-
-  // reset ADC ready flag
-  adc_ready = 0;
 }

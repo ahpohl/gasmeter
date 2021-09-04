@@ -20,16 +20,12 @@ typedef struct gasmeter {
 } gasmeter_t;
 
 // global variables
-extern volatile uint8_t adc_ready;
-extern volatile uint16_t adc_value;
-extern volatile uint8_t ir_ready;
 extern gasmeter_t gasmeter;
 extern volatile uint8_t packet_ready;
 extern uint8_t receive_buffer[RX_SIZE];
 extern uint8_t error_code;
 
 // functions
-void SendRawAdc(void);
 void SendPacket(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4);
 void ReceivePacket(void);
 void ProcessPacket(void);
