@@ -21,10 +21,19 @@ ISR(ADC_vect)
   adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
 
   // reset timer interrupt flag, set OCF0A bit
-  TIFR0 |= _BV(OCF0A);
+  //TIFR0 |= _BV(OCF0A);
 
   // done reading
   adc_ready = 1;
+}
+
+ISR(TIMER0_COMPA_vect)
+{
+  // delay ADC start until signal is stable
+  while (TCNT0 < (OCR0A + 8)) {};
+
+  // trigger single ADC measurement
+  ADCSRA |= _BV(ADSC);  
 }
 
 void ReadAdc(void)
@@ -53,7 +62,7 @@ void SendRawAdc(void)
 int main(void)
 {   
   //
-  // timer 0
+  // timer 0 for IR led PWM
   //
 
   // set OC0A pin as output, required for output toggling
@@ -67,16 +76,20 @@ int main(void)
   // f = 12 MHz/(510*256) = 92 Hz
   //TCCR0A = _BV(COM0A1) | _BV(WGM00);
 
-  // fast PWM mode, non-inverting mode
+  // fast PWM mode, inverting mode
+  // set OC0A on compare match, clear OC0A at BOTTOM
   // f = F_CPU/(256*prescaler)
   // f = 12 MHz/(256*256) = 184 Hz
-  TCCR0A = _BV(COM0A1) | _BV(WGM01) | _BV(WGM00);
+  TCCR0A = _BV(WGM01) | _BV(WGM00) | _BV(COM0A1) | _BV(COM0A0);
 
-  // duty cycle = 20 / 255 = 8 %
-  OCR0A = 20;
+  // duty cycle = 200 / 255 = 78 % off, 22 % on
+  OCR0A = 200;
+
+  // enable output compare match A interupt
+  TIMSK0 = _BV(OCIE0A);
 
   //
-  // ADC
+  // ADC for reading IR phototransistor
   //
 
   // right adjust result, clear ADLAR bit
@@ -92,16 +105,17 @@ int main(void)
   ADCSRA |= _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);
 
   // enable auto-triggering, set ADATE
-  ADCSRA |= _BV(ADATE);
+  //ADCSRA |= _BV(ADATE);
 
+  // ADC auto trigger source selection
   // interrupt on timer/counter0 compare match A
-  ADCSRB |= _BV(ADTS1) | _BV(ADTS0);
-
-  // enable ADC, set ADEN bit
-  ADCSRA |= _BV(ADEN);
+  //ADCSRB |= _BV(ADTS1) | _BV(ADTS0);
 
   // enable ADC interrupt, set ADIE bit
   ADCSRA |= _BV(ADIE);
+
+  // enable ADC, set ADEN bit
+  ADCSRA |= _BV(ADEN);
 
   //
   // UART serial
