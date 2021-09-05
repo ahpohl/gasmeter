@@ -68,7 +68,7 @@ void ReadGasMeter(void)
   }
 
   static uint8_t hysteresis = 0;
-  if (adc_value > gasmeter.level_high)
+  if ((adc_value > gasmeter.level_high) && !hysteresis)
   {
     hysteresis = 1;
   }
