@@ -164,15 +164,9 @@ int main(void)
   {
     // read IR sensor
     ReadAdc();
-<<<<<<< HEAD
-
-    // send raw ADC value
-    SendRawAdc();
-=======
  
     // send raw ADC value
-    //SendRawAdc();
->>>>>>> temp
+    SendRawAdc();
 
     // receive packet from uart
     //ReceivePacket();
@@ -181,11 +175,7 @@ int main(void)
     //ProcessPacket();
 
     // read gas meter
-<<<<<<< HEAD
     //ReadGasMeter();
-=======
-    ReadGasMeter();
->>>>>>> temp
 
     // read DHT22 sensor
     //GetTempHumidity();
