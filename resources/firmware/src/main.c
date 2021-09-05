@@ -72,7 +72,7 @@ void ReadGasMeter(void)
   {
     hysteresis = 1;
   }
-  if ((adc_value < gasmeter.level_low) && hysteresis)
+  else if ((adc_value < gasmeter.level_low) && hysteresis)
   {
     gasmeter.volume++;
     hysteresis = 0;
@@ -165,19 +165,19 @@ int main(void)
     // read IR sensor
     ReadAdc();
  
-    // send raw ADC value
-    SendRawAdc();
+    // send raw ADC value (for debugging)
+    //SendRawAdc();
 
     // receive packet from uart
-    //ReceivePacket();
+    ReceivePacket();
 
     // process packet
-    //ProcessPacket();
+    ProcessPacket();
 
     // read gas meter
-    //ReadGasMeter();
+    ReadGasMeter();
 
     // read DHT22 sensor
-    //GetTempHumidity();
+    GetTempHumidity();
   }
 }
