@@ -2,7 +2,6 @@
 
 DROP MATERIALIZED VIEW IF EXISTS "monthly_view" CASCADE;
 DROP MATERIALIZED VIEW IF EXISTS "daily_view" CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS "cagg_power" CASCADE;
 DROP MATERIALIZED VIEW IF EXISTS "cagg_daily" CASCADE;
 DROP TABLE IF EXISTS "archive" CASCADE;
 DROP TABLE IF EXISTS "live" CASCADE;
@@ -31,7 +30,7 @@ CREATE TABLE "live" (
   sensor_id INTEGER NOT NULL,
   plan_id INTEGER NOT NULL,
   volume DOUBLE PRECISION,
-  energy DOUBLE PRECISION,
+  flow_rate DOUBLE PRECISION,
   temperature DOUBLE PRECISION,
   humidity DOUBLE PRECISION,
   CONSTRAINT sensor_id FOREIGN KEY (sensor_id) REFERENCES sensors (id),
@@ -39,7 +38,6 @@ CREATE TABLE "live" (
 );
 
 SELECT create_hypertable('live', 'time');
-SELECT add_retention_policy('live', INTERVAL '7 days');
 
 INSERT INTO sensors(id, serial_num, customer_id, part_num, mfg_date) VALUES
 (1, '42010646', '20141182555', 'G4RF1c', '2020');

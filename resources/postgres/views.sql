@@ -7,21 +7,21 @@ CREATE MATERIALIZED VIEW daily_view
 AS
 SELECT
   bucket_1d AS time,
-  energy_1d AS energy,
-  energy_1d * payment AS credit,
-  total,
-  payment
+  volume_1d AS volume,
+  volume_1d * factor AS energy, 
+  volume_1d * factor * price + rate * 12.0 / 365.0 AS bill,
+  total
 FROM archive JOIN plan ON archive.plan_id = plan.id
-GROUP BY bucket_1d, energy_1d, total, payment
+GROUP BY bucket_1d, volume_1d, total, bill
 UNION
 SELECT
   bucket_1d AS time,
-  energy_1d AS energy,
-  energy_1d * payment AS credit,
-  total,
-  payment
+  volume_1d AS volume,
+  volume_1d * factor AS energy,
+  volume_1d * factor * price + rate * 12.0 / 365.0 AS bill,
+  total
 FROM cagg_daily JOIN plan ON cagg_daily.plan_id = plan.id
-GROUP BY bucket_1d, energy_1d, total, payment
+GROUP BY bucket_1d, volume_1d, total, bill
 ORDER BY time;
 
 -- index
@@ -97,8 +97,9 @@ CREATE MATERIALIZED VIEW monthly_view
 AS
 SELECT
   _time_bucket('1 month', time) AS time,
+  sum(volume) AS volume,
   sum(energy) AS energy,
-  sum(credit) AS credit,
+  sum(bill) AS bill,
   first(total, time) AS total
 FROM daily_view
 GROUP BY _time_bucket('1 month', time)

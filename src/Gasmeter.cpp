@@ -215,7 +215,7 @@ bool Gasmeter::Publish(void)
   Payload << "[{"
     << "\"time\":" << now << ","
     << "\"volume\":" << std::setprecision(2) << Datagram.Volume << "," 
-    << "\"energy\":" << std::setprecision(2) << Datagram.Volume * StringTo<float>(Cfg->GetValue("gas_factor")) << ","
+    << "\"flow\":" << std::setprecision(2) << GetFlowRate(now, Datagram.Volume) << ","
     << "\"temperature\":" << std::setprecision(1) << Datagram.Temperature << ","
     << "\"humidity\":" << std::setprecision(1) << Datagram.Humidity << ","
     << "\"rate\":" << Cfg->GetValue("gas_rate") << ","
@@ -260,6 +260,22 @@ std::string Gasmeter::GetErrorMessage(void) const
 std::string Gasmeter::GetPayload(void) const
 {
   return Payload.str();
+}
+
+float Gasmeter::GetFlowRate(unsigned long long &current_time, float &current_volume) const
+{
+  float flow_rate = 0;
+  static unsigned long long previous_time = 0;
+  static float previous_volume = 0;
+  
+  if ((current_time - previous_time) > 0)
+  {
+    flow_rate = (current_volume - previous_volume) / (current_time - previous_time) * 60 * 1000; // L min-1 
+  }
+  previous_time = current_time;
+  previous_volume = current_volume;
+
+  return flow_rate;
 }
 
 template <typename T>
