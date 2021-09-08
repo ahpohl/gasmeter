@@ -12,7 +12,7 @@ SELECT
   volume_1d * factor * price + rate * 12.0 / 365.0 AS bill,
   total
 FROM archive JOIN plan ON archive.plan_id = plan.id
-GROUP BY bucket_1d, volume_1d, total, bill
+GROUP BY bucket_1d, volume_1d, total, bill, factor
 UNION
 SELECT
   bucket_1d AS time,
@@ -21,7 +21,7 @@ SELECT
   volume_1d * factor * price + rate * 12.0 / 365.0 AS bill,
   total
 FROM cagg_daily JOIN plan ON cagg_daily.plan_id = plan.id
-GROUP BY bucket_1d, volume_1d, total, bill
+GROUP BY bucket_1d, volume_1d, total, bill, factor
 ORDER BY time;
 
 -- index

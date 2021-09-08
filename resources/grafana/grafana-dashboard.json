@@ -22,12 +22,12 @@
   "editable": true,
   "gnetId": 12519,
   "graphTooltip": 0,
-  "id": 22,
+  "id": 23,
   "links": [],
   "panels": [
     {
       "cacheTimeout": null,
-      "datasource": "Watermeter",
+      "datasource": "Gasmeter",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -49,7 +49,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "purple",
+                "color": "orange",
                 "value": null
               }
             ]
@@ -84,7 +84,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.1.1",
+      "pluginVersion": "8.1.2",
       "targets": [
         {
           "format": "time_series",
@@ -117,13 +117,13 @@
       ],
       "timeFrom": "15m",
       "timeShift": null,
-      "title": "Total Water",
+      "title": "Total Gas",
       "transparent": true,
       "type": "stat"
     },
     {
       "cacheTimeout": null,
-      "datasource": "Watermeter",
+      "datasource": "Gasmeter",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -145,12 +145,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "purple",
+                "color": "orange",
                 "value": null
               }
             ]
           },
-          "unit": "litre"
+          "unit": "m3"
         },
         "overrides": []
       },
@@ -180,14 +180,14 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.1.1",
+      "pluginVersion": "8.1.2",
       "targets": [
         {
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  date_trunc('day', NOW()) as time,\n  (last(volume, time) - first(volume, time)) * 1000 as volume\nFROM live\nWHERE\n  time > date_trunc('day', NOW())",
+          "rawSql": "SELECT\n  date_trunc('day', NOW()) AS time,\n  (last(volume, time) - first(volume, time)) AS volume\nFROM live\nWHERE\n  time > date_trunc('day', NOW())",
           "refId": "A",
           "select": [
             [
@@ -213,12 +213,12 @@
       ],
       "timeFrom": "24h",
       "timeShift": null,
-      "title": "Water Today",
+      "title": "Gas Today",
       "transparent": true,
       "type": "stat"
     },
     {
-      "datasource": "Watermeter",
+      "datasource": "Gasmeter",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -275,7 +275,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "purple",
+                  "fixedColor": "orange",
                   "mode": "fixed"
                 }
               }
@@ -311,7 +311,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  rate * 1000 as flow\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
+          "rawSql": "SELECT\n  time,\n  rate AS flow\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -337,13 +337,13 @@
       ],
       "timeFrom": "15h",
       "timeShift": null,
-      "title": "Water Flow",
+      "title": "Gas Flow",
       "transparent": true,
       "type": "timeseries"
     },
     {
       "cacheTimeout": null,
-      "datasource": "Watermeter",
+      "datasource": "Gasmeter",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -365,7 +365,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "purple",
+                "color": "orange",
                 "value": null
               }
             ]
@@ -400,7 +400,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.1.1",
+      "pluginVersion": "8.1.2",
       "targets": [
         {
           "format": "time_series",
@@ -439,7 +439,7 @@
     },
     {
       "cacheTimeout": null,
-      "datasource": "Watermeter",
+      "datasource": "Gasmeter",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -461,7 +461,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "purple",
+                "color": "orange",
                 "value": null
               }
             ]
@@ -496,7 +496,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.1.1",
+      "pluginVersion": "8.1.2",
       "targets": [
         {
           "format": "time_series",
@@ -534,7 +534,7 @@
       "type": "stat"
     },
     {
-      "datasource": "Watermeter",
+      "datasource": "Gasmeter",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -681,7 +681,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  volume * 1000 AS volume\nFROM daily_view\nWHERE\n  $__timeFilter(time)\nORDER BY 1;",
+          "rawSql": "SELECT\n  time,\n  volume\nFROM daily_view\nWHERE\n  $__timeFilter(time)\nORDER BY 1;",
           "refId": "A",
           "select": [
             [
@@ -736,12 +736,12 @@
       ],
       "timeFrom": "12d",
       "timeShift": null,
-      "title": "Daily Water",
+      "title": "Daily Gas",
       "transparent": true,
       "type": "timeseries"
     },
     {
-      "datasource": "Watermeter",
+      "datasource": "Gasmeter",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -933,7 +933,7 @@
       ],
       "timeFrom": "366d",
       "timeShift": null,
-      "title": "Monthly Water",
+      "title": "Monthly Gas",
       "transparent": true,
       "type": "timeseries"
     }
@@ -946,7 +946,7 @@
     "list": []
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -964,7 +964,7 @@
     ]
   },
   "timezone": "",
-  "title": "Watermeter",
-  "uid": "Zy00S8QGt",
-  "version": 30
+  "title": "Gasmeter",
+  "uid": "Zy00S8QTr",
+  "version": 6
 }
