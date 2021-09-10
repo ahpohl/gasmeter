@@ -33,7 +33,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 1,
           "mappings": [
             {
               "options": {
@@ -311,7 +310,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  rate AS flow\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
+          "rawSql": "SELECT\n  time,\n  flow_rate * 1000 AS flow\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -582,7 +581,7 @@
               }
             ]
           },
-          "unit": "litre"
+          "unit": "m3"
         },
         "overrides": [
           {
@@ -966,5 +965,5 @@
   "timezone": "",
   "title": "Gasmeter",
   "uid": "Zy00S8QTr",
-  "version": 6
+  "version": 10
 }
