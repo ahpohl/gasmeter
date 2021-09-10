@@ -290,3 +290,30 @@ T Gasmeter::StringTo(const std::string &str) const
   }
   return value;
 }
+
+void Gasmeter::Loop(const int &interval)
+{
+  int timeout = 0;
+
+  while (shutdown == false)
+  {
+    std::this_thread::sleep_for(std::chrono::seconds(interval));
+    if (!this->Receive())
+    {
+      if (timeout < 5)
+      {
+        std::cout << this->GetErrorMessage() << std::endl;
+        ++timeout;
+      }
+      continue;
+    }
+    else
+    {
+      timeout = 0;
+    }
+    if (!this->Publish())
+    {
+      std::cout << this->GetErrorMessage() << std::endl;
+    }
+  }  
+}

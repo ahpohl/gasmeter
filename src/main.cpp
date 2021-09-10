@@ -88,11 +88,14 @@ int main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
+  meter->Loop(5);
+
+  /*
   static int timeout = 0;
 
   while (shutdown == false)
   {
-    std::this_thread::sleep_for(std::chrono::minutes(5));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 	  if (!meter->Receive())
 	  {
       if (timeout < 5)
@@ -111,6 +114,7 @@ int main(int argc, char* argv[])
       std::cout << meter->GetErrorMessage() << std::endl;
     }
   }
+  */
 
   return EXIT_SUCCESS;
 }
