@@ -5,7 +5,8 @@ enum class DspValueEnum : unsigned char
 {
   GAS_VOLUME = 1,
   TEMPERATURE = 2,
-  HUMIDITY = 3
+  HUMIDITY = 3,
+  RAW_IR = 4
 };
 
 enum class SendCommandEnum : unsigned char

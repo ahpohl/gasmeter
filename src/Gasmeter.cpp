@@ -6,6 +6,7 @@
 #include <thread>
 #include <stdexcept>
 #include <vector>
+#include <unistd.h>
 #include "Gasmeter.h"
 #include "GasmeterEnums.h"
 
@@ -175,6 +176,10 @@ void Gasmeter::SetLogLevel(void)
       {
         Log |= static_cast<unsigned char>(LogLevelEnum::SERIAL);
       }
+      else if (!(*it).compare("raw"))
+      {
+        Log |= static_cast<unsigned char>(LogLevelEnum::RAW);
+      }
     }
   }
   else
@@ -200,6 +205,15 @@ bool Gasmeter::Receive(void)
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
+  }
+  if (!Firmware->ReadDspValue(Datagram.RawIr, DspValueEnum::RAW_IR))
+  {
+    ErrorMessage = Firmware->GetErrorMessage();
+    return false;
+  }
+  if (Log & static_cast<unsigned char>(LogLevelEnum::RAW))
+  {
+    std::cout << (Datagram.RawIr * 100) << " " << Datagram.Volume << std::endl;
   }
   return true;
 }
@@ -289,31 +303,4 @@ T Gasmeter::StringTo(const std::string &str) const
     return T();
   }
   return value;
-}
-
-void Gasmeter::Loop(const int &interval)
-{
-  int timeout = 0;
-
-  while (shutdown == false)
-  {
-    std::this_thread::sleep_for(std::chrono::seconds(interval));
-    if (!this->Receive())
-    {
-      if (timeout < 5)
-      {
-        std::cout << this->GetErrorMessage() << std::endl;
-        ++timeout;
-      }
-      continue;
-    }
-    else
-    {
-      timeout = 0;
-    }
-    if (!this->Publish())
-    {
-      std::cout << this->GetErrorMessage() << std::endl;
-    }
-  }  
 }

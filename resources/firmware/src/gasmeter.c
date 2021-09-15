@@ -3,6 +3,7 @@
 #include "util.h"
 #include "gasmeter.h"
 #include "millis.h"
+#include "main.h"
 
 uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
@@ -121,6 +122,9 @@ void ProcessPacket(void)
       break;
     case 3: // humidity
       memcpy(&b, &gasmeter.humidity, sizeof(b));
+      break;
+    case 4: // raw IR value
+      memcpy(&b, (const uint16_t *) &adc_value, sizeof(adc_value));
       break;
     default:
       error_code = (uint8_t) (VARIABLE_DOES_NOT_EXIST >> 8);
