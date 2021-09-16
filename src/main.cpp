@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 
   while (shutdown == false)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	  if (!meter->Receive())
 	  {
       if (timeout < 5)
@@ -106,10 +106,12 @@ int main(int argc, char* argv[])
     {
       timeout = 0;
     }
+    /*
     if (!meter->Publish())
     {
       std::cout << meter->GetErrorMessage() << std::endl;
     }
+    */
   }
 
   return EXIT_SUCCESS;
