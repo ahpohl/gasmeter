@@ -19,7 +19,10 @@ volatile uint8_t ir_ready = 0;
 ISR(ADC_vect)
 {
   // must read low byte first
-  adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
+  if (!adc_ready)
+  {
+    adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
+  }
 
   // reset timer interrupt flag, set OCF0A bit
   //TIFR0 |= _BV(OCF0A);
