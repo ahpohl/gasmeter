@@ -191,6 +191,8 @@ void Gasmeter::SetLogLevel(void)
 
 bool Gasmeter::Receive(void)
 {
+  //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  
   if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::GAS_VOLUME))
   {
     ErrorMessage = Firmware->GetErrorMessage();
@@ -213,6 +215,8 @@ bool Gasmeter::Receive(void)
   }
   if (Log & static_cast<unsigned char>(LogLevelEnum::RAW))
   {
+    //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    //std::cout << (Datagram.RawIr * 100) << " " << Datagram.Volume << " " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()  << std::endl;
     std::cout << (Datagram.RawIr * 100) << " " << Datagram.Volume << std::endl;
   }
   return true;

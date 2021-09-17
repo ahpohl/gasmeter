@@ -91,8 +91,8 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
       ErrorMessage = "Serial FIONREAD ioctl failed";
       return -1;
     }
-    // intercharacter delay: 1 / baud rate * 1e6 = 104 µs
-    std::this_thread::sleep_for(std::chrono::microseconds(100));
+    // intercharacter delay: 1 / baud rate * 1e6 = 17.4 µs
+    std::this_thread::sleep_for(std::chrono::microseconds(18));
     if (bytes_available >= length)
       break;
     iterations++;

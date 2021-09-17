@@ -8,7 +8,7 @@ set nokey
 set grid
 #set mxtics
 set y2tics
-set xrange [90110:90130]
+set xrange [290050:290150]
 set arrow from graph 0,first 750 to graph 1,first 750 nohead lw 2 lt 0 lc rgb "blue" front
 set arrow from graph 0,first 900 to graph 1,first 900 nohead lw 2 lt 0 lc rgb "red" front
 set label "high" at graph 0.01,first 910 left tc rgb "red"
