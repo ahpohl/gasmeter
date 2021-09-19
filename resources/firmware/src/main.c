@@ -75,7 +75,7 @@ void ReadGasMeter(void)
   {
     hysteresis = 1;
   }
-  else if ((adc_value < gasmeter.level_low) && hysteresis)
+  else if ((adc_value < gasmeter.level_low) && (adc_value > (gasmeter.level_low / 2)) && hysteresis)
   {
     gasmeter.volume++;
     hysteresis = 0;
