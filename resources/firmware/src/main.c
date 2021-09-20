@@ -19,13 +19,7 @@ volatile uint8_t ir_ready = 0;
 ISR(ADC_vect)
 {
   // must read low byte first
-  if (!adc_ready)
-  {
-    adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
-  }
-
-  // reset timer interrupt flag, set OCF0A bit
-  //TIFR0 |= _BV(OCF0A);
+  adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
 
   // done reading
   adc_ready = 1;
@@ -33,12 +27,6 @@ ISR(ADC_vect)
 
 ISR(TIMER0_COMPA_vect)
 {
-  // delay ADC start until signal is stable
-  //while (TCNT0 < (OCR0A + 8)) {};
-
-  // trigger single ADC measurement
-  //ADCSRA |= _BV(ADSC);
-
   ir_ready = 1;
 }
 
@@ -46,20 +34,9 @@ void ReadAdc(void)
 {
   if (ir_ready && (TCNT0 == OCR0A + 8))
   {
+    // trigger single ADC measurement
     ADCSRA |= _BV(ADSC);
     ir_ready = 0;
-  }
-}
-
-void SendRawAdc(void)
-{
-  unsigned long current_millis = millis();
-  static unsigned long previous_millis = 0;
-
-  if ((current_millis - previous_millis) > 250)
-  {
-    SendValue(adc_value);
-    previous_millis = current_millis;
   }
 }
 
@@ -97,11 +74,6 @@ int main(void)
   // CLK/256 prescale value  
   TCCR0B = _BV(CS02);
 
-  // phase correct PWM
-  // f = F_CPU/(510*prescaler)
-  // f = 12 MHz/(510*256) = 92 Hz
-  //TCCR0A = _BV(COM0A1) | _BV(WGM00);
-
   // fast PWM mode, inverting mode
   // set OC0A on compare match, clear OC0A at BOTTOM
   // f = F_CPU/(256*prescaler)
@@ -130,13 +102,6 @@ int main(void)
   // select CLK/128 prescale value, ADPS0..2
   ADCSRA |= _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);
 
-  // enable auto-triggering, set ADATE
-  //ADCSRA |= _BV(ADATE);
-
-  // ADC auto trigger source selection
-  // interrupt on timer/counter0 compare match A
-  //ADCSRB |= _BV(ADTS1) | _BV(ADTS0);
-
   // enable ADC interrupt, set ADIE bit
   ADCSRA |= _BV(ADIE);
 
@@ -156,9 +121,6 @@ int main(void)
   // now enable global interrupt
   sei();
 
-  // say hello
-  //uart_puts("Gasmeter IR Sensor\n\r");
-
   //
   // main loop
   //
@@ -167,18 +129,15 @@ int main(void)
   {
     // read IR sensor
     ReadAdc();
- 
-    // send raw ADC value (for debugging)
-    //SendRawAdc();
 
+    // read gas meter
+    ReadGasMeter();
+ 
     // receive packet from uart
     ReceivePacket();
 
     // process packet
     ProcessPacket();
-
-    // read gas meter
-    ReadGasMeter();
 
     // read DHT22 sensor
     GetTempHumidity();
