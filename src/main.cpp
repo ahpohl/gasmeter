@@ -106,12 +106,10 @@ int main(int argc, char* argv[])
     {
       timeout = 0;
     }
-    /*
     if (!meter->Publish())
     {
       std::cout << meter->GetErrorMessage() << std::endl;
     }
-    */
   }
 
   return EXIT_SUCCESS;
