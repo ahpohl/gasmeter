@@ -140,6 +140,6 @@ int main(void)
     ProcessPacket();
 
     // read DHT22 sensor
-    GetTempHumidity();
+    //GetTempHumidity();
   }
 }
