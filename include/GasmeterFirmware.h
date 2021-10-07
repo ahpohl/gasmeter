@@ -19,7 +19,7 @@ public:
   GasmeterFirmware(void);
   ~GasmeterFirmware(void);
   void SetLogLevel(const unsigned char &log_level);
-  bool Setup(const std::string &device, const speed_t baudrate = B57600);
+  bool Setup(const std::string &device, const speed_t baudrate = B19200);
   std::string GetErrorMessage(void) const;
   bool SetMeterVolume(const float &volume);
   bool SetThresholdLevels(const short int &low_level, const short int &high_level);
