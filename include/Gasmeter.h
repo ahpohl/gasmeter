@@ -30,6 +30,7 @@ public:
   std::string GetErrorMessage(void) const;
   std::string GetPayload(void) const;
   float GetFlowRate(unsigned long long &current_time, float &current_volume) const;
+  unsigned char GetLogLevel(void) const;
   
   struct Datagram
   {

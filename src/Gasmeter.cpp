@@ -189,6 +189,11 @@ void Gasmeter::SetLogLevel(void)
   //std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << ((int)Log & 0xFF) << std::endl;  
 }
 
+unsigned char Gasmeter::GetLogLevel(void) const
+{
+  return Log;
+}
+
 bool Gasmeter::Receive(void)
 {
   //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();

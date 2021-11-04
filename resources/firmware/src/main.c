@@ -99,8 +99,9 @@ int main(void)
   // select ADC channel 0, clear MUX3..0 bits
   ADMUX &= 0xF0;
 
-  // select CLK/128 prescale value, ADPS0..2
-  ADCSRA |= _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);
+  // select CLK/64 prescale value, ADPS0..2
+  // ADC freq = FCPU / prescaler: 187 kHz
+  ADCSRA |= _BV(ADPS2) | _BV(ADPS1);
 
   // enable ADC interrupt, set ADIE bit
   ADCSRA |= _BV(ADIE);
