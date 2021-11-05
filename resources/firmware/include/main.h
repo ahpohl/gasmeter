@@ -13,10 +13,7 @@
 #define UART_BAUD_RATE 19200        // baud rate
 
 extern volatile uint16_t adc_value; // ADC raw value
-extern volatile uint8_t timer_ready;
 
 void ReadAdc(void);
-void SendRawAdc(void);
-void ReadGasMeter(void);
 
 #endif

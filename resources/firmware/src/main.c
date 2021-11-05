@@ -12,7 +12,6 @@
 #include "millis.h"
 
 volatile uint16_t adc_value = 0;
-volatile uint8_t timer_ready = 0;
 
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
@@ -33,18 +32,12 @@ ISR(ADC_vect)
   }
 }
 
-ISR(TIMER0_COMPA_vect)
-{
-  timer_ready = 1;
-}
-
 void ReadAdc(void)
 {
-  if (timer_ready && (TCNT0 == (OCR0A + 8)))
+  if (TCNT0 == (OCR0A + 8))
   {
     // trigger single ADC measurement
     ADCSRA |= _BV(ADSC);
-    timer_ready = 0;
   }
 }
 
@@ -69,9 +62,6 @@ int main(void)
   // duty cycle = 230 / 255 = 90 % off, 10 % on
   OCR0A = 230;
 
-  // enable output compare match A interupt
-  TIMSK0 = _BV(OCIE0A);
-
   //
   // ADC for reading IR phototransistor
   //
@@ -85,9 +75,9 @@ int main(void)
   // select ADC channel 0, clear MUX3..0 bits
   ADMUX &= 0xF0;
 
-  // select CLK/128 prescale value, ADPS0..2
-  // ADC freq = 93.7 kHz
-  ADCSRA |= _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);
+  // select CLK/64 prescale value, ADPS0..2
+  // ADC freq = 187 kHz
+  ADCSRA |= _BV(ADPS2) | _BV(ADPS1);
 
   // enable ADC interrupt, set ADIE bit
   ADCSRA |= _BV(ADIE);
