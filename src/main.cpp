@@ -113,9 +113,12 @@ int main(int argc, char* argv[])
     {
       timeout = 0;
     }
-    if (!meter->Publish())
+    if (!(meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW)))
     {
-      std::cout << meter->GetErrorMessage() << std::endl;
+      if (!meter->Publish())
+      {
+        std::cout << meter->GetErrorMessage() << std::endl;
+      }
     }
   }
 

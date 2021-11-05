@@ -11,9 +11,9 @@
 #include "uart.h"
 #include "millis.h"
 
-volatile uint8_t adc_ready = 0;
+//volatile uint8_t adc_ready = 0;
 volatile uint16_t adc_value = 0;
-volatile uint8_t ir_ready = 0;
+//volatile uint8_t timer_ready = 0;
 
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
@@ -22,44 +22,54 @@ ISR(ADC_vect)
   adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
 
   // done reading
-  adc_ready = 1;
+  //adc_ready = 1;
 }
 
+/*
 ISR(TIMER0_COMPA_vect)
 {
-  ir_ready = 1;
+  timer_ready = 1;
 }
+*/
 
 void ReadAdc(void)
 {
-  if (ir_ready && (TCNT0 == OCR0A + 8))
+  if (TCNT0 == OCR0A + 8)
   {
     // trigger single ADC measurement
     ADCSRA |= _BV(ADSC);
-    ir_ready = 0;
+    //timer_ready = 0;
   }
 }
 
 void ReadGasMeter(void)
 {
   // check if new ADC value ready
-  if (!adc_ready) {
-    return;
-  }
+  //if (!adc_ready) {
+  //  return;
+  //}
+  
+  unsigned long current_millis = millis();
+  static unsigned long previous_millis = 0;
 
-  static uint8_t hysteresis = 0;
-  if ((adc_value > gasmeter.level_high) && !hysteresis)
+  // evaluate adc value
+  if ((current_millis - previous_millis) > 100)
   {
-    hysteresis = 1;
-  }
-  else if ((adc_value < gasmeter.level_low) && (adc_value > (gasmeter.level_low / 2)) && hysteresis)
-  {
-    gasmeter.volume++;
-    hysteresis = 0;
+    static uint8_t hysteresis = 0;
+    if ((adc_value > gasmeter.level_high) && !hysteresis)
+    {
+      hysteresis = 1;
+    }
+    else if ((adc_value < gasmeter.level_low) && hysteresis)
+    {
+      gasmeter.volume++;
+      hysteresis = 0;
+    }
+    previous_millis = current_millis;
   }
 
   // reset ADC ready flag
-  adc_ready = 0;
+  //adc_ready = 0;
 }
 
 int main(void)
