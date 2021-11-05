@@ -7,7 +7,7 @@
 
 uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
-gasmeter_t gasmeter = {};
+gasmeter_t gasmeter = { .volume = 0, .temperature = 0, .humidity = 0, .level_low = 750, .level_high = 900 };
 uint8_t error_code;
 
 void ReceivePacket(void)
