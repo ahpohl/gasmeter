@@ -11,7 +11,6 @@
 #include "uart.h"
 #include "millis.h"
 
-volatile uint8_t adc_ready = 0;
 volatile uint16_t adc_value = 0;
 volatile uint8_t timer_ready = 0;
 
@@ -20,9 +19,6 @@ ISR(ADC_vect)
 {
   // must read low byte first
   adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
-
-  // done reading
-  adc_ready = 1;
 }
 
 ISR(TIMER0_COMPA_vect)
@@ -32,7 +28,7 @@ ISR(TIMER0_COMPA_vect)
 
 void ReadAdc(void)
 {
-  if (TCNT0 == OCR0A + 8)
+  if (timer_ready && (TCNT0 == (OCR0A + 8)))
   {
     // trigger single ADC measurement
     ADCSRA |= _BV(ADSC);
@@ -42,11 +38,6 @@ void ReadAdc(void)
 
 void ReadGasMeter(void)
 {
-  // check if new ADC value ready
-  if (!adc_ready) {
-    return;
-  }
-  
   unsigned long current_millis = millis();
   static unsigned long previous_millis = 0;
 
@@ -54,7 +45,7 @@ void ReadGasMeter(void)
   if ((current_millis - previous_millis) > 100)
   {
     static uint8_t hysteresis = 0;
-    if ((adc_value > gasmeter.level_high) && !hysteresis)
+    if ((adc_value > gasmeter.level_high))
     {
       hysteresis = 1;
     }
@@ -65,9 +56,6 @@ void ReadGasMeter(void)
     }
     previous_millis = current_millis;
   }
-
-  // reset ADC ready flag
-  adc_ready = 0;
 }
 
 int main(void)
