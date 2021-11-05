@@ -19,6 +19,18 @@ ISR(ADC_vect)
 {
   // must read low byte first
   adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
+  
+  // evaluate counter
+  static uint8_t hysteresis = 0;
+  if ((adc_value > gasmeter.level_high))
+  {
+    hysteresis = 1;
+  }
+  else if ((adc_value < gasmeter.level_low) && hysteresis)
+  {
+    gasmeter.volume++;
+    hysteresis = 0;
+  }
 }
 
 ISR(TIMER0_COMPA_vect)
@@ -33,28 +45,6 @@ void ReadAdc(void)
     // trigger single ADC measurement
     ADCSRA |= _BV(ADSC);
     timer_ready = 0;
-  }
-}
-
-void ReadGasMeter(void)
-{
-  unsigned long current_millis = millis();
-  static unsigned long previous_millis = 0;
-
-  // evaluate adc value
-  if ((current_millis - previous_millis) > 100)
-  {
-    static uint8_t hysteresis = 0;
-    if ((adc_value > gasmeter.level_high))
-    {
-      hysteresis = 1;
-    }
-    else if ((adc_value < gasmeter.level_low) && hysteresis)
-    {
-      gasmeter.volume++;
-      hysteresis = 0;
-    }
-    previous_millis = current_millis;
   }
 }
 
@@ -127,9 +117,6 @@ int main(void)
     // read IR sensor
     ReadAdc();
 
-    // read gas meter
-    ReadGasMeter();
- 
     // receive packet from uart
     ReceivePacket();
 
