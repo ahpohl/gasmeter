@@ -11,7 +11,7 @@
 #include "uart.h"
 #include "millis.h"
 
-uint16_t volatile adc_value = 0;
+volatile uint16_t adc_value = 0;
 
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)

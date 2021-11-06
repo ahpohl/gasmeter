@@ -1,4 +1,5 @@
 #include <string.h>
+#include <avr/interrupt.h>
 #include "uart.h"
 #include "util.h"
 #include "gasmeter.h"
@@ -6,8 +7,8 @@
 #include "main.h"
 
 uint8_t rx_packet[RX_SIZE] = {0};
-uint8_t volatile packet_ready = 0;
-gasmeter_t volatile gasmeter = { .volume = 0, .temperature = 0, .humidity = 0, .level_low = 750, .level_high = 900 };
+volatile uint8_t packet_ready = 0;
+gasmeter_t gasmeter = { .volume = 0, .temperature = 0, .humidity = 0, .level_low = 750, .level_high = 900 };
 uint8_t error_code;
 
 void ReceivePacket(void)
@@ -101,30 +102,36 @@ void ProcessPacket(void)
   case 1: // pre-set volume
     int32_t volume;
     memcpy(&volume, rx_packet+2, sizeof(volume));
+    cli();
     if (volume > gasmeter.volume)
     {
       gasmeter.volume = volume;
     }
-    memcpy(&b, (const uint32_t *) &gasmeter.volume, sizeof(b));
+    memcpy(&b, &gasmeter.volume, sizeof(b));
+    sei();
     break;
   case 2: // set threshold levels
-    memcpy((uint16_t *) &gasmeter.level_high, rx_packet+2, sizeof(gasmeter.level_low));
-    memcpy((uint16_t *) &gasmeter.level_low, rx_packet+4, sizeof(gasmeter.level_high));
+    memcpy(&gasmeter.level_high, rx_packet+2, sizeof(gasmeter.level_low));
+    memcpy(&gasmeter.level_low, rx_packet+4, sizeof(gasmeter.level_high));
     break;
   case 3: // measure request to DSP
     switch (rx_packet[1])
     {
-    case 1: // meter reading
-      memcpy(&b, (const uint32_t *) &gasmeter.volume, sizeof(b));
+    case 1: // meter readinig
+      cli();
+      memcpy(&b, &gasmeter.volume, sizeof(b));
+      sei();
       break;
     case 2: // temperature
-      memcpy(&b, (const uint32_t *) &gasmeter.temperature, sizeof(b));
+      memcpy(&b, &gasmeter.temperature, sizeof(b));
       break;
     case 3: // humidity
-      memcpy(&b, (const uint32_t *) &gasmeter.humidity, sizeof(b));
+      memcpy(&b, &gasmeter.humidity, sizeof(b));
       break;
     case 4: // raw IR value
+      cli();
       memcpy(&b, (const uint16_t *) &adc_value, sizeof(adc_value));
+      sei();
       break;
     default:
       error_code = (uint8_t) (VARIABLE_DOES_NOT_EXIST >> 8);
