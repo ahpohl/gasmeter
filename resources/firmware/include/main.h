@@ -12,8 +12,6 @@
 
 #define UART_BAUD_RATE 19200        // baud rate
 
-extern volatile uint16_t adc_value; // ADC raw value
-
 void ReadAdc(void);
 
 #endif

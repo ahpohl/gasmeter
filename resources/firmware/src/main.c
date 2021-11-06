@@ -11,21 +11,19 @@
 #include "uart.h"
 #include "millis.h"
 
-volatile uint16_t adc_value = 0;
-
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
 {
   // must read low byte first
-  adc_value = (uint16_t) ADCL | ((uint16_t) ADCH << 8);
+  gasmeter.adc_value = (int16_t) ADCL | ((int16_t) ADCH << 8);
   
   // evaluate counter
   static uint8_t hysteresis = 0;
-  if ((adc_value > gasmeter.level_high))
+  if ((gasmeter.adc_value > gasmeter.level_high))
   {
     hysteresis = 1;
   }
-  else if ((adc_value < gasmeter.level_low) && hysteresis)
+  else if ((gasmeter.adc_value < gasmeter.level_low) && hysteresis)
   {
     gasmeter.volume++;
     hysteresis = 0;

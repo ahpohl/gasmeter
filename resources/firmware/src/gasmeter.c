@@ -8,7 +8,7 @@
 
 uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
-gasmeter_t gasmeter = { .volume = 0, .temperature = 0, .humidity = 0, .level_low = 750, .level_high = 900 };
+gasmeter_t gasmeter = { .volume = 0, .temperature = 0, .humidity = 0, .level_low = 750, .level_high = 900, .adc_value = 0 };
 uint8_t error_code;
 
 void ReceivePacket(void)
@@ -130,7 +130,7 @@ void ProcessPacket(void)
       break;
     case 4: // raw IR value
       cli();
-      memcpy(&b, (const uint16_t *) &adc_value, sizeof(adc_value));
+      memcpy(&b, &gasmeter.adc_value, sizeof(gasmeter.adc_value));
       sei();
       break;
     default:

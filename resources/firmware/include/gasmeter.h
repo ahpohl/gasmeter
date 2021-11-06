@@ -17,6 +17,7 @@ typedef struct gasmeter {
   int32_t humidity;
   int16_t level_low;
   int16_t level_high;
+  int16_t adc_value;
 } gasmeter_t;
 
 // global variables
