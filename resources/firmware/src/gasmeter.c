@@ -102,13 +102,13 @@ void ProcessPacket(void)
   case 1: // pre-set volume
     int32_t volume;
     memcpy(&volume, rx_packet+2, sizeof(volume));
-    cli();
+    ADCSRA &= ~(_BV(ADEN));
     if (volume > gasmeter.volume)
     {
       gasmeter.volume = volume;
     }
     memcpy(&b, &gasmeter.volume, sizeof(b));
-    sei();
+    ADCSRA |= _BV(ADEN);
     break;
   case 2: // set threshold levels
     memcpy(&gasmeter.level_high, rx_packet+2, sizeof(gasmeter.level_low));
@@ -118,9 +118,9 @@ void ProcessPacket(void)
     switch (rx_packet[1])
     {
     case 1: // meter readinig
-      cli();
+      ADCSRA &= ~(_BV(ADEN));
       memcpy(&b, &gasmeter.volume, sizeof(b));
-      sei();
+      ADCSRA |= _BV(ADEN);
       break;
     case 2: // temperature
       memcpy(&b, &gasmeter.temperature, sizeof(b));
@@ -129,9 +129,9 @@ void ProcessPacket(void)
       memcpy(&b, &gasmeter.humidity, sizeof(b));
       break;
     case 4: // raw IR value
-      cli();
+      ADCSRA &= ~(_BV(ADEN));
       memcpy(&b, &gasmeter.adc_value, sizeof(gasmeter.adc_value));
-      sei();
+      ADCSRA |= _BV(ADEN);
       break;
     default:
       error_code = (uint8_t) (VARIABLE_DOES_NOT_EXIST >> 8);
