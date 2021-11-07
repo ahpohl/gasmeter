@@ -22,10 +22,10 @@ void SendValue(int32_t value)
   uart_putc('\r');
 }
 
-void SendRaw(int16_t raw, int32_t counts)
+void SendRaw(int16_t raw, int32_t counts, int8_t hyst)
 {
   char buffer[9];
-  snprintf(buffer, 9, "%04d %03ld", raw, counts);
+  snprintf(buffer, 9, "%03d %02ld %1d", raw, counts, hyst);
   uart_puts(buffer);
   uart_putc('\n');
   uart_putc('\r');
