@@ -111,8 +111,8 @@ void ProcessPacket(void)
     ADCSRA |= _BV(ADEN);
     break;
   case 2: // set threshold levels
-    memcpy(&gasmeter.level_high, rx_packet+2, sizeof(gasmeter.level_low));
-    memcpy(&gasmeter.level_low, rx_packet+4, sizeof(gasmeter.level_high));
+    memcpy(&gasmeter.level_low, rx_packet+2, sizeof(gasmeter.level_low));
+    memcpy(&gasmeter.level_high, rx_packet+4, sizeof(gasmeter.level_high));
     break;
   case 3: // measure request to DSP
     switch (rx_packet[1])

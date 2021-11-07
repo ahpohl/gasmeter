@@ -28,7 +28,6 @@ ISR(ADC_vect)
     gasmeter.volume++;
     hysteresis = 0;
   }
-  
   //SendRaw(gasmeter.adc_value, gasmeter.volume, hysteresis);
 }
 
