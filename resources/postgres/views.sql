@@ -9,7 +9,7 @@ SELECT
   bucket_1d AS time,
   volume_1d AS volume,
   volume_1d * factor AS energy, 
-  volume_1d * factor * price + rate * 12.0 / 365.0 AS bill,
+  volume_1d * factor * price + rate / 365.0 AS bill,
   total
 FROM archive JOIN plan ON archive.plan_id = plan.id
 GROUP BY bucket_1d, volume_1d, total, bill, factor
@@ -18,7 +18,7 @@ SELECT
   bucket_1d AS time,
   volume_1d AS volume,
   volume_1d * factor AS energy,
-  volume_1d * factor * price + rate * 12.0 / 365.0 AS bill,
+  volume_1d * factor * price + rate / 365.0 AS bill,
   total
 FROM cagg_daily JOIN plan ON cagg_daily.plan_id = plan.id
 GROUP BY bucket_1d, volume_1d, total, bill, factor
