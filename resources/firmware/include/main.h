@@ -13,5 +13,8 @@
 #define UART_BAUD_RATE 19200        // baud rate
 
 void ReadAdc(void);
+void ReadGasMeter(void);
+
+extern uint32_t VolumeEepromAddr;
 
 #endif
