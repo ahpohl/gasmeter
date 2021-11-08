@@ -12,8 +12,6 @@
 #include "uart.h"
 #include "millis.h"
 
-uint32_t VolumeEepromAddr = 100;
-
 // Interrupt service routine for the ADC completion
 ISR(ADC_vect)
 {
@@ -46,11 +44,11 @@ void ReadGasMeter(void)
     }
     else if ((gasmeter.adc_value < gasmeter.level_low) && hysteresis)
     {
+      ADCSRA &= ~(_BV(ADEN));
       gasmeter.volume++;
-      hysteresis = 0;
-      cli();
+      ADCSRA |= _BV(ADEN);
       eeprom_write_dword(&VolumeEepromAddr, gasmeter.volume);
-      sei();
+      hysteresis = 0;
     }
     previous_millis = current_millis;
     //SendRaw(gasmeter.adc_value, gasmeter.volume, hysteresis);  

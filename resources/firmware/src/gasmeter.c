@@ -1,5 +1,6 @@
 #include <string.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
 #include "uart.h"
 #include "util.h"
 #include "gasmeter.h"
@@ -10,6 +11,7 @@ uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
 gasmeter_t gasmeter = { .volume = 0, .temperature = 0, .humidity = 0, .level_low = 750, .level_high = 900, .adc_value = 0 };
 uint8_t error_code;
+uint32_t VolumeEepromAddr = 100;
 
 void ReceivePacket(void)
 {
@@ -106,6 +108,7 @@ void ProcessPacket(void)
     if (volume > gasmeter.volume)
     {
       gasmeter.volume = volume;
+      eeprom_write_dword(&VolumeEepromAddr, gasmeter.volume);
     }
     memcpy(&b, &gasmeter.volume, sizeof(b));
     ADCSRA |= _BV(ADEN);

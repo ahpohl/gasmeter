@@ -15,6 +15,4 @@
 void ReadAdc(void);
 void ReadGasMeter(void);
 
-extern uint32_t VolumeEepromAddr;
-
 #endif
