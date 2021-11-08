@@ -49,7 +49,7 @@ void ReadGasMeter(void)
       gasmeter.volume++;
       hysteresis = 0;
       cli();
-      eeprom_write_dword(&VolumeEepromAddr, gasmeter.volume);
+      eeprom_update_dword(&VolumeEepromAddr, gasmeter.volume);
       sei();
     }
     previous_millis = current_millis;
