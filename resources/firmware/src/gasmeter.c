@@ -9,7 +9,7 @@
 
 uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
-gasmeter_t gasmeter = { .volume = 0, .temperature = 0, .humidity = 0, .level_low = 750, .level_high = 900, .adc_value = 0 };
+gasmeter_t gasmeter = {};
 uint8_t error_code;
 
 // eeprom addresses
