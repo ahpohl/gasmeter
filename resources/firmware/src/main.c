@@ -47,7 +47,7 @@ void ReadGasMeter(void)
       ADCSRA &= ~(_BV(ADEN));
       gasmeter.volume++;
       ADCSRA |= _BV(ADEN);
-      eeprom_write_dword(&VolumeEepromAddr, gasmeter.volume);
+      eeprom_write_dword(&AddrVolume, gasmeter.volume);
       hysteresis = 0;
     }
     previous_millis = current_millis;
@@ -109,8 +109,10 @@ int main(void)
   // init millis timer
   millis_init();
 
-  // read volume from eeprom
-  gasmeter.volume = eeprom_read_dword(&VolumeEepromAddr);
+  // read defaults from eeprom
+  gasmeter.volume = eeprom_read_dword(&AddrVolume);
+  gasmeter.level_low = eeprom_read_word(&AddrLevelLow);
+  gasmeter.level_high = eeprom_read_word(&AddrLevelHigh);
 
   // now enable global interrupt
   sei();
