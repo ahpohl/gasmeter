@@ -26,6 +26,11 @@ extern volatile uint8_t packet_ready;
 extern uint8_t receive_buffer[RX_SIZE];
 extern uint8_t error_code;
 
+// eeprom addresses
+extern uint32_t AddrVolume;
+extern uint16_t AddrLevelLow;
+extern uint16_t AddrLevelHigh;
+
 // functions
 void SendPacket(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4);
 void ReceivePacket(void);

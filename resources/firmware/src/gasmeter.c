@@ -1,5 +1,6 @@
 #include <string.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
 #include "uart.h"
 #include "util.h"
 #include "gasmeter.h"
@@ -8,8 +9,14 @@
 
 uint8_t rx_packet[RX_SIZE] = {0};
 volatile uint8_t packet_ready = 0;
-gasmeter_t gasmeter = { .volume = 0, .temperature = 0, .humidity = 0, .level_low = 750, .level_high = 900, .adc_value = 0 };
+gasmeter_t gasmeter = {};
 uint8_t error_code;
+
+// eeprom addresses
+uint32_t AddrVolume = 100;
+uint16_t AddrLevelLow = 104;
+uint16_t AddrLevelHigh = 106;
+
 
 void ReceivePacket(void)
 {
@@ -106,6 +113,7 @@ void ProcessPacket(void)
     if (volume > gasmeter.volume)
     {
       gasmeter.volume = volume;
+      eeprom_write_dword(&AddrVolume, gasmeter.volume);
     }
     memcpy(&b, &gasmeter.volume, sizeof(b));
     ADCSRA |= _BV(ADEN);
@@ -113,6 +121,8 @@ void ProcessPacket(void)
   case 2: // set threshold levels
     memcpy(&gasmeter.level_low, rx_packet+2, sizeof(gasmeter.level_low));
     memcpy(&gasmeter.level_high, rx_packet+4, sizeof(gasmeter.level_high));
+    eeprom_update_word(&AddrLevelLow, gasmeter.level_low);
+    eeprom_update_word(&AddrLevelHigh, gasmeter.level_high);
     break;
   case 3: // measure request to DSP
     switch (rx_packet[1])
