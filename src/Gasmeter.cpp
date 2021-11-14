@@ -10,7 +10,7 @@
 #include "Gasmeter.h"
 #include "GasmeterEnums.h"
 
-const std::set<std::string> Gasmeter::ValidKeys {"mqtt_broker", "mqtt_password", "mqtt_port", "mqtt_topic", "mqtt_user", "mqtt_tls_cafile", "mqtt_tls_capath", "serial_device", "gas_rate", "gas_price", "gas_factor", "gas_meter", "log_level", "level_low", "level_high"};
+const std::set<std::string> Gasmeter::ValidKeys {"mqtt_broker", "mqtt_password", "mqtt_port", "mqtt_topic", "mqtt_user", "mqtt_tls_cafile", "mqtt_tls_capath", "serial_device", "gas_rate", "gas_price", "gas_factor", "gas_meter", "gas_force", "log_level", "level_low", "level_high"};
 
 Gasmeter::Gasmeter(void)
 {
@@ -79,6 +79,14 @@ bool Gasmeter::Setup(const std::string &config)
   {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
+  }
+  if (StringTo<bool>(Cfg->GetValue("gas_force")))
+  {
+    if (!Firmware->ClearMeterVolume())
+    {
+      ErrorMessage = Firmware->GetErrorMessage();
+      return false;
+    }
   }
   if (!Firmware->SetMeterVolume(StringTo<float>(Cfg->GetValue("gas_meter"))))
   {

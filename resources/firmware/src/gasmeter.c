@@ -106,7 +106,13 @@ void ProcessPacket(void)
 
   switch (rx_packet[0])
   {
-  case 1: // pre-set volume
+  case 1: // clear volume
+    ADCSRA &= ~(_BV(ADEN));
+    gasmeter.volume = 0;
+    eeprom_write_dword(&AddrVolume, gasmeter.volume);
+    ADCSRA |= _BV(ADEN);
+    break;
+  case 2: // pre-set volume
     int32_t volume;
     memcpy(&volume, rx_packet+2, sizeof(volume));
     ADCSRA &= ~(_BV(ADEN));
@@ -116,12 +122,6 @@ void ProcessPacket(void)
       eeprom_write_dword(&AddrVolume, gasmeter.volume);
     }
     memcpy(&b, &gasmeter.volume, sizeof(b));
-    ADCSRA |= _BV(ADEN);
-    break;
-  case 2: // clear volume
-    ADCSRA &= ~(_BV(ADEN));
-    gasmeter.volume = 0;
-    eeprom_write_dword(&AddrVolume, gasmeter.volume);
     ADCSRA |= _BV(ADEN);
     break;
   case 3: // set threshold levels
