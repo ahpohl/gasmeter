@@ -118,13 +118,19 @@ void ProcessPacket(void)
     memcpy(&b, &gasmeter.volume, sizeof(b));
     ADCSRA |= _BV(ADEN);
     break;
-  case 2: // set threshold levels
+  case 2: // clear volume
+    ADCSRA &= ~(_BV(ADEN));
+    gasmeter.volume = 0;
+    eeprom_write_dword(&AddrVolume, gasmeter.volume);
+    ADCSRA |= _BV(ADEN);
+    break;
+  case 3: // set threshold levels
     memcpy(&gasmeter.level_low, rx_packet+2, sizeof(gasmeter.level_low));
     memcpy(&gasmeter.level_high, rx_packet+4, sizeof(gasmeter.level_high));
     eeprom_update_word(&AddrLevelLow, gasmeter.level_low);
     eeprom_update_word(&AddrLevelHigh, gasmeter.level_high);
     break;
-  case 3: // measure request to DSP
+  case 4: // measure request to DSP
     switch (rx_packet[1])
     {
     case 1: // meter readinig
