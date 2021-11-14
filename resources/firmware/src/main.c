@@ -41,6 +41,7 @@ void ReadGasMeter(void)
     if ((gasmeter.adc_value > gasmeter.level_high))
     {
       hysteresis = 1;
+      CLED_PORT |= _BV(CLED_PIN);
     }
     else if ((gasmeter.adc_value < gasmeter.level_low) && hysteresis)
     {
@@ -49,6 +50,7 @@ void ReadGasMeter(void)
       ADCSRA |= _BV(ADEN);
       eeprom_write_dword(&AddrVolume, gasmeter.volume);
       hysteresis = 0;
+      CLED_PORT &= ~(_BV(CLED_PIN));
     }
     previous_millis = current_millis;
     //SendRaw(gasmeter.adc_value, gasmeter.volume, hysteresis);  
@@ -57,6 +59,13 @@ void ReadGasMeter(void)
 
 int main(void)
 {   
+  //
+  // setup counter LED, optional
+  //
+  
+  // set LED pin as output
+  CLED_DDR |= _BV(CLED_PIN);
+ 
   //
   // timer 0 for IR led PWM
   //
