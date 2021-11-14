@@ -95,6 +95,15 @@ bool GasmeterFirmware::SetMeterVolume(const float &volume)
   return true;
 }
 
+bool GasmeterFirmware::ClearMeterVolume(void)
+{
+  if (!Send(SendCommandEnum::CLEAR_METER_VOLUME, 0, 0, 0, 0, 0))
+  {
+    return false;
+  }
+  return true;
+}
+
 bool GasmeterFirmware::SetThresholdLevels(const short int &low_level, const short int &high_level)
 {
   uint8_t l[2], h[2];
