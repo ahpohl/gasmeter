@@ -1,6 +1,6 @@
-# Gasmeter
+# Read volume of a residential gas meter
 
-There are at least two versions of the gas volume meter. The .01 m³ digit of the number counter has a shiny plate on the number six. In older gas meters, this plate is magnetic, whereas in newer models it is not. The magnetic plate can be detected with a reed switch or a very sensitive magnetometer used in mobile phones. And indeed the first version of this project used the [SparkFun 3-axis magnetometer](https://www.sparkfun.com/products/retired/12670) to detect a full revolution of the digit wheel. Last year my gas meter was replaced with the newer gas meter version which is not magnetic anymore.
+There are at least two versions of the diaphragm gas volume meter. The .01 m³ digit of the number counter has a shiny plate on the number six. In older gas meters, this plate is magnetic, whereas in newer models it is not. The magnetic plate can be detected with a reed switch or a very sensitive magnetometer used in mobile phones. And indeed the first version of this project used the [SparkFun 3-axis magnetometer](https://www.sparkfun.com/products/retired/12670) to detect a full revolution of the digit wheel. Last year my gas meter was replaced with the newer gas meter version which is not magnetic anymore.
 
 This project uses the electromagnetic radiation of an IR led and a phototransistor to count the revolutions of the shiny plate. The IR dongle is built around an Atmel AVR 328p and a FT232RL USB-to-TTL converter and fully described in the [wiki](https://github.com/ahpohl/gasmeter/wiki).
 
