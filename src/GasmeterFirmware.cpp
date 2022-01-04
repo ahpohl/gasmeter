@@ -86,7 +86,7 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2, uint8_t
 bool GasmeterFirmware::SetMeterVolume(const float &volume)
 {
   uint8_t b[4];
-  uint32_t counts = static_cast<uint32_t>(volume * 100);
+  int32_t counts = static_cast<int32_t>(volume * 100);
   memcpy(&b, &counts, sizeof(b));
   if (!Send(SendCommandEnum::SET_METER_VOLUME, 0, b[0], b[1], b[2], b[3]))
   {
