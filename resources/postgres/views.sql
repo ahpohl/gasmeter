@@ -24,9 +24,6 @@ FROM cagg_daily JOIN plan ON cagg_daily.plan_id = plan.id
 GROUP BY bucket_1d, volume_1d, total, bill, factor
 ORDER BY time;
 
--- index
-CREATE UNIQUE INDEX daily_idx ON daily_view (time);
-
 -- grant
 GRANT SELECT ON TABLE daily_view TO grafana;
 
@@ -45,9 +42,6 @@ FROM daily_view
 GROUP BY timescaledb_experimental.time_bucket_ng('1 month', time)
 ORDER BY time;
 
--- index
-CREATE UNIQUE INDEX monthly_idx ON monthly_view (time);
-
 -- grant
 GRANT SELECT ON TABLE monthly_view TO grafana;
 
@@ -65,9 +59,6 @@ SELECT
 FROM daily_view
 GROUP BY timescaledb_experimental.time_bucket_ng('1 year', time)
 ORDER BY time;
-
--- index
-CREATE UNIQUE INDEX yearly_idx ON yearly_view (time);
 
 -- grant
 GRANT SELECT ON TABLE yearly_view TO grafana;
