@@ -33,6 +33,7 @@ CREATE TABLE "live" (
   flow_rate DOUBLE PRECISION,
   temperature DOUBLE PRECISION,
   humidity DOUBLE PRECISION,
+  flame_on INTEGER,
   CONSTRAINT sensor_id FOREIGN KEY (sensor_id) REFERENCES sensors (id),
   CONSTRAINT plan_id FOREIGN KEY (plan_id) REFERENCES plan (id)
 );
