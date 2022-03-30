@@ -20,14 +20,18 @@
   },
   "description": "Show data from a smart energy meter",
   "editable": true,
+  "fiscalYearStartMonth": 0,
   "gnetId": 12519,
   "graphTooltip": 0,
   "id": 23,
   "links": [],
+  "liveNow": false,
   "panels": [
     {
-      "cacheTimeout": null,
-      "datasource": "Gasmeter",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -65,9 +69,7 @@
       },
       "hideTimeOverride": true,
       "id": 15,
-      "interval": null,
       "links": [],
-      "maxDataPoints": null,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -75,7 +77,7 @@
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
-            "mean"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -83,14 +85,14 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.1.2",
+      "pluginVersion": "8.4.3",
       "targets": [
         {
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  volume\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY time DESC LIMIT 1;",
+          "rawSql": "SELECT\n  time,\n  volume\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1;",
           "refId": "A",
           "select": [
             [
@@ -115,31 +117,22 @@
         }
       ],
       "timeFrom": "15m",
-      "timeShift": null,
       "title": "Total Gas",
       "transparent": true,
       "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "datasource": "Gasmeter",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -161,9 +154,7 @@
       },
       "hideTimeOverride": true,
       "id": 24,
-      "interval": null,
       "links": [],
-      "maxDataPoints": null,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -179,7 +170,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.1.2",
+      "pluginVersion": "8.4.3",
       "targets": [
         {
           "format": "time_series",
@@ -211,76 +202,38 @@
         }
       ],
       "timeFrom": "24h",
-      "timeShift": null,
       "title": "Gas Today",
       "transparent": true,
       "type": "stat"
     },
     {
-      "datasource": "Gasmeter",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "continuous-RdYlGr"
           },
           "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 100,
-            "gradientMode": "opacity",
-            "hideFrom": {
-              "graph": false,
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "fillOpacity": 70,
+            "lineWidth": 0,
+            "spanNulls": false
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "purple",
+                "color": "orange",
                 "value": null
               }
             ]
           },
-          "unit": "flowlpm"
+          "unit": "none"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byFrameRefID",
-              "options": "A"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -290,27 +243,32 @@
       },
       "hideTimeOverride": false,
       "id": 2,
-      "interval": null,
-      "maxDataPoints": null,
       "options": {
-        "graph": {},
+        "alignValue": "left",
         "legend": {
-          "calcs": [],
-          "displayMode": "hidden",
+          "displayMode": "list",
           "placement": "bottom"
         },
+        "mergeValues": true,
+        "rowHeight": 0.9,
+        "showValue": "never",
         "tooltip": {
-          "mode": "single"
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.4.5",
       "targets": [
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  flow_rate * 1000 AS flow\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
+          "rawSql": "SELECT\n  time,\n  flame_on\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -334,15 +292,15 @@
           ]
         }
       ],
-      "timeFrom": "15h",
-      "timeShift": null,
-      "title": "Gas Flow",
+      "title": "Central Heating",
       "transparent": true,
-      "type": "timeseries"
+      "type": "state-timeline"
     },
     {
-      "cacheTimeout": null,
-      "datasource": "Gasmeter",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -399,7 +357,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.1.2",
+      "pluginVersion": "8.4.3",
       "targets": [
         {
           "format": "time_series",
@@ -431,14 +389,15 @@
         }
       ],
       "timeFrom": "370d",
-      "timeShift": null,
       "title": "Average Bill",
       "transparent": true,
       "type": "stat"
     },
     {
-      "cacheTimeout": null,
-      "datasource": "Gasmeter",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -495,7 +454,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.1.2",
+      "pluginVersion": "8.4.3",
       "targets": [
         {
           "format": "time_series",
@@ -527,13 +486,15 @@
         }
       ],
       "timeFrom": "32d",
-      "timeShift": null,
       "title": "Current Bill",
       "transparent": true,
       "type": "stat"
     },
     {
-      "datasource": "Gasmeter",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -656,8 +617,6 @@
       },
       "hideTimeOverride": false,
       "id": 23,
-      "interval": null,
-      "maxDataPoints": null,
       "options": {
         "graph": {},
         "legend": {
@@ -670,7 +629,8 @@
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.4.5",
@@ -680,7 +640,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  volume\nFROM daily_view\nWHERE\n  $__timeFilter(time)\nORDER BY 1;",
+          "rawSql": "SELECT\n  time,\n  volume AS volume\nFROM daily_view\nWHERE\n  $__timeFilter(time)\nORDER BY 1;",
           "refId": "A",
           "select": [
             [
@@ -734,13 +694,15 @@
         }
       ],
       "timeFrom": "12d",
-      "timeShift": null,
       "title": "Daily Gas",
       "transparent": true,
       "type": "timeseries"
     },
     {
-      "datasource": "Gasmeter",
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -867,7 +829,8 @@
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "pluginVersion": "7.4.5",
@@ -931,21 +894,20 @@
         }
       ],
       "timeFrom": "366d",
-      "timeShift": null,
       "title": "Monthly Gas",
       "transparent": true,
       "type": "timeseries"
     }
   ],
   "refresh": "1m",
-  "schemaVersion": 30,
+  "schemaVersion": 35,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {
@@ -965,5 +927,6 @@
   "timezone": "",
   "title": "Gasmeter",
   "uid": "Zy00S8QTr",
-  "version": 10
+  "version": 32,
+  "weekStart": ""
 }
