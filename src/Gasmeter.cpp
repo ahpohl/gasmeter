@@ -252,7 +252,7 @@ bool Gasmeter::Publish(void)
     << "\"rate\":" << Cfg->GetValue("gas_rate") << ","
     << "\"price\":" << Cfg->GetValue("gas_price") << ","
     << "\"factor\":" << Cfg->GetValue("gas_factor") << ","
-    << "\"flame_on\":" << ((GetFlowRate(now, Datagram.Volume) > 0.0f) ? "1" : "0")
+    << "\"flame_on\":" << (GetState(Datagram.Volume) ? "1" : "0")
     << "}]";
 
   if (Log & static_cast<unsigned char>(LogLevelEnum::JSON))
@@ -308,6 +308,15 @@ float Gasmeter::GetFlowRate(unsigned long long &current_time, float &current_vol
   previous_volume = current_volume;
 
   return flow_rate;
+}
+
+bool Gasmeter::GetState(float &current_volume) const
+{
+  static float previous_volume = 0;
+  bool flame_on = ((current_volume - previous_volume) > 0) ? true : false;
+  previous_volume = current_volume;
+
+  return flame_on;
 }
 
 template <typename T>
