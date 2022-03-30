@@ -251,7 +251,8 @@ bool Gasmeter::Publish(void)
     << "\"humidity\":" << std::setprecision(1) << Datagram.Humidity << ","
     << "\"rate\":" << Cfg->GetValue("gas_rate") << ","
     << "\"price\":" << Cfg->GetValue("gas_price") << ","
-    << "\"factor\":" << Cfg->GetValue("gas_factor")
+    << "\"factor\":" << Cfg->GetValue("gas_factor") << ","
+    << "\"flame_on\":" << ((GetFlowRate(now, Datagram.Volume) > 0.0f) ? "1" : "0")
     << "}]";
 
   if (Log & static_cast<unsigned char>(LogLevelEnum::JSON))
