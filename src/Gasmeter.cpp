@@ -312,7 +312,7 @@ float Gasmeter::GetFlowRate(unsigned long long &current_time, float &current_vol
 
 bool Gasmeter::GetState(float &current_volume) const
 {
-  static float previous_volume = 0;
+  static float previous_volume = current_volume;
   bool flame_on = ((current_volume - previous_volume) > 0) ? true : false;
   previous_volume = current_volume;
 
