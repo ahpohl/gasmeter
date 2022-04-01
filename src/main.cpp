@@ -5,6 +5,11 @@
 #include <csignal>
 #include <thread>
 #include <chrono>
+#include <condition_variable>
+#include <future>
+#include <mutex>
+#include <vector>
+
 #include <Gasmeter.h>
 
 volatile sig_atomic_t shutdown = false;
@@ -16,13 +21,6 @@ void sig_handler(int)
 
 int main(int argc, char* argv[])
 {
-  struct sigaction action;
-  action.sa_handler = sig_handler;
-  sigemptyset(&action.sa_mask);
-  action.sa_flags = SA_RESTART;
-  sigaction(SIGINT, &action, NULL);
-  sigaction(SIGTERM, &action, NULL);
-  
   bool version = false;
   bool help = false;
   std::string config;
@@ -80,47 +78,74 @@ int main(int argc, char* argv[])
   std::cout << "Gasmeter " << VERSION_TAG
     << " (" << VERSION_BUILD << ")" << std::endl;
 
-  std::unique_ptr<Gasmeter> meter(new Gasmeter());
-  
-  if (!meter->Setup(config))
-  {
-    std::cout << meter->GetErrorMessage() << std::endl;
-    return EXIT_FAILURE;
-  }
+  sigset_t sigset;
+  sigemptyset(&sigset);
+  sigaddset(&sigset, SIGINT);
+  sigaddset(&sigset, SIGTERM);
+  pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
 
-  static int timeout = 0;
+  std::atomic<bool> shutdown_requested(false);
+  std::mutex cv_mutex;
+  std::condition_variable cv;
 
-  while (shutdown == false)
+  auto signal_handler = [&shutdown_requested, &cv, &sigset]() {
+    int signum = 0;
+    sigwait(&sigset, &signum);
+    shutdown_requested.store(true);
+    cv.notify_all();
+    return signum;
+  };
+
+  auto ft_signal_handler = std::async(std::launch::async, signal_handler);
+
+  auto worker = [&shutdown_requested, &cv_mutex, &cv, &config]()
   {
-    if (meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW))
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(40));
+    std::unique_ptr<Gasmeter> meter(new Gasmeter());
+    if (!meter->Setup(config)) {
+      std::cout << meter->GetErrorMessage() << std::endl;
+      return shutdown_requested.load();
     }
-    else
+    static int timeout = 0;
+
+    while (shutdown_requested.load() == false)
     {
-      std::this_thread::sleep_for(std::chrono::seconds(60));
-    }
-	  if (!meter->Receive())
-	  {
-      if (timeout < 5)
-      {
-	      std::cout << meter->GetErrorMessage() << std::endl;
-        ++timeout;
+      std::unique_lock lock(cv_mutex);
+      int delay;
+      if (meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW)) {
+        delay = 40;
+      } else {
+        delay = 60000;
       }
-      continue;
- 	  }
-    else
-    {
-      timeout = 0;
-    }
-    if (!(meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW)))
-    {
-      if (!meter->Publish())
+      cv.wait_for(
+        lock,
+        std::chrono::milliseconds(delay),
+        [&shutdown_requested]() { return shutdown_requested.load(); });
+      if (!meter->Receive())
       {
-        std::cout << meter->GetErrorMessage() << std::endl;
+        if (timeout < 5)
+        {
+          std::cout << meter->GetErrorMessage() << std::endl;
+          ++timeout;
+        }
+        continue;
+      } 
+      else
+      {
+        timeout = 0;
+      }
+      if (!(meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW)))
+      {
+        if (!meter->Publish())
+        {
+          std::cout << meter->GetErrorMessage() << std::endl;
+        }
       }
     }
-  }
+    return shutdown_requested.load();
+  };
+
+  std::vector<std::future<bool>> workers;
+  workers.push_back(std::async(std::launch::async, worker));
 
   return EXIT_SUCCESS;
 }
