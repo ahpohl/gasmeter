@@ -7,7 +7,6 @@
 #include <avr/eeprom.h>
 #include "main.h"
 #include "gasmeter.h"
-#include "dht.h"
 #include "util.h"
 #include "uart.h"
 #include "millis.h"
@@ -33,7 +32,6 @@ void ReadGasMeter(void)
   unsigned long current_millis = millis();
   static unsigned long previous_millis = 0;
 
-  // measure temperature and humidity
   if (((current_millis - previous_millis) > 50))
   {
     // evaluate counter
@@ -143,8 +141,5 @@ int main(void)
 
     // process packet
     ProcessPacket();
-
-    // read DHT22 sensor
-    //GetTempHumidity();
   }
 }

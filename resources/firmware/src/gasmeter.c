@@ -106,13 +106,13 @@ void ProcessPacket(void)
 
   switch (rx_packet[0])
   {
-  case 1: // clear volume
+  case CLEAR_METER_VOLUME:
     ADCSRA &= ~(_BV(ADEN));
     gasmeter.volume = 0;
     eeprom_write_dword(&AddrVolume, gasmeter.volume);
     ADCSRA |= _BV(ADEN);
     break;
-  case 2: // pre-set volume
+  case SET_METER_VOLUME:
     int32_t volume;
     memcpy(&volume, rx_packet+2, sizeof(volume));
     ADCSRA &= ~(_BV(ADEN));
@@ -124,27 +124,21 @@ void ProcessPacket(void)
     memcpy(&b, &gasmeter.volume, sizeof(b));
     ADCSRA |= _BV(ADEN);
     break;
-  case 3: // set threshold levels
+  case SET_THRESHOLDS:
     memcpy(&gasmeter.level_low, rx_packet+2, sizeof(gasmeter.level_low));
     memcpy(&gasmeter.level_high, rx_packet+4, sizeof(gasmeter.level_high));
     eeprom_update_word(&AddrLevelLow, gasmeter.level_low);
     eeprom_update_word(&AddrLevelHigh, gasmeter.level_high);
     break;
-  case 4: // measure request to DSP
+  case MEASURE_REQUEST_DSP:
     switch (rx_packet[1])
     {
-    case 1: // meter readinig
+    case GAS_VOLUME:
       ADCSRA &= ~(_BV(ADEN));
       memcpy(&b, &gasmeter.volume, sizeof(b));
       ADCSRA |= _BV(ADEN);
       break;
-    case 2: // temperature
-      memcpy(&b, &gasmeter.temperature, sizeof(b));
-      break;
-    case 3: // humidity
-      memcpy(&b, &gasmeter.humidity, sizeof(b));
-      break;
-    case 4: // raw IR value
+    case RAW_IR:
       ADCSRA &= ~(_BV(ADEN));
       memcpy(&b, &gasmeter.adc_value, sizeof(gasmeter.adc_value));
       ADCSRA |= _BV(ADEN);

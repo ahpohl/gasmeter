@@ -13,12 +13,25 @@
 // packet definition
 typedef struct gasmeter {
   int32_t volume;
-  int32_t temperature;
-  int32_t humidity;
   int16_t level_low;
   int16_t level_high;
   int16_t adc_value;
 } gasmeter_t;
+
+enum dsp
+{
+  GAS_VOLUME = 1,
+  RAW_IR = 2
+};
+
+enum command
+{
+  CLEAR_METER_VOLUME = 1,
+  SET_METER_VOLUME = 2,
+  SET_THRESHOLDS = 3,
+  MEASURE_REQUEST_DSP = 4
+};
+
 
 // global variables
 extern gasmeter_t gasmeter;
