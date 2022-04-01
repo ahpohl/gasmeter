@@ -214,7 +214,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-RdYlGr"
+            "mode": "continuous-reds"
           },
           "custom": {
             "fillOpacity": 70,
@@ -268,7 +268,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  flame_on\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
+          "rawSql": "SELECT\n  time,\n  state\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -292,7 +292,7 @@
           ]
         }
       ],
-      "title": "Central Heating",
+      "title": "Gas Flow",
       "transparent": true,
       "type": "state-timeline"
     },
@@ -927,6 +927,6 @@
   "timezone": "",
   "title": "Gasmeter",
   "uid": "Zy00S8QTr",
-  "version": 32,
+  "version": 34,
   "weekStart": ""
 }
