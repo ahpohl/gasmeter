@@ -25,6 +25,7 @@ public:
   bool ClearMeterVolume(void);
   bool SetThresholdLevels(const short int &low_level, const short int &high_level);
   bool ReadDspValue(float &value, const DspValueEnum &type);
+  std::string TransmissionState(unsigned char id);
 };
 
 #endif

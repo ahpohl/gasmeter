@@ -3,7 +3,6 @@
 #include <sstream>
 #include <ctime>
 #include "Gasmeter.h"
-#include "GasmeterStrings.h"
 
 const int GasmeterFirmware::SendBufferSize = 8;
 const int GasmeterFirmware::ReceiveBufferSize = 7;
@@ -77,7 +76,7 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2, uint8_t
   }
   if (ReceiveData[0])
   {
-    ErrorMessage = std::string("Transmission error: ") + GasmeterStrings::TransmissionState(ReceiveData[0]) + " (" + std::to_string(ReceiveData[0]) + ")";
+    ErrorMessage = std::string("Transmission error: ") + TransmissionState(ReceiveData[0]) + " (" + std::to_string(ReceiveData[0]) + ")";
     return false;
   }
   return true;
@@ -129,4 +128,31 @@ bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type)
   memcpy(&value_int, &b, sizeof(b));
   value = static_cast<float>(value_int) / 100.0;
   return true;
+}
+
+std::string GasmeterFirmware::TransmissionState(unsigned char id)
+{
+  switch (id)
+  {
+  case 0x00:
+    return "Everything is OK";
+  case 0x01:
+    return "UART no data";
+  case 0x02:
+    return "UART buffer overflow";
+  case 0x04:
+    return "UART parity error";
+  case 0x08:
+    return "UART overrun error";
+  case 0x10:
+    return "UART frame error";
+  case 0x20:
+    return "UART CRC error";
+  case 0x40:
+    return "Command is not implemented";
+  case 0x80:
+    return "Variable does not exist";
+  default:
+    return "Unknown";
+  }
 }
