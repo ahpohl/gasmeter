@@ -37,8 +37,6 @@ public:
   {
     float Volume;             // Gas volume [m³]
     float Energy;             // Gas energy [kWh]
-    float Temperature;        // DHT22 temperature [°C]
-    float Humidity;           // DHT22 humidity [%rH]
     float RawIr;              // Raw value of IR receiver
   } Datagram;
 };

@@ -211,16 +211,6 @@ bool Gasmeter::Receive(void)
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.Temperature, DspValueEnum::TEMPERATURE))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  if (!Firmware->ReadDspValue(Datagram.Humidity, DspValueEnum::HUMIDITY))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
   if (!Firmware->ReadDspValue(Datagram.RawIr, DspValueEnum::RAW_IR))
   {
     ErrorMessage = Firmware->GetErrorMessage();
@@ -245,14 +235,11 @@ bool Gasmeter::Publish(void)
 
   Payload << "[{"
     << "\"time\":" << now << ","
-    << "\"volume\":" << std::setprecision(2) << Datagram.Volume << "," 
-    << "\"flow\":" << std::setprecision(2) << GetFlowRate(now, Datagram.Volume) << ","
-    << "\"temperature\":" << std::setprecision(1) << Datagram.Temperature << ","
-    << "\"humidity\":" << std::setprecision(1) << Datagram.Humidity << ","
+    << "\"volume\":" << std::setprecision(2) << Datagram.Volume << ","
+    << "\"state\":" << (GetState(Datagram.Volume) ? "1" : "0") << ","
     << "\"rate\":" << Cfg->GetValue("gas_rate") << ","
     << "\"price\":" << Cfg->GetValue("gas_price") << ","
-    << "\"factor\":" << Cfg->GetValue("gas_factor") << ","
-    << "\"flame_on\":" << (GetState(Datagram.Volume) ? "1" : "0")
+    << "\"factor\":" << Cfg->GetValue("gas_factor")
     << "}]";
 
   if (Log & static_cast<unsigned char>(LogLevelEnum::JSON))
@@ -292,22 +279,6 @@ std::string Gasmeter::GetErrorMessage(void) const
 std::string Gasmeter::GetPayload(void) const
 {
   return Payload.str();
-}
-
-float Gasmeter::GetFlowRate(unsigned long long &current_time, float &current_volume) const
-{
-  float flow_rate = 0;
-  static unsigned long long previous_time = 0;
-  static float previous_volume = 0;
-  
-  if ((current_time - previous_time) > 0)
-  {
-    flow_rate = (current_volume - previous_volume) / (current_time - previous_time) * 60 * 1000; // L min-1 
-  }
-  previous_time = current_time;
-  previous_volume = current_volume;
-
-  return flow_rate;
 }
 
 bool Gasmeter::GetState(float &current_volume) const
