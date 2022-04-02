@@ -1,14 +1,7 @@
 #include <iostream>
-#include <iomanip>
-#include <memory>
 #include <getopt.h>
 #include <csignal>
-#include <thread>
-#include <chrono>
-#include <condition_variable>
 #include <future>
-#include <mutex>
-#include <vector>
 
 #include <Gasmeter.h>
 
@@ -135,8 +128,8 @@ int main(int argc, char* argv[])
     return shutdown_requested.load();
   };
 
-  std::vector<std::future<bool>> workers;
-  workers.push_back(std::async(std::launch::async, worker));
+  //std::vector<std::future<bool>> workers;
+  auto worker_thread = (std::async(std::launch::async, worker));
 
   return EXIT_SUCCESS;
 }

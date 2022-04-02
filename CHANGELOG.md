@@ -1,7 +1,9 @@
 # Gasmeter changelog
 
+## v0.4.6 - 2022-04-02
+* improved interrupt signal handling
+
 ## v0.4.5 - 2022-04-01
-:x
 * removed DHT22 sensor code in firmware in daemon
 * altered live database table
 
