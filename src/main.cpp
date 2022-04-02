@@ -81,7 +81,8 @@ int main(int argc, char* argv[])
   std::mutex cv_mutex;
   std::condition_variable cv;
 
-  auto signal_handler = [&]() {
+  auto signal_handler = [&]()
+  {
     int signum = 0;
     sigwait(&sigset, &signum);
     shutdown_requested.store(true);
@@ -92,7 +93,8 @@ int main(int argc, char* argv[])
   auto ft_signal_handler = std::async(std::launch::async, signal_handler);
 
   std::unique_ptr<Gasmeter> meter(new Gasmeter());
-  if (!meter->Setup(config)) {
+  if (!meter->Setup(config))
+  {
     std::cout << meter->GetErrorMessage() << std::endl;
     return EXIT_FAILURE;
   }
@@ -104,13 +106,11 @@ int main(int argc, char* argv[])
     while (shutdown_requested.load() == false)
     {
       std::unique_lock lock(cv_mutex);
-      if (meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW)) {
-        cv.wait_for(lock, std::chrono::milliseconds(40),
-          [&]() { return shutdown_requested.load(); });
-      } else {
-        cv.wait_for(lock, std::chrono::seconds(60),
-          [&]() { return shutdown_requested.load(); });
-      }
+      cv.wait_for(lock,
+                  (meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW)) ? 
+                     std::chrono::milliseconds(40) : 
+                     std::chrono::seconds(60),
+                  [&]() { return shutdown_requested.load(); });
       if (!meter->Receive())
       {
         if (timeout < 5)
