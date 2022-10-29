@@ -1,5 +1,8 @@
 # Gasmeter changelog
 
+## v0.5.1 - 2022-10-29
+* output current reading on startup
+
 ## v0.4.6 - 2022-04-02
 * improved interrupt signal handling
 
