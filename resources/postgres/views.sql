@@ -42,7 +42,10 @@ SELECT
   sum(volume) AS volume,
   sum(energy) AS energy,
   sum(bill) AS bill,
-  first(total, time) AS total
+  first(total, time) AS total,
+  avg(volume) AS avg,
+  min(volume) AS min,
+  max(volume) AS max
 FROM daily_view
 GROUP BY timescaledb_experimental.time_bucket_ng('1 month', time)
 ORDER BY time;
