@@ -133,13 +133,6 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
-# Gasmeter Configuration
-#
-CONFIG_BLINK_GPIO=33
-CONFIG_BLINK_PERIOD=1000
-# end of Gasmeter Configuration
-
-#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEFAULT=y
