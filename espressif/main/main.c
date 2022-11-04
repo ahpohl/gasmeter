@@ -25,6 +25,7 @@
 #include "lwip/sys.h"
 
 #include "wifi.h"
+#include "adc.h"
 
 static const char *TAG = "gasmeter";
 
@@ -56,11 +57,47 @@ void app_main(void)
     /* Configure the peripheral according to the LED type */
     configure_led();
     
-    while(1) {
+    /* while(1) {
         //ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
         gpio_set_level(BLINK_GPIO, s_led_state);
-        /* Toggle the LED state */
+        // Toggle the LED state
         s_led_state = !s_led_state;
         vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
+    } */
+
+    //Check if Two Point or Vref are burned into eFuse
+    check_efuse();
+
+    //Configure ADC
+    if (unit == ADC_UNIT_1) {
+        adc1_config_width(width);
+        adc1_config_channel_atten(channel, atten);
+    } else {
+        adc2_config_channel_atten((adc2_channel_t)channel, atten);
+    }
+
+    //Characterize ADC
+    adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
+    esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_chars);
+    print_char_val_type(val_type);
+
+    //Continuously sample ADC1
+    while (1) {
+        uint32_t adc_reading = 0;
+        //Multisampling
+        for (int i = 0; i < NO_OF_SAMPLES; i++) {
+            if (unit == ADC_UNIT_1) {
+                adc_reading += adc1_get_raw((adc1_channel_t)channel);
+            } else {
+                int raw;
+                adc2_get_raw((adc2_channel_t)channel, width, &raw);
+                adc_reading += raw;
+            }
+        }
+        adc_reading /= NO_OF_SAMPLES;
+        //Convert adc_reading to voltage in mV
+        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
