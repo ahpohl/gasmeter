@@ -31,7 +31,7 @@ static const char *TAG = "gasmeter";
 
 #define BLINK_GPIO CONFIG_BLINK_GPIO
 
-static uint8_t s_led_state = 0;
+//static uint8_t s_led_state = 0;
 
 static void configure_led(void)
 {

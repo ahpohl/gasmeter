@@ -18,7 +18,7 @@ const adc_bits_width_t width = ADC_WIDTH_BIT_13;
 const adc_atten_t atten = ADC_ATTEN_DB_0;
 const adc_unit_t unit = ADC_UNIT_1;
 
-static void check_efuse(void)
+void check_efuse(void)
 {
 #if CONFIG_IDF_TARGET_ESP32
     //Check if TP is burned into eFuse
@@ -44,7 +44,7 @@ static void check_efuse(void)
 #endif
 }
 
-static void print_char_val_type(esp_adc_cal_value_t val_type)
+void print_char_val_type(esp_adc_cal_value_t val_type)
 {
     if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
         printf("Characterized using Two Point Value\n");
