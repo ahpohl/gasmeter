@@ -1,5 +1,5 @@
 /* WiFi station Example
-    combined with ADC and LED blink
+    combined with ADC, MQTT and LED controller
 */
 
 #include <stdio.h>
@@ -27,6 +27,7 @@
 #include "wifi.h"
 #include "adc.h"
 #include "mqtt.h"
+#include "ledc.h"
 
 static const char *TAG = "gasmeter";
 
@@ -76,6 +77,13 @@ void app_main(void)
 
     /* Configure the peripheral according to the LED type */
     configure_led();
+
+    // Set the LEDC peripheral configuration
+    example_ledc_init();
+    // Set duty to 50%
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, LEDC_DUTY));
+    // Update duty to apply the new value
+    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
     
     /* while(1) {
         //ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
