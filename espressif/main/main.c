@@ -31,18 +31,6 @@
 
 static const char *TAG = "gasmeter";
 
-#define BLINK_GPIO CONFIG_BLINK_GPIO
-
-//static uint8_t s_led_state = 0;
-
-static void configure_led(void)
-{
-    ESP_LOGI(TAG, "Example configured to blink GPIO LED!");
-    gpio_reset_pin(BLINK_GPIO);
-    /* Set the GPIO as a push/pull output */
-    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-}
-
 void app_main(void)
 {
     //Initialize NVS
@@ -69,14 +57,7 @@ void app_main(void)
     esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
     esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
 
-    //ESP_ERROR_CHECK(nvs_flash_init());
-    //ESP_ERROR_CHECK(esp_netif_init());
-    //ESP_ERROR_CHECK(esp_event_loop_create_default());
-
     mqtt_app_start();
-
-    /* Configure the peripheral according to the LED type */
-    configure_led();
 
     // Set the LEDC peripheral configuration
     example_ledc_init();
@@ -85,14 +66,6 @@ void app_main(void)
     // Update duty to apply the new value
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
     
-    /* while(1) {
-        //ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
-        gpio_set_level(BLINK_GPIO, s_led_state);
-        // Toggle the LED state
-        s_led_state = !s_led_state;
-        vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
-    } */
-
     //Check if Two Point or Vref are burned into eFuse
     check_efuse();
 

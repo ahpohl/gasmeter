@@ -9,13 +9,13 @@
 #include "adc.h"
 
 #if CONFIG_IDF_TARGET_ESP32
-const adc_channel_t channel = ADC_CHANNEL_6;     //GPIO34 if ADC1, GPIO14 if ADC2
+const adc_channel_t channel = ADC_CHANNEL_7;     //GPIO34 if ADC1, GPIO14 if ADC2
 const adc_bits_width_t width = ADC_WIDTH_BIT_12;
 #elif CONFIG_IDF_TARGET_ESP32S2
-const adc_channel_t channel = ADC_CHANNEL_6;     // GPIO7 if ADC1, GPIO17 if ADC2
+const adc_channel_t channel = ADC_CHANNEL_7;     // GPIO7 if ADC1, GPIO17 if ADC2
 const adc_bits_width_t width = ADC_WIDTH_BIT_13;
 #endif
-const adc_atten_t atten = ADC_ATTEN_DB_0;
+const adc_atten_t atten = ADC_ATTEN_DB_11;
 const adc_unit_t unit = ADC_UNIT_1;
 
 void check_efuse(void)
