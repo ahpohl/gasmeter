@@ -7,6 +7,7 @@
 GasmeterMqtt::GasmeterMqtt(void): Log(0) 
 {
   IsConnected = false;
+  NotifyOnlineFlag = false;
 }
 
 GasmeterMqtt::~GasmeterMqtt(void)
@@ -122,11 +123,22 @@ bool GasmeterMqtt::GetConnectStatus(void) const
   return IsConnected;
 }
 
+bool GasmeterMqtt::GetNotifyOnlineFlag(void) const
+{
+  return NotifyOnlineFlag;
+}
+
+void GasmeterMqtt::SetNotifyOnlineFlag(const bool &flag)
+{
+  NotifyOnlineFlag = flag;
+}
+
 void GasmeterMqtt::OnConnectCallback(struct mosquitto *mosq, void *obj, int connack_code)
 {
   if (!connack_code)
   {
     IsConnected = true;
+    NotifyOnlineFlag = true;
   }
   else
   {

@@ -240,8 +240,7 @@ bool Gasmeter::Publish(void)
     << "\"factor\":" << Cfg->GetValue("gas_factor")
     << "}]";
 
-  static bool last_connect_status = false;
-  if ( (!last_connect_status) && (Mqtt->GetConnectStatus()) )
+  if (Mqtt->GetNotifyOnlineFlag())
   {
     std::cout << "Gasmeter is online." << std::endl;
     if (!Mqtt->PublishMessage("online", Cfg->GetValue("mqtt_topic") + "/status", 1, true))
@@ -249,6 +248,7 @@ bool Gasmeter::Publish(void)
       ErrorMessage = Mqtt->GetErrorMessage();
       return false;
     }
+    Mqtt->SetNotifyOnlineFlag(false);
   }
 
   if (Mqtt->GetConnectStatus())
@@ -259,7 +259,6 @@ bool Gasmeter::Publish(void)
       return false;
     }
   }
-  last_connect_status = Mqtt->GetConnectStatus();
  
   if (Log & static_cast<unsigned char>(LogLevelEnum::JSON))
   {

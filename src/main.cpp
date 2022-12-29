@@ -128,7 +128,6 @@ int main(int argc, char* argv[])
     return shutdown_requested.load();
   };
 
-  //std::vector<std::future<bool>> workers;
   auto worker_thread = (std::async(std::launch::async, worker));
 
   return EXIT_SUCCESS;
