@@ -98,6 +98,13 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
+  if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::GAS_VOLUME))
+  {
+    ErrorMessage = Firmware->GetErrorMessage();
+    return false;
+  }
+  std::cout << "Current meter reading: " << Datagram.Volume << " m³" << std::endl;
+  
   if (!Mqtt->Begin())
   {
     ErrorMessage = Mqtt->GetErrorMessage();
@@ -140,13 +147,6 @@ bool Gasmeter::Setup(const std::string &config)
     return false;
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  
-  if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::GAS_VOLUME))
-  {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
-  std::cout << "Current meter reading: " << Datagram.Volume << " m³" << std::endl;
   
   return true;
 }

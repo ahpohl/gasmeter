@@ -99,11 +99,6 @@ int main(int argc, char* argv[])
     while (shutdown_requested.load() == false)
     {
       std::unique_lock lock(cv_mutex);
-      cv.wait_for(lock,
-                  (meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW)) ? 
-                     std::chrono::milliseconds(40) : 
-                     std::chrono::seconds(60),
-                  [&]() { return shutdown_requested.load(); });
       if (!meter->Receive())
       {
         if (timeout < 5)
@@ -124,6 +119,11 @@ int main(int argc, char* argv[])
           std::cout << meter->GetErrorMessage() << std::endl;
         }
       }
+      cv.wait_for(lock,
+                  (meter->GetLogLevel() & static_cast<unsigned char>(LogLevelEnum::RAW)) ? 
+                     std::chrono::milliseconds(40) : 
+                     std::chrono::seconds(60),
+                  [&]() { return shutdown_requested.load(); });
     }
     return shutdown_requested.load();
   };
