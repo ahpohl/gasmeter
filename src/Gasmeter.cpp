@@ -108,11 +108,6 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-  if (!Mqtt->SetLastWillTestament("offline", Cfg->GetValue("mqtt_topic") + "/status", 1, true))
-  {
-    ErrorMessage = Mqtt->GetErrorMessage();
-    return false;
-  }
   if ((Cfg->KeyExists("mqtt_user") && Cfg->KeyExists("mqtt_password")))
   {
     if (!Mqtt->SetUserPassAuth(Cfg->GetValue("mqtt_user"), Cfg->GetValue("mqtt_password")))
@@ -134,21 +129,18 @@ bool Gasmeter::Setup(const std::string &config)
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
+  if (!Mqtt->SetLastWillTestament("offline", Cfg->GetValue("mqtt_topic") + "/status", 1, true))
+  {
+    ErrorMessage = Mqtt->GetErrorMessage();
+    return false;
+  }
   if (!Mqtt->Connect(Cfg->GetValue("mqtt_broker"), StringTo<double>(Cfg->GetValue("mqtt_port")), 60))
   {
     ErrorMessage = Mqtt->GetErrorMessage();
     return false;
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  if (Mqtt->GetConnectStatus())
-  {
-    std::cout << "Gasmeter is online." << std::endl;
-  }
-  if (!Mqtt->PublishMessage("online", Cfg->GetValue("mqtt_topic") + "/status", 1, true))
-  {
-    ErrorMessage = Mqtt->GetErrorMessage();
-    return false;
-  }
+  
   if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::GAS_VOLUME))
   {
     ErrorMessage = Firmware->GetErrorMessage();
@@ -248,12 +240,17 @@ bool Gasmeter::Publish(void)
     << "\"factor\":" << Cfg->GetValue("gas_factor")
     << "}]";
 
-  if (Log & static_cast<unsigned char>(LogLevelEnum::JSON))
+  static bool last_connect_status = false;
+  if ( (!last_connect_status) && (Mqtt->GetConnectStatus()) )
   {
-    std::cout << Payload.str() << std::endl;
+    std::cout << "Gasmeter is online." << std::endl;
+    if (!Mqtt->PublishMessage("online", Cfg->GetValue("mqtt_topic") + "/status", 1, true))
+    {
+      ErrorMessage = Mqtt->GetErrorMessage();
+      return false;
+    }
   }
 
-  static bool last_connect_status = true;
   if (Mqtt->GetConnectStatus())
   {
     if (!(Mqtt->PublishMessage(Payload.str(), Cfg->GetValue("mqtt_topic") + "/live", 0, false)))
@@ -261,19 +258,15 @@ bool Gasmeter::Publish(void)
       ErrorMessage = Mqtt->GetErrorMessage();
       return false;
     }
-    if (!last_connect_status)
-    {
-      if (!(Mqtt->PublishMessage("online", Cfg->GetValue("mqtt_topic") + "/status", 1, true)))
-      {
-        ErrorMessage = Mqtt->GetErrorMessage();
-        return false;
-      }
-      std::cout << "Gasmeter is online." << std::endl;
-    }
   }
   last_connect_status = Mqtt->GetConnectStatus();
  
+  if (Log & static_cast<unsigned char>(LogLevelEnum::JSON))
+  {
+    std::cout << Payload.str() << std::endl;
+  }
   Payload.flags(old_settings);
+  
   return true;
 }
 

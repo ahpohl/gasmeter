@@ -1,5 +1,9 @@
 # Gasmeter changelog
 
+## v0.5.2 - 2022-12-29
+* fix mqtt status topic not retained
+* automatically reconnect to broker
+
 ## v0.5.1 - 2022-10-29
 * output current reading on startup
 
