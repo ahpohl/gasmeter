@@ -22,4 +22,4 @@ WITH NO DATA;
 SELECT add_continuous_aggregate_policy('cagg_daily',
   start_offset => INTERVAL '3 days',
   end_offset => INTERVAL '1 hour',
-  schedule_interval => '1 hour');
+  schedule_interval => '1 day');

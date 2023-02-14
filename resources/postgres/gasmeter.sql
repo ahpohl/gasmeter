@@ -36,6 +36,7 @@ CREATE TABLE "live" (
 );
 
 SELECT create_hypertable('live', 'time');
+SELECT add_retention_policy('live', INTERVAL '14 days');
 
 INSERT INTO sensors(id, serial_num, customer_id, part_num, mfg_date) VALUES
 (1, '42010646', '20141182555', 'G4RF1c', '2020');
