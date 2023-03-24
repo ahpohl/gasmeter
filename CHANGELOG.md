@@ -1,5 +1,8 @@
 # Gasmeter changelog
 
+## v0.5.3 - 2023-xx-xx
+* updated retention policies
+
 ## v0.5.2 - 2022-12-29
 * fix mqtt status topic not retained
 * automatically reconnect to broker
