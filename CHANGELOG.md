@@ -1,7 +1,8 @@
 # Gasmeter changelog
 
-## v0.5.3 - 2023-xx-xx
+## v0.5.3 - 2023-03-24
 * updated retention policies
+* remove outer array in json output
 
 ## v0.5.2 - 2022-12-29
 * fix mqtt status topic not retained
