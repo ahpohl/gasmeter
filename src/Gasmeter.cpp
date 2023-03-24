@@ -231,14 +231,14 @@ bool Gasmeter::Publish(void)
   Payload.str(std::string());
   Payload.setf(std::ios::fixed, std::ios::floatfield);
 
-  Payload << "[{"
+  Payload << "{"
     << "\"time\":" << now << ","
     << "\"volume\":" << std::setprecision(2) << Datagram.Volume << ","
     << "\"state\":" << (GetState(Datagram.Volume) ? "1" : "0") << ","
     << "\"rate\":" << Cfg->GetValue("gas_rate") << ","
     << "\"price\":" << Cfg->GetValue("gas_price") << ","
     << "\"factor\":" << Cfg->GetValue("gas_factor")
-    << "}]";
+    << "}";
 
   if (Mqtt->GetNotifyOnlineFlag())
   {
