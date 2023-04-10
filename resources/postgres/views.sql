@@ -22,7 +22,7 @@ SELECT
   total
 FROM cagg_daily JOIN plan ON cagg_daily.plan_id = plan.id
 --- insert end time of archive
-WHERE bucket_1d > TIMESTAMP WITH TIME ZONE '2023-02-11 01:00:00+01'
+WHERE bucket_1d > TIMESTAMP WITH TIME ZONE '2023-04-09 02:00:00+02'
 GROUP BY bucket_1d, volume_1d, total, bill, factor
 ORDER BY time;
 
@@ -38,7 +38,7 @@ GRANT SELECT ON TABLE daily_view TO grafana;
 CREATE MATERIALIZED VIEW monthly_view
 AS
 SELECT
-  timescaledb_experimental.time_bucket_ng('1 month', time) AS time,
+  time_bucket('1 month', time) AS time,
   sum(volume) AS volume,
   sum(energy) AS energy,
   sum(bill) AS bill,
@@ -47,7 +47,7 @@ SELECT
   min(volume) AS min,
   max(volume) AS max
 FROM daily_view
-GROUP BY timescaledb_experimental.time_bucket_ng('1 month', time)
+GROUP BY time_bucket('1 month', time)
 ORDER BY time;
 
 -- index
@@ -62,14 +62,14 @@ GRANT SELECT ON TABLE monthly_view TO grafana;
 CREATE MATERIALIZED VIEW yearly_view
 AS
 SELECT
-  timescaledb_experimental.time_bucket_ng('1 year', time) AS time,
+  time_bucket('1 year', time) AS time,
   count(*) as days,
   sum(volume) AS volume,
   sum(energy) AS energy,
   sum(bill) AS bill,
   first(total, time) AS total
 FROM daily_view
-GROUP BY timescaledb_experimental.time_bucket_ng('1 year', time)
+GROUP BY time_bucket('1 year', time)
 ORDER BY time;
 
 -- index
