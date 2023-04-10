@@ -13,7 +13,7 @@
         "name": "",
         "topic": "gasmeter/live",
         "qos": "0",
-        "datatype": "auto",
+        "datatype": "auto-detect",
         "broker": "6afada7d.a0881c",
         "nl": false,
         "rap": false,
@@ -23,7 +23,7 @@
         "wires": [
             [
                 "0694f12b11ed8948",
-                "ff125551e8c555f8"
+                "8fd92bc22874ad3e"
             ]
         ]
     },
@@ -32,7 +32,7 @@
         "type": "debug",
         "z": "6273791333c6b793",
         "name": "Gasmeter",
-        "active": false,
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -41,40 +41,6 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 400,
-        "y": 140,
-        "wires": []
-    },
-    {
-        "id": "ff125551e8c555f8",
-        "type": "json",
-        "z": "6273791333c6b793",
-        "name": "",
-        "property": "payload",
-        "action": "",
-        "pretty": false,
-        "x": 390,
-        "y": 220,
-        "wires": [
-            [
-                "602dd20dc9f5bccc",
-                "8fd92bc22874ad3e"
-            ]
-        ]
-    },
-    {
-        "id": "602dd20dc9f5bccc",
-        "type": "debug",
-        "z": "6273791333c6b793",
-        "name": "Json",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 650,
         "y": 140,
         "wires": []
     },
@@ -100,7 +66,7 @@
         "type": "function",
         "z": "6273791333c6b793",
         "name": "",
-        "func": "msg.payload[0].time = new Date(msg.payload[0].time).toISOString();\nconst values = Object.values(msg.payload[0]);\n\nmsg.query = {\n    text: \"INSERT INTO live (sensor_id, time, volume, state, plan_id) VALUES (1, $1, $2, $3, (SELECT id FROM plan WHERE rate = $4 AND price = $5 AND factor = $6));\",\n    values: values\n};\n\nreturn msg;",
+        "func": "msg.payload.time = new Date(msg.payload.time).toISOString();\nconst values = Object.values(msg.payload);\n\nmsg.query = {\n    text: \"INSERT INTO live (sensor_id, time, volume, state, plan_id) VALUES (1, $1, $2, $3, (SELECT id FROM plan WHERE rate = $4 AND price = $5 AND factor = $6));\",\n    values: values\n};\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -134,7 +100,7 @@
         "name": "",
         "topic": "gasmeter/status",
         "qos": "1",
-        "datatype": "auto",
+        "datatype": "auto-detect",
         "broker": "6afada7d.a0881c",
         "nl": false,
         "rap": false,
@@ -143,7 +109,8 @@
         "y": 400,
         "wires": [
             [
-                "88d52b6edb6eb83f"
+                "88d52b6edb6eb83f",
+                "ecd9ca63e1a4ec39"
             ]
         ]
     },
@@ -196,6 +163,23 @@
                 "96d979c770f47d43"
             ]
         ]
+    },
+    {
+        "id": "ecd9ca63e1a4ec39",
+        "type": "debug",
+        "z": "6273791333c6b793",
+        "name": "Status",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 390,
+        "y": 320,
+        "wires": []
     },
     {
         "id": "6afada7d.a0881c",
