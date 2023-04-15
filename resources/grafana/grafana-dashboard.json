@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -35,8 +38,119 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "continuous-reds"
+          },
+          "custom": {
+            "fillOpacity": 70,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 23,
+        "x": 1,
+        "y": 0
+      },
+      "hideTimeOverride": false,
+      "id": 2,
+      "options": {
+        "alignValue": "left",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "mergeValues": true,
+        "rowHeight": 0.9,
+        "showValue": "never",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "7.4.5",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  time,\n  state\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "energy_1h"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "cagg_hourly_view",
+          "timeColumn": "bucket",
+          "timeColumnType": "timestamptz",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": "24h",
+      "title": "Gas Flow",
+      "transparent": true,
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "mode": "thresholds"
           },
+          "decimals": 2,
           "mappings": [
             {
               "options": {
@@ -62,10 +176,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
+        "h": 3,
+        "w": 5,
         "x": 0,
-        "y": 0
+        "y": 3
       },
       "hideTimeOverride": true,
       "id": 15,
@@ -85,9 +199,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
@@ -147,10 +265,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 0
+        "h": 3,
+        "w": 5,
+        "x": 5,
+        "y": 3
       },
       "hideTimeOverride": true,
       "id": 24,
@@ -170,14 +288,19 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "editorMode": "code",
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  date_trunc('day', NOW()) AS time,\n  (last(volume, time) - first(volume, time)) AS volume\nFROM live\nWHERE\n  time > date_trunc('day', NOW())",
+          "rawSql": "SELECT\n  date_trunc('day', NOW()) AS time,\n  (last(volume, time) - first(volume, time)) AS volume \nFROM\n  live JOIN plan ON live.plan_id = plan.id \nWHERE\n  time > date_trunc('day', NOW())\nGROUP BY factor",
           "refId": "A",
           "select": [
             [
@@ -189,6 +312,23 @@
               }
             ]
           ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
           "table": "cagg_hourly",
           "timeColumn": "bucket",
           "timeColumnType": "timestamp",
@@ -211,15 +351,11 @@
         "type": "postgres",
         "uid": "ZOchW4S7k"
       },
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-reds"
-          },
-          "custom": {
-            "fillOpacity": 70,
-            "lineWidth": 0,
-            "spanNulls": false
+            "mode": "thresholds"
           },
           "mappings": [],
           "thresholds": {
@@ -231,117 +367,19 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "kwatth"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 16,
-        "x": 8,
-        "y": 0
-      },
-      "hideTimeOverride": false,
-      "id": 2,
-      "options": {
-        "alignValue": "left",
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "mergeValues": true,
-        "rowHeight": 0.9,
-        "showValue": "never",
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "7.4.5",
-      "targets": [
-        {
-          "datasource": {
-            "type": "postgres",
-            "uid": "ZOchW4S7k"
-          },
-          "format": "time_series",
-          "group": [],
-          "metricColumn": "none",
-          "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  state\nFROM live\nWHERE\n  $__timeFilter(time)\nORDER BY 1",
-          "refId": "A",
-          "select": [
-            [
-              {
-                "params": [
-                  "energy_1h"
-                ],
-                "type": "column"
-              }
-            ]
-          ],
-          "table": "cagg_hourly_view",
-          "timeColumn": "bucket",
-          "timeColumnType": "timestamptz",
-          "where": [
-            {
-              "name": "$__timeFilter",
-              "params": [],
-              "type": "macro"
-            }
-          ]
-        }
-      ],
-      "title": "Gas Flow",
-      "transparent": true,
-      "type": "state-timeline"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "ZOchW4S7k"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "decimals": 2,
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "orange",
-                "value": null
-              }
-            ]
-          },
-          "unit": "currencyEUR"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 0,
-        "y": 4
+        "h": 3,
+        "w": 5,
+        "x": 10,
+        "y": 3
       },
       "hideTimeOverride": true,
-      "id": 26,
-      "interval": "10s",
+      "id": 27,
       "links": [],
-      "maxDataPoints": 100,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -357,14 +395,19 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "editorMode": "code",
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  NOW() AS time,\n  avg(bill)\nFROM monthly_view",
+          "rawSql": "SELECT\n  date_trunc('day', NOW()) AS time,\n  (last(volume, time) - first(volume, time)) * factor AS energy \nFROM\n  live JOIN plan ON live.plan_id = plan.id \nWHERE\n  time > date_trunc('day', NOW())\nGROUP BY factor",
           "refId": "A",
           "select": [
             [
@@ -376,6 +419,23 @@
               }
             ]
           ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
           "table": "cagg_hourly",
           "timeColumn": "bucket",
           "timeColumnType": "timestamp",
@@ -388,8 +448,8 @@
           ]
         }
       ],
-      "timeFrom": "370d",
-      "title": "Average Bill",
+      "timeFrom": "24h",
+      "title": "Energy Today",
       "transparent": true,
       "type": "stat"
     },
@@ -429,10 +489,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 4,
-        "x": 4,
-        "y": 4
+        "x": 15,
+        "y": 3
       },
       "hideTimeOverride": true,
       "id": 25,
@@ -454,9 +514,13 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.4.3",
+      "pluginVersion": "9.4.7",
       "targets": [
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
@@ -495,6 +559,107 @@
         "type": "postgres",
         "uid": "ZOchW4S7k"
       },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyEUR"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 19,
+        "y": 3
+      },
+      "hideTimeOverride": true,
+      "id": 26,
+      "interval": "10s",
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.4.7",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  NOW() AS time,\n  avg(bill)\nFROM monthly_view",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "energy_1h"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "cagg_hourly",
+          "timeColumn": "bucket",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": "370d",
+      "title": "Average Bill",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -502,6 +667,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -542,7 +709,7 @@
               }
             ]
           },
-          "unit": "m3"
+          "unit": "kwatth"
         },
         "overrides": [
           {
@@ -610,10 +777,10 @@
         ]
       },
       "gridPos": {
-        "h": 14,
+        "h": 15,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 6
       },
       "hideTimeOverride": false,
       "id": 23,
@@ -626,7 +793,8 @@
             "min"
           ],
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -636,11 +804,16 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "editorMode": "code",
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  volume AS volume\nFROM daily_view\nWHERE\n  $__timeFilter(time)\nORDER BY 1;",
+          "rawSql": "SELECT\n  time,\n  energy\nFROM daily_view\nWHERE\n  $__timeFilter(time)\nORDER BY 1;",
           "refId": "A",
           "select": [
             [
@@ -652,6 +825,23 @@
               }
             ]
           ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
           "table": "live",
           "timeColumn": "\"time\"",
           "timeColumnType": "timestamp",
@@ -664,6 +854,10 @@
           ]
         },
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
           "format": "time_series",
           "group": [],
           "hide": false,
@@ -693,8 +887,8 @@
           ]
         }
       ],
-      "timeFrom": "12d",
       "title": "Daily Gas",
+      "transformations": [],
       "transparent": true,
       "type": "timeseries"
     },
@@ -709,6 +903,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -752,7 +948,7 @@
               }
             ]
           },
-          "unit": "m3"
+          "unit": "kwatth"
         },
         "overrides": [
           {
@@ -809,10 +1005,10 @@
         ]
       },
       "gridPos": {
-        "h": 14,
+        "h": 15,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 6
       },
       "hideTimeOverride": false,
       "id": 4,
@@ -826,7 +1022,8 @@
             "min"
           ],
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "multi",
@@ -836,11 +1033,16 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "editorMode": "code",
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  volume\nFROM monthly_view\nWHERE\n  $__timeFilter(time)\nORDER BY time",
+          "rawSql": "SELECT\n  bucket_1m AS time,\n  energy\nFROM monthly_view\nWHERE\n  $__timeFilter(bucket_1m)\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -852,6 +1054,23 @@
               }
             ]
           ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
           "table": "cagg_hourly",
           "timeColumn": "bucket",
           "timeColumnType": "timestamp",
@@ -864,12 +1083,17 @@
           ]
         },
         {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "editorMode": "code",
           "format": "time_series",
           "group": [],
           "hide": false,
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  time,\n  bill\nFROM monthly_view\nWHERE\n  $__timeFilter(time)\nORDER BY time",
+          "rawSql": "SELECT\n  bucket_1m AS time,\n  bill\nFROM monthly_view\nWHERE\n  $__timeFilter(bucket_1m)\nORDER BY 1",
           "refId": "B",
           "select": [
             [
@@ -881,6 +1105,23 @@
               }
             ]
           ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
           "table": "cagg_hourly",
           "timeColumn": "bucket",
           "timeColumnType": "timestamp",
@@ -900,14 +1141,15 @@
     }
   ],
   "refresh": "1m",
-  "schemaVersion": 35,
+  "revision": 1,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-12d",
     "to": "now"
   },
   "timepicker": {
@@ -927,6 +1169,6 @@
   "timezone": "",
   "title": "Gasmeter",
   "uid": "Zy00S8QTr",
-  "version": 36,
+  "version": 54,
   "weekStart": ""
 }
