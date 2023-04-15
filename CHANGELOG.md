@@ -1,5 +1,8 @@
 # Gasmeter changelog
 
+## v0.5-4 - 2023-xx-xx
+* calculate time buckets with local time zone
+
 ## v0.5.3 - 2023-03-24
 * updated retention policies
 * remove outer array in json output

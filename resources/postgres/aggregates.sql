@@ -9,7 +9,7 @@ CREATE MATERIALIZED VIEW cagg_daily
 WITH (timescaledb.continuous, timescaledb.materialized_only=true) 
 AS
 SELECT
-  time_bucket('1 day', time) AS bucket_1d,
+  time_bucket('1 day', time, 'Europe/Berlin') AS bucket_1d,
   sensor_id,
   plan_id,
   last(volume, time) - first(volume, time) AS volume_1d,

@@ -38,7 +38,7 @@ GRANT SELECT ON TABLE daily_view TO grafana;
 CREATE MATERIALIZED VIEW monthly_view
 AS
 SELECT
-  time_bucket('1 month', time) AS time,
+  time_bucket('1 month', time, 'Europe/Berlin') AS bucket_1m,
   sum(volume) AS volume,
   sum(energy) AS energy,
   sum(bill) AS bill,
@@ -47,11 +47,11 @@ SELECT
   min(volume) AS min,
   max(volume) AS max
 FROM daily_view
-GROUP BY time_bucket('1 month', time)
-ORDER BY time;
+GROUP BY bucket_1m
+ORDER BY bucket_1m;
 
 -- index
-CREATE UNIQUE INDEX monthly_idx ON monthly_view (time);
+CREATE UNIQUE INDEX monthly_idx ON monthly_view (bucket_1m);
 
 -- grant
 GRANT SELECT ON TABLE monthly_view TO grafana;
@@ -62,18 +62,18 @@ GRANT SELECT ON TABLE monthly_view TO grafana;
 CREATE MATERIALIZED VIEW yearly_view
 AS
 SELECT
-  time_bucket('1 year', time) AS time,
+  time_bucket('1 year', time, 'Europe/Berlin') AS bucket_1y,
   count(*) as days,
   sum(volume) AS volume,
   sum(energy) AS energy,
   sum(bill) AS bill,
   first(total, time) AS total
 FROM daily_view
-GROUP BY time_bucket('1 year', time)
-ORDER BY time;
+GROUP BY bucket_1y
+ORDER BY bucket_1y;
 
 -- index
-CREATE UNIQUE INDEX yearly_idx ON yearly_view (time);
+CREATE UNIQUE INDEX yearly_idx ON yearly_view (bucket_1y);
 
 -- grant
 GRANT SELECT ON TABLE yearly_view TO grafana;
