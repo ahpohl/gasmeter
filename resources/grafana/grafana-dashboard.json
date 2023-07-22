@@ -61,8 +61,8 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 23,
-        "x": 1,
+        "w": 24,
+        "x": 0,
         "y": 0
       },
       "hideTimeOverride": false,
@@ -177,7 +177,7 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 5,
+        "w": 4,
         "x": 0,
         "y": 3
       },
@@ -199,7 +199,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.4.7",
+      "pluginVersion": "9.5.1",
       "targets": [
         {
           "datasource": {
@@ -235,114 +235,7 @@
         }
       ],
       "timeFrom": "15m",
-      "title": "Total Gas",
-      "transparent": true,
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "ZOchW4S7k"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "orange",
-                "value": null
-              }
-            ]
-          },
-          "unit": "m3"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 5,
-        "x": 5,
-        "y": 3
-      },
-      "hideTimeOverride": true,
-      "id": 24,
-      "links": [],
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "sum"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "text": {},
-        "textMode": "auto"
-      },
-      "pluginVersion": "9.4.7",
-      "targets": [
-        {
-          "datasource": {
-            "type": "postgres",
-            "uid": "ZOchW4S7k"
-          },
-          "editorMode": "code",
-          "format": "time_series",
-          "group": [],
-          "metricColumn": "none",
-          "rawQuery": true,
-          "rawSql": "SELECT\n  date_trunc('day', NOW()) AS time,\n  (last(volume, time) - first(volume, time)) AS volume \nFROM\n  live JOIN plan ON live.plan_id = plan.id \nWHERE\n  time > date_trunc('day', NOW())\nGROUP BY factor",
-          "refId": "A",
-          "select": [
-            [
-              {
-                "params": [
-                  "energy_1h"
-                ],
-                "type": "column"
-              }
-            ]
-          ],
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          },
-          "table": "cagg_hourly",
-          "timeColumn": "bucket",
-          "timeColumnType": "timestamp",
-          "where": [
-            {
-              "name": "$__timeFilter",
-              "params": [],
-              "type": "macro"
-            }
-          ]
-        }
-      ],
-      "timeFrom": "24h",
-      "title": "Gas Today",
+      "title": "Gas Meter",
       "transparent": true,
       "type": "stat"
     },
@@ -373,12 +266,12 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 5,
-        "x": 10,
+        "w": 4,
+        "x": 4,
         "y": 3
       },
       "hideTimeOverride": true,
-      "id": 27,
+      "id": 24,
       "links": [],
       "options": {
         "colorMode": "value",
@@ -387,7 +280,7 @@
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
-            "sum"
+            "mean"
           ],
           "fields": "",
           "values": false
@@ -395,7 +288,7 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.4.7",
+      "pluginVersion": "9.5.1",
       "targets": [
         {
           "datasource": {
@@ -407,7 +300,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  date_trunc('day', NOW()) AS time,\n  (last(volume, time) - first(volume, time)) * factor AS energy \nFROM\n  live JOIN plan ON live.plan_id = plan.id \nWHERE\n  time > date_trunc('day', NOW())\nGROUP BY factor",
+          "rawSql": " SELECT\n  bucket_1y AS time,\n  energy\nFROM\n  yearly_view\nORDER BY\n  bucket_1y DESC LIMIT 1",
           "refId": "A",
           "select": [
             [
@@ -449,7 +342,7 @@
         }
       ],
       "timeFrom": "24h",
-      "title": "Energy Today",
+      "title": "Gas $year",
       "transparent": true,
       "type": "stat"
     },
@@ -463,7 +356,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
           "mappings": [
             {
               "options": {
@@ -484,6 +376,115 @@
               }
             ]
           },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 8,
+        "y": 3
+      },
+      "hideTimeOverride": true,
+      "id": 29,
+      "interval": "10s",
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  now() as time,\n  energy_percent\nFROM get_gas_trend()",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "energy_1h"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "cagg_hourly",
+          "timeColumn": "bucket",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": "32d",
+      "title": "Gas $year Trend",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
           "unit": "currencyEUR"
         },
         "overrides": []
@@ -491,7 +492,123 @@
       "gridPos": {
         "h": 3,
         "w": 4,
-        "x": 15,
+        "x": 12,
+        "y": 3
+      },
+      "hideTimeOverride": true,
+      "id": 27,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "ZOchW4S7k"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": " SELECT\n  bucket_1y AS time,\n  bill\nFROM\n  yearly_view\nORDER BY\n  bucket_1y DESC LIMIT 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "energy_1h"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "cagg_hourly",
+          "timeColumn": "bucket",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": "24h",
+      "title": "Bill $year",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "ZOchW4S7k"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 16,
         "y": 3
       },
       "hideTimeOverride": true,
@@ -514,18 +631,19 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.4.7",
+      "pluginVersion": "9.5.1",
       "targets": [
         {
           "datasource": {
             "type": "postgres",
             "uid": "ZOchW4S7k"
           },
+          "editorMode": "code",
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  date_trunc('month', NOW()) AS time,\n  sum(bill) AS bill\nFROM daily_view\nWHERE\n  time > date_trunc('month', NOW())",
+          "rawSql": "SELECT\n  now() as time,\n  bill_percent\nFROM get_gas_trend()",
           "refId": "A",
           "select": [
             [
@@ -537,6 +655,23 @@
               }
             ]
           ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
           "table": "cagg_hourly",
           "timeColumn": "bucket",
           "timeColumnType": "timestamp",
@@ -550,32 +685,22 @@
         }
       ],
       "timeFrom": "32d",
-      "title": "Current Bill",
+      "title": "Bill $year Trend",
       "transparent": true,
       "type": "stat"
     },
     {
       "datasource": {
         "type": "postgres",
-        "uid": "ZOchW4S7k"
+        "uid": "1X7kXqt4k"
       },
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -585,21 +710,19 @@
               }
             ]
           },
-          "unit": "currencyEUR"
+          "unit": "percentunit"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 3,
         "w": 4,
-        "x": 19,
+        "x": 20,
         "y": 3
       },
       "hideTimeOverride": true,
-      "id": 26,
-      "interval": "10s",
+      "id": 28,
       "links": [],
-      "maxDataPoints": 100,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -607,7 +730,7 @@
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
-            "sum"
+            "mean"
           ],
           "fields": "",
           "values": false
@@ -615,43 +738,40 @@
         "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "9.4.7",
+      "pluginVersion": "9.5.1",
       "targets": [
         {
           "datasource": {
             "type": "postgres",
-            "uid": "ZOchW4S7k"
+            "uid": "1X7kXqt4k"
           },
-          "format": "time_series",
-          "group": [],
-          "metricColumn": "none",
+          "editorMode": "code",
+          "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  NOW() AS time,\n  avg(bill)\nFROM monthly_view",
+          "rawSql": "SELECT\n  date_trunc('month', now()) AS time,\n  avg(fraction) as fraction\nFROM hotwater_daily\nWHERE\n  start_ts > date_trunc('month', now())\nGROUP BY 1",
           "refId": "A",
-          "select": [
-            [
+          "sql": {
+            "columns": [
               {
-                "params": [
-                  "energy_1h"
-                ],
-                "type": "column"
+                "parameters": [],
+                "type": "function"
               }
-            ]
-          ],
-          "table": "cagg_hourly",
-          "timeColumn": "bucket",
-          "timeColumnType": "timestamp",
-          "where": [
-            {
-              "name": "$__timeFilter",
-              "params": [],
-              "type": "macro"
-            }
-          ]
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
         }
       ],
-      "timeFrom": "370d",
-      "title": "Average Bill",
+      "timeFrom": "24h",
+      "title": "Hotwater $month",
+      "transformations": [],
       "transparent": true,
       "type": "stat"
     },
@@ -673,7 +793,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "bars",
-            "fillOpacity": 100,
+            "fillOpacity": 30,
             "gradientMode": "opacity",
             "hideFrom": {
               "graph": false,
@@ -724,7 +844,7 @@
               },
               {
                 "id": "custom.fillOpacity",
-                "value": 36
+                "value": 0
               },
               {
                 "id": "custom.lineWidth",
@@ -856,6 +976,35 @@
         {
           "datasource": {
             "type": "postgres",
+            "uid": "1X7kXqt4k"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "SELECT\n  start_ts,\n  fraction\nFROM hotwater_daily\nWHERE\n  $__timeFilter(start_ts)\nORDER BY 1",
+          "refId": "B",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        },
+        {
+          "datasource": {
+            "type": "postgres",
             "uid": "ZOchW4S7k"
           },
           "format": "time_series",
@@ -864,7 +1013,7 @@
           "metricColumn": "none",
           "rawQuery": true,
           "rawSql": "SELECT\n  time,\n  bill\nFROM daily_view\nWHERE\n  $__timeFilter(time)\nORDER BY 1;",
-          "refId": "B",
+          "refId": "C",
           "select": [
             [
               {
@@ -888,14 +1037,48 @@
         }
       ],
       "title": "Daily Gas",
-      "transformations": [],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {}
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "hot water",
+            "binary": {
+              "left": "energy",
+              "operator": "*",
+              "reducer": "sum",
+              "right": "fraction"
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Time",
+                "energy",
+                "bill",
+                "hot water"
+              ]
+            }
+          }
+        }
+      ],
       "transparent": true,
       "type": "timeseries"
     },
     {
       "datasource": {
-        "type": "postgres",
-        "uid": "ZOchW4S7k"
+        "type": "datasource",
+        "uid": "-- Mixed --"
       },
       "fieldConfig": {
         "defaults": {
@@ -909,7 +1092,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "bars",
-            "fillOpacity": 100,
+            "fillOpacity": 30,
             "gradientMode": "opacity",
             "hideFrom": {
               "graph": false,
@@ -954,21 +1137,6 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Voltage"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "semi-dark-red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "bill"
             },
             "properties": [
@@ -978,7 +1146,7 @@
               },
               {
                 "id": "custom.fillOpacity",
-                "value": 20
+                "value": 0
               },
               {
                 "id": "custom.lineWidth",
@@ -1085,6 +1253,35 @@
         {
           "datasource": {
             "type": "postgres",
+            "uid": "1X7kXqt4k"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": false,
+          "rawQuery": true,
+          "rawSql": "SELECT\n  bucket_1m,\n  fraction\nFROM hotwater_monthly\nWHERE\n  $__timeFilter(bucket_1m)\nORDER BY 1",
+          "refId": "B",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        },
+        {
+          "datasource": {
+            "type": "postgres",
             "uid": "ZOchW4S7k"
           },
           "editorMode": "code",
@@ -1094,7 +1291,7 @@
           "metricColumn": "none",
           "rawQuery": true,
           "rawSql": "SELECT\n  bucket_1m AS time,\n  bill\nFROM monthly_view\nWHERE\n  $__timeFilter(bucket_1m)\nORDER BY 1",
-          "refId": "B",
+          "refId": "C",
           "select": [
             [
               {
@@ -1136,6 +1333,41 @@
       ],
       "timeFrom": "366d",
       "title": "Monthly Gas",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {}
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "hot water",
+            "binary": {
+              "left": "energy",
+              "operator": "*",
+              "reducer": "sum",
+              "right": "fraction"
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Time",
+                "energy",
+                "bill",
+                "hot water"
+              ]
+            }
+          }
+        }
+      ],
       "transparent": true,
       "type": "timeseries"
     }
@@ -1146,7 +1378,56 @@
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "2023",
+          "value": "2023"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "ZOchW4S7k"
+        },
+        "definition": "SELECT extract(year FROM bucket_1y) AS year FROM yearly_view ORDER BY bucket_1y DESC LIMIT 1;",
+        "description": "query the current year",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "year",
+        "options": [],
+        "query": "SELECT extract(year FROM bucket_1y) AS year FROM yearly_view ORDER BY bucket_1y DESC LIMIT 1;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "July     ",
+          "value": "July     "
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "ZOchW4S7k"
+        },
+        "definition": "SELECT TO_CHAR(bucket_1m, 'Month') AS month FROM monthly_view ORDER BY bucket_1m DESC LIMIT 1;",
+        "description": "query the current month",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "month",
+        "options": [],
+        "query": "SELECT TO_CHAR(bucket_1m, 'Month') AS month FROM monthly_view ORDER BY bucket_1m DESC LIMIT 1;",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-12d",
@@ -1169,6 +1450,6 @@
   "timezone": "",
   "title": "Gasmeter",
   "uid": "Zy00S8QTr",
-  "version": 54,
+  "version": 83,
   "weekStart": ""
 }
