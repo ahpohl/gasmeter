@@ -36,13 +36,7 @@ CREATE TABLE "live" (
 );
 
 SELECT create_hypertable('live', 'time');
-SELECT add_retention_policy('live', INTERVAL '14 days');
-
-INSERT INTO sensors(id, serial_num, customer_id, part_num, mfg_date) VALUES
-(1, '42010646', '20141182555', 'G4RF1c', '2020');
-
-INSERT INTO plan(id, price, rate, factor) VALUES
-(1, 0.0583, 261.80, 10.835);
+SELECT add_retention_policy('live', INTERVAL '90 days');
 
 GRANT INSERT, SELECT ON TABLE live TO nodejs;
 GRANT SELECT ON TABLE live TO grafana;
