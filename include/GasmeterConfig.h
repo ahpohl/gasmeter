@@ -4,8 +4,7 @@
 #include <set>
 #include <sstream>
 
-class GasmeterConfig
-{
+class GasmeterConfig {
 private:
   std::map<std::string, std::string> KeyValuePair;
   std::string ErrorMessage;
@@ -17,7 +16,7 @@ public:
 
   bool KeyExists(const std::string &key);
   bool ValidateKeys(std::set<std::string> valid_keys);
-  std::string GetValue(const std::string &key) const; 
+  std::string GetValue(const std::string &key) const;
 };
 
 #endif

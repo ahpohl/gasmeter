@@ -8,90 +8,90 @@
     Methods to handle the serial communication between host and device
 
     */
-class GasmeterSerial
-{
+class GasmeterSerial {
 public:
-/** @brief Default constructor
+  /** @brief Default constructor
 
-    Sets the log level of the class
+      Sets the log level of the class
 
-    */
+      */
   GasmeterSerial(const unsigned char &log);
-/** @brief Default destructor
+  /** @brief Default destructor
 
-    Closes the serial port and deletes the serial object
+      Closes the serial port and deletes the serial object
 
-    */
+      */
   ~GasmeterSerial(void);
-/** @brief Begin communication
+  /** @brief Begin communication
 
-    Opens the serial port and sets communication parameters
+      Opens the serial port and sets communication parameters
 
-    @param device The serial device, i.e. /dev/ttyUSB0
-    @param baudrate The serial baud rate
-    */
+      @param device The serial device, i.e. /dev/ttyUSB0
+      @param baudrate The serial baud rate
+      */
   bool Begin(const std::string &device, const speed_t &baudrate);
-/** @brief Read bytes
+  /** @brief Read bytes
 
-    Read bytes available in the input buffer
+      Read bytes available in the input buffer
 
-    @param buffer Buffer to store the bytes
-    @param length Number of bytes to read 
-    */
+      @param buffer Buffer to store the bytes
+      @param length Number of bytes to read
+      */
   int ReadBytes(uint8_t *buffer, const int &length);
-/** @brief Write bytes
-  
-    Transmit bytes to the device
+  /** @brief Write bytes
 
-    @param buffer Buffer with bytes to send
-    @param length Number of bytes to send
-    */
+      Transmit bytes to the device
+
+      @param buffer Buffer with bytes to send
+      @param length Number of bytes to send
+      */
   int WriteBytes(uint8_t const *buffer, const int &length);
-/** @brief Flush buffers
-  
-    Flushes/discards data which is written but not transmitted and/or data which is received but not read by the user
+  /** @brief Flush buffers
 
-    */
+      Flushes/discards data which is written but not transmitted and/or data
+     which is received but not read by the user
+
+      */
   void Flush(void) const;
-/** @brief Return word
-  
-    Construct a word (2 bytes) from two single bytes   
+  /** @brief Return word
 
-    @param msb Most significant (left) byte
-    @param lsb Least significant (right) byte
-    */
+      Construct a word (2 bytes) from two single bytes
+
+      @param msb Most significant (left) byte
+      @param lsb Least significant (right) byte
+      */
   uint16_t Word(const uint8_t &msb, const uint8_t &lsb) const;
-/** @brief Calculate checksum
-  
-    Calculate a CCITT CRC 16 checksum  
+  /** @brief Calculate checksum
 
-    @param data Buffer with data
-    @param length Number of bytes to include
-    */
-  uint16_t Crc16Ccitt(uint8_t const* packet, size_t length) const;
-/** @brief Return low byte
-  
-    Return the least significant (low) byte of a word
+      Calculate a CCITT CRC 16 checksum
 
-    @param bytes Word to convert
-    */
+      @param data Buffer with data
+      @param length Number of bytes to include
+      */
+  uint16_t Crc16Ccitt(uint8_t const *packet, size_t length) const;
+  /** @brief Return low byte
+
+      Return the least significant (low) byte of a word
+
+      @param bytes Word to convert
+      */
   uint8_t LowByte(const uint16_t &bytes) const;
-/** @brief Return high byte
-  
-    Return the most significant (high) byte of a word
+  /** @brief Return high byte
 
-    @param bytes Word to convert
-    */ 
+      Return the most significant (high) byte of a word
+
+      @param bytes Word to convert
+      */
   uint8_t HighByte(const uint16_t &bytes) const;
-/** @brief Get error message
-  
-    Returns the error message of a failure
+  /** @brief Get error message
 
-    */
+      Returns the error message of a failure
+
+      */
   std::string GetErrorMessage(void);
 
 private:
-  int SerialPort; ///< Serial port number
+  int SerialPort;           ///< Serial port number
   std::string ErrorMessage; ///< Error message string
   unsigned char Log;
 };

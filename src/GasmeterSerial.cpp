@@ -1,42 +1,38 @@
-#include <cstring>
-#include <iostream>
-#include <iomanip>
-#include <thread>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
 #include "GasmeterSerial.h"
 #include "GasmeterEnums.h"
+#include <cstring>
+#include <fcntl.h>
+#include <iomanip>
+#include <iostream>
+#include <sys/ioctl.h>
+#include <thread>
+#include <unistd.h>
 
-GasmeterSerial::GasmeterSerial(const unsigned char &log) : Log(log)
-{
-}
+GasmeterSerial::GasmeterSerial(const unsigned char &log) : Log(log) {}
 
-GasmeterSerial::~GasmeterSerial(void)
-{
+GasmeterSerial::~GasmeterSerial(void) {
   if (SerialPort) {
     close(SerialPort);
   }
 }
 
-bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
-{
+bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate) {
   if (device.empty()) {
     ErrorMessage = "Serial device argument empty";
     return false;
   }
- 
+
   SerialPort = open(device.c_str(), O_RDWR | O_NOCTTY);
   if (SerialPort < 0) {
-    ErrorMessage = std::string("Error opening device ") + device + ": "
-      + strerror(errno) + " (" + std::to_string(errno) + ")";
+    ErrorMessage = std::string("Error opening device ") + device + ": " +
+                   strerror(errno) + " (" + std::to_string(errno) + ")";
     return false;
   }
 
   int ret = ioctl(SerialPort, TIOCEXCL);
   if (ret < 0) {
-    ErrorMessage = std::string("Error getting device lock on") 
-      + device + ": " + strerror(errno) + " (" + std::to_string(errno) + ")";
+    ErrorMessage = std::string("Error getting device lock on") + device + ": " +
+                   strerror(errno) + " (" + std::to_string(errno) + ")";
     return false;
   }
 
@@ -45,8 +41,8 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
   memset(&serial_port_settings, 0, sizeof(serial_port_settings));
   ret = tcgetattr(SerialPort, &serial_port_settings);
   if (ret) {
-    ErrorMessage = std::string("Error getting serial port attributes: ")
-      + strerror(errno) + " (" + std::to_string(errno) + ")";
+    ErrorMessage = std::string("Error getting serial port attributes: ") +
+                   strerror(errno) + " (" + std::to_string(errno) + ")";
     return false;
   }
 
@@ -68,8 +64,8 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
 
   ret = tcsetattr(SerialPort, TCSANOW, &serial_port_settings);
   if (ret != 0) {
-    ErrorMessage = std::string("Error setting serial port attributes: ") 
-      + strerror(errno) + " (" + std::to_string(errno) + ")";
+    ErrorMessage = std::string("Error setting serial port attributes: ") +
+                   strerror(errno) + " (" + std::to_string(errno) + ")";
     return false;
   }
   tcflush(SerialPort, TCIOFLUSH);
@@ -78,12 +74,12 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate)
   return true;
 }
 
-int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
-{
+int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length) {
   int bytes_received, retval, iterations = 0;
   const int max_iterations = 500;
-  //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now(); 
- 
+  // std::chrono::steady_clock::time_point begin =
+  // std::chrono::steady_clock::now();
+
   while (iterations < max_iterations) {
     int bytes_available;
     retval = ioctl(SerialPort, FIONREAD, &bytes_available);
@@ -97,12 +93,13 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
       break;
     iterations++;
   }
-  //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  //std::cout << std::dec << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
-  //std::cout << "Iterations: " << iterations << std::endl;
+  // std::chrono::steady_clock::time_point end =
+  // std::chrono::steady_clock::now(); std::cout << std::dec << "Time difference
+  // = " << std::chrono::duration_cast<std::chrono::microseconds>(end -
+  // begin).count() << "[µs]" << std::endl; std::cout << "Iterations: " <<
+  // iterations << std::endl;
 
-  if (iterations == max_iterations)
-  {
+  if (iterations == max_iterations) {
     ErrorMessage = "Timeout, gasmeter could not be reached";
     return -1;
   }
@@ -112,13 +109,12 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
     ErrorMessage = "Read on serial device failed";
     return -1;
   }
-  
-  if (Log & static_cast<unsigned char>(LogLevelEnum::SERIAL))
-  {
+
+  if (Log & static_cast<unsigned char>(LogLevelEnum::SERIAL)) {
     std::cout << "Receive: ";
-    for (int i = 0; i < length; ++i)
-    {
-      std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+    for (int i = 0; i < length; ++i) {
+      std::cout << std::uppercase << std::hex << std::setfill('0')
+                << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
     }
     std::cout << std::endl;
   }
@@ -126,8 +122,7 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length)
   return bytes_received;
 }
 
-int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length)
-{
+int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length) {
   int bytes_sent = 0;
 
   bytes_sent = write(SerialPort, buffer, length);
@@ -137,12 +132,11 @@ int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length)
   }
   tcdrain(SerialPort);
 
-  if (Log & static_cast<unsigned char>(LogLevelEnum::SERIAL))
-  {
+  if (Log & static_cast<unsigned char>(LogLevelEnum::SERIAL)) {
     std::cout << "Send: ";
-    for (int i = 0; i < length; ++i)
-    {
-      std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
+    for (int i = 0; i < length; ++i) {
+      std::cout << std::uppercase << std::hex << std::setfill('0')
+                << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
     }
     std::cout << std::endl;
   }
@@ -150,10 +144,7 @@ int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length)
   return bytes_sent;
 }
 
-void GasmeterSerial::Flush(void) const
-{
-  tcflush(SerialPort, TCIOFLUSH);
-}
+void GasmeterSerial::Flush(void) const { tcflush(SerialPort, TCIOFLUSH); }
 
 //  crc16
 //                                       16   12   5
@@ -163,8 +154,8 @@ void GasmeterSerial::Flush(void) const
 //  bit is always assumed to be set, thus we only use 16 bits to
 //  represent the 17 bit value.
 
-uint16_t GasmeterSerial::Crc16Ccitt(const uint8_t *packet, size_t length) const
-{
+uint16_t GasmeterSerial::Crc16Ccitt(const uint8_t *packet,
+                                    size_t length) const {
   // crc16 polynomial, 1021H bit reversed
   const uint16_t POLY = 0x8408;
   uint16_t crc = 0xffff;
@@ -175,8 +166,7 @@ uint16_t GasmeterSerial::Crc16Ccitt(const uint8_t *packet, size_t length) const
   uint8_t i;
 
   do {
-    for (i = 0, data = 0xff & *packet++; i < 8; i++, data >>= 1)
-    {
+    for (i = 0, data = 0xff & *packet++; i < 8; i++, data >>= 1) {
       if ((crc & 0x0001) ^ (data & 0x0001)) {
         crc = (crc >> 1) ^ POLY;
       } else {
@@ -189,22 +179,16 @@ uint16_t GasmeterSerial::Crc16Ccitt(const uint8_t *packet, size_t length) const
   return crc;
 }
 
-uint8_t GasmeterSerial::LowByte(const uint16_t &bytes) const
-{
+uint8_t GasmeterSerial::LowByte(const uint16_t &bytes) const {
   return static_cast<uint8_t>(bytes);
 }
 
-uint8_t GasmeterSerial::HighByte(const uint16_t &bytes) const
-{
+uint8_t GasmeterSerial::HighByte(const uint16_t &bytes) const {
   return static_cast<uint8_t>((bytes >> 8) & 0xFF);
 }
 
-uint16_t GasmeterSerial::Word(const uint8_t &msb, const uint8_t &lsb) const
-{
+uint16_t GasmeterSerial::Word(const uint8_t &msb, const uint8_t &lsb) const {
   return ((msb & 0xFF) << 8) | lsb;
 }
 
-std::string GasmeterSerial::GetErrorMessage(void)
-{
-  return ErrorMessage;
-}
+std::string GasmeterSerial::GetErrorMessage(void) { return ErrorMessage; }

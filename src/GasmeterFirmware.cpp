@@ -1,46 +1,44 @@
-#include <iostream>
-#include <cstring>
-#include <sstream>
-#include <ctime>
 #include "Gasmeter.h"
+#include <cstring>
+#include <ctime>
+#include <iostream>
+#include <sstream>
 
 const int GasmeterFirmware::SendBufferSize = 8;
 const int GasmeterFirmware::ReceiveBufferSize = 7;
 
-GasmeterFirmware::GasmeterFirmware(void) : Log(0)
-{
+GasmeterFirmware::GasmeterFirmware(void) : Log(0) {}
+
+GasmeterFirmware::~GasmeterFirmware(void) {
+  if (ReceiveData) {
+    delete[] ReceiveData;
+  }
+  if (Serial) {
+    delete Serial;
+  }
 }
 
-GasmeterFirmware::~GasmeterFirmware(void)
-{
-  if (ReceiveData) { delete[] ReceiveData; }
-  if (Serial) { delete Serial; }
-}
-
-void GasmeterFirmware::SetLogLevel(const unsigned char &log_level)
-{
+void GasmeterFirmware::SetLogLevel(const unsigned char &log_level) {
   Log = log_level;
 }
 
-bool GasmeterFirmware::Setup(const std::string &device, const speed_t baudrate)
-{
-  ReceiveData = new uint8_t[GasmeterFirmware::ReceiveBufferSize] ();
+bool GasmeterFirmware::Setup(const std::string &device,
+                             const speed_t baudrate) {
+  ReceiveData = new uint8_t[GasmeterFirmware::ReceiveBufferSize]();
   Serial = new GasmeterSerial(Log);
-  if (!Serial->Begin(device, baudrate))
-  {
+  if (!Serial->Begin(device, baudrate)) {
     ErrorMessage = Serial->GetErrorMessage();
     return false;
   }
   return true;
 }
 
-std::string GasmeterFirmware::GetErrorMessage(void) const
-{
+std::string GasmeterFirmware::GetErrorMessage(void) const {
   return ErrorMessage;
 }
 
-bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5)
-{
+bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2,
+                            uint8_t b3, uint8_t b4, uint8_t b5) {
   uint8_t SendData[GasmeterFirmware::SendBufferSize] = {0};
 
   SendData[0] = static_cast<uint8_t>(cmd);
@@ -56,84 +54,78 @@ bool GasmeterFirmware::Send(SendCommandEnum cmd, uint8_t b1, uint8_t b2, uint8_t
 
   memset(ReceiveData, '\0', GasmeterFirmware::ReceiveBufferSize);
 
-  if (Serial->WriteBytes(SendData, GasmeterFirmware::SendBufferSize) < 0)
-  {
-    ErrorMessage = std::string("Write bytes failed: ") + Serial->GetErrorMessage();
+  if (Serial->WriteBytes(SendData, GasmeterFirmware::SendBufferSize) < 0) {
+    ErrorMessage =
+        std::string("Write bytes failed: ") + Serial->GetErrorMessage();
     Serial->Flush();
     return false;
   }
-  if (Serial->ReadBytes(ReceiveData, GasmeterFirmware::ReceiveBufferSize) < 0) 
-  {
-    ErrorMessage = std::string("Read bytes failed: ") + Serial->GetErrorMessage();
+  if (Serial->ReadBytes(ReceiveData, GasmeterFirmware::ReceiveBufferSize) < 0) {
+    ErrorMessage =
+        std::string("Read bytes failed: ") + Serial->GetErrorMessage();
     Serial->Flush();
     return false;
   }
-  if (!(Serial->Word(ReceiveData[5], ReceiveData[6]) == Serial->Crc16Ccitt(ReceiveData, 5)))
-  {
+  if (!(Serial->Word(ReceiveData[5], ReceiveData[6]) ==
+        Serial->Crc16Ccitt(ReceiveData, 5))) {
     ErrorMessage = "Received serial package with CRC mismatch";
     Serial->Flush();
     return false;
   }
-  if (ReceiveData[0])
-  {
-    ErrorMessage = std::string("Transmission error: ") + TransmissionState(ReceiveData[0]) + " (" + std::to_string(ReceiveData[0]) + ")";
+  if (ReceiveData[0]) {
+    ErrorMessage = std::string("Transmission error: ") +
+                   TransmissionState(ReceiveData[0]) + " (" +
+                   std::to_string(ReceiveData[0]) + ")";
     return false;
   }
   return true;
 }
 
-bool GasmeterFirmware::SetMeterVolume(const float &volume)
-{
+bool GasmeterFirmware::SetMeterVolume(const float &volume) {
   uint8_t b[4];
   int32_t counts = static_cast<int32_t>(volume * 100);
   memcpy(&b, &counts, sizeof(b));
-  if (!Send(SendCommandEnum::SET_METER_VOLUME, 0, b[0], b[1], b[2], b[3]))
-  {
+  if (!Send(SendCommandEnum::SET_METER_VOLUME, 0, b[0], b[1], b[2], b[3])) {
     return false;
   }
   return true;
 }
 
-bool GasmeterFirmware::ClearMeterVolume(void)
-{
-  if (!Send(SendCommandEnum::CLEAR_METER_VOLUME, 0, 0, 0, 0, 0))
-  {
+bool GasmeterFirmware::ClearMeterVolume(void) {
+  if (!Send(SendCommandEnum::CLEAR_METER_VOLUME, 0, 0, 0, 0, 0)) {
     return false;
   }
   return true;
 }
 
-bool GasmeterFirmware::SetThresholdLevels(const short int &low_level, const short int &high_level)
-{
+bool GasmeterFirmware::SetThresholdLevels(const short int &low_level,
+                                          const short int &high_level) {
   uint8_t l[2], h[2];
   l[0] = static_cast<uint8_t>(low_level);
   l[1] = static_cast<uint8_t>((low_level >> 8) & 0xFF);
   h[0] = static_cast<uint8_t>(high_level);
   h[1] = static_cast<uint8_t>((high_level >> 8) & 0xFF);
-  if (!Send(SendCommandEnum::SET_THRESHOLDS, 0, l[0], l[1], h[0], h[1]))
-  {
+  if (!Send(SendCommandEnum::SET_THRESHOLDS, 0, l[0], l[1], h[0], h[1])) {
     return false;
   }
   return true;
 }
 
-bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type)
-{
-  if (!Send(SendCommandEnum::MEASURE_REQUEST_DSP, static_cast<uint8_t>(type), 0, 0, 0, 0))
-  {
+bool GasmeterFirmware::ReadDspValue(float &value, const DspValueEnum &type) {
+  if (!Send(SendCommandEnum::MEASURE_REQUEST_DSP, static_cast<uint8_t>(type), 0,
+            0, 0, 0)) {
     return false;
   }
-  uint8_t b[] = {ReceiveData[1], ReceiveData[2], ReceiveData[3], ReceiveData[4]};
+  uint8_t b[] = {ReceiveData[1], ReceiveData[2], ReceiveData[3],
+                 ReceiveData[4]};
   int32_t value_int;
   memcpy(&value_int, &b, sizeof(b));
   value = static_cast<float>(value_int) / 100.0;
   return true;
 }
 
-std::string GasmeterFirmware::TransmissionState(unsigned char id)
-{
-  switch (id)
-  {
+std::string GasmeterFirmware::TransmissionState(unsigned char id) {
+  switch (id) {
   case 0x00:
     return "Everything is OK";
   case 0x01:

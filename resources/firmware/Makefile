@@ -9,10 +9,12 @@
 
 AVRDUDE    = /usr/bin/avrdude
 DEVICE     = atmega328p
-CLOCK      = 12000000UL
+#CLOCK      = 12000000UL
+CLOCK      = 16000000UL
 PROGRAMMER = -c buspirate -P /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A901LN6Z-if00-port0
-UPLOAD     = -c arduino -P /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AB0LNNZ6-if00-port0
+#UPLOAD     = -c arduino -P /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AB0LNNZ6-if00-port0
 #UPLOAD     = -c arduino -P /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AB0KRTWW-if00-port0
+UPLOAD     = -c arduino -P /dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_7413234343035151A150-if00
 FUSES      = -U lfuse:w:0xE0:m -U hfuse:w:0xDC:m -U efuse:w:0xFD:m
 LOCK       = -U lock:w:0x0F:m
 UNLOCK     = -U lock:w:0x3F:m

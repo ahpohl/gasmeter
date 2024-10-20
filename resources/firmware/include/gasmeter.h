@@ -1,9 +1,9 @@
 #ifndef GASMETER_H
 #define GASMETER_H
 
-#define UART_BUFFER_SIZE 8         // serial character buffer
-#define TX_SIZE 7                  // fixed send message
-#define RX_SIZE 8                  // fixed receive message
+#define UART_BUFFER_SIZE 8 // serial character buffer
+#define TX_SIZE 7          // fixed send message
+#define RX_SIZE 8          // fixed receive message
 
 // gasmeter error codes (continue uart.h error codes)
 #define UART_CRC_ERROR 0x2000
@@ -18,20 +18,14 @@ typedef struct gasmeter {
   int16_t adc_value;
 } gasmeter_t;
 
-enum dsp
-{
-  GAS_VOLUME = 1,
-  RAW_IR = 2
-};
+enum dsp { GAS_VOLUME = 1, RAW_IR = 2 };
 
-enum command
-{
+enum command {
   CLEAR_METER_VOLUME = 1,
   SET_METER_VOLUME = 2,
   SET_THRESHOLDS = 3,
   MEASURE_REQUEST_DSP = 4
 };
-
 
 // global variables
 extern gasmeter_t gasmeter;
