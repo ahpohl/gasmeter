@@ -1,69 +1,60 @@
+#include "main.h"
+#include "gasmeter.h"
+#include "millis.h"
+#include "uart.h"
+#include "util.h"
+#include <avr/eeprom.h>
+#include <avr/interrupt.h>
+#include <avr/io.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/eeprom.h>
-#include "main.h"
-#include "gasmeter.h"
-#include "util.h"
-#include "uart.h"
-#include "millis.h"
 
 // Interrupt service routine for the ADC completion
-ISR(ADC_vect)
-{
+ISR(ADC_vect) {
   // must read low byte first
-  gasmeter.adc_value = (int16_t) ADCL | ((int16_t) ADCH << 8);
+  gasmeter.adc_value = (int16_t)ADCL | ((int16_t)ADCH << 8);
 }
 
-void ReadAdc(void)
-{
-  if (TCNT0 == (OCR0A + 8))
-  {
+void ReadAdc(void) {
+  if (TCNT0 == (OCR0A + 8)) {
     // trigger single ADC measurement
     ADCSRA |= _BV(ADSC);
   }
 }
 
-void ReadGasMeter(void)
-{
+void ReadGasMeter(void) {
   unsigned long current_millis = millis();
   static unsigned long previous_millis = 0;
 
-  if (((current_millis - previous_millis) > 50))
-  {
+  if (((current_millis - previous_millis) > 50)) {
     // evaluate counter
     static uint8_t hysteresis = 0;
-    if ((gasmeter.adc_value > gasmeter.level_high))
-    {
+    if ((gasmeter.adc_value > gasmeter.level_high)) {
       hysteresis = 1;
-      //CLED_PORT &= ~(_BV(CLED_PIN));
-    }
-    else if ((gasmeter.adc_value < gasmeter.level_low) && hysteresis)
-    {
+      // CLED_PORT &= ~(_BV(CLED_PIN));
+    } else if ((gasmeter.adc_value < gasmeter.level_low) && hysteresis) {
       ADCSRA &= ~(_BV(ADEN));
       gasmeter.volume++;
       ADCSRA |= _BV(ADEN);
       eeprom_write_dword(&AddrVolume, gasmeter.volume);
       hysteresis = 0;
-      //CLED_PORT |= _BV(CLED_PIN);
+      // CLED_PORT |= _BV(CLED_PIN);
     }
     previous_millis = current_millis;
-    //SendRaw(gasmeter.adc_value, gasmeter.volume, hysteresis);  
+    // SendRaw(gasmeter.adc_value, gasmeter.volume, hysteresis);
   }
 }
 
-int main(void)
-{   
+int main(void) {
   //
   // setup counter LED, optional
   //
-  
+
   // set LED pin as output
-  //CLED_DDR |= _BV(CLED_PIN);
- 
+  // CLED_DDR |= _BV(CLED_PIN);
+
   //
   // timer 0 for IR led PWM
   //
@@ -71,7 +62,7 @@ int main(void)
   // set OC0A pin as output, required for output toggling
   IRLED_DDR |= _BV(IRLED_PIN);
 
-  // CLK/256 prescale value  
+  // CLK/256 prescale value
   TCCR0B = _BV(CS02);
 
   // fast PWM mode, inverting mode
@@ -128,8 +119,7 @@ int main(void)
   // main loop
   //
 
-  for (;;)
-  {
+  for (;;) {
     // read IR sensor
     ReadAdc();
 

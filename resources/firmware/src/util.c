@@ -1,9 +1,8 @@
-#include <stdio.h>
-#include <stddef.h>
 #include "uart.h"
+#include <stddef.h>
+#include <stdio.h>
 
-void SendBuffer(const unsigned char *input, size_t len)
-{
+void SendBuffer(const unsigned char *input, size_t len) {
   char buffer[4];
   for (size_t i = 0; i < len; ++i) {
     snprintf(buffer, 4, "%02x ", input[i]);
@@ -13,8 +12,7 @@ void SendBuffer(const unsigned char *input, size_t len)
   uart_putc('\r');
 }
 
-void SendValue(int32_t value)
-{
+void SendValue(int32_t value) {
   char buffer[9];
   snprintf(buffer, 9, "%08ld", value);
   uart_puts(buffer);
@@ -22,8 +20,7 @@ void SendValue(int32_t value)
   uart_putc('\r');
 }
 
-void SendRaw(int16_t raw, int32_t counts)
-{
+void SendRaw(int16_t raw, int32_t counts) {
   char buffer[9];
   snprintf(buffer, 9, "%04d %03ld", raw, counts);
   uart_puts(buffer);
@@ -39,8 +36,7 @@ void SendRaw(int16_t raw, int32_t counts)
 //  bit is always assumed to be set, thus we only use 16 bits to
 //  represent the 17 bit value.
 
-uint16_t Crc16(const uint8_t *packet, size_t length)
-{
+uint16_t Crc16(const uint8_t *packet, size_t length) {
   // crc16 polynomial, 1021H bit reversed
   const uint16_t POLY = 0x8408;
   uint16_t crc = 0xffff;
@@ -51,8 +47,7 @@ uint16_t Crc16(const uint8_t *packet, size_t length)
   uint8_t i;
 
   do {
-    for (i = 0, data = 0xff & *packet++; i < 8; i++, data >>= 1)
-    {
+    for (i = 0, data = 0xff & *packet++; i < 8; i++, data >>= 1) {
       if ((crc & 0x0001) ^ (data & 0x0001)) {
         crc = (crc >> 1) ^ POLY;
       } else {
