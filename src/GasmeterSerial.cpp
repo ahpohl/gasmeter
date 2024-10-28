@@ -7,15 +7,13 @@
 #include <thread>
 #include <unistd.h>
 
-GasmeterSerial::GasmeterSerial(void) : SerialPort(0), Log(false) {}
+GasmeterSerial::GasmeterSerial(void) : SerialPort(0) {}
 
 GasmeterSerial::~GasmeterSerial(void) {
   if (SerialPort) {
     close(SerialPort);
   }
 }
-
-void GasmeterSerial::SetDebug(const bool &debug) { Log = debug; }
 
 bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate) {
   if (device.empty()) {
@@ -104,15 +102,6 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length) {
     return -1;
   }
 
-  if (Log) {
-    std::cout << "Receive: ";
-    for (int i = 0; i < length; ++i) {
-      std::cout << std::uppercase << std::hex << std::setfill('0')
-                << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
-    }
-    std::cout << std::endl;
-  }
-
   return bytes_received;
 }
 
@@ -125,15 +114,6 @@ int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length) {
     return -1;
   }
   tcdrain(SerialPort);
-
-  if (Log) {
-    std::cout << "Send: ";
-    for (int i = 0; i < length; ++i) {
-      std::cout << std::uppercase << std::hex << std::setfill('0')
-                << std::setw(2) << (((int)buffer[i]) & 0xFF) << " ";
-    }
-    std::cout << std::endl;
-  }
 
   return bytes_sent;
 }

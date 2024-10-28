@@ -1,6 +1,7 @@
 #include "GasmeterFirmware.h"
 #include <cstring>
 #include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
@@ -25,7 +26,6 @@ bool GasmeterFirmware::Setup(const std::string &device,
                              const speed_t baudrate) {
   ReceiveData = new uint8_t[GasmeterFirmware::ReceiveBufferSize]();
   Serial = new GasmeterSerial();
-  Serial->SetDebug(Log);
   if (!Serial->Begin(device, baudrate)) {
     ErrorMessage = Serial->GetErrorMessage();
     return false;
@@ -65,6 +65,10 @@ bool GasmeterFirmware::Send(SendCommand cmd, uint8_t b1, uint8_t b2, uint8_t b3,
         std::string("Read bytes failed: ") + Serial->GetErrorMessage();
     Serial->Flush();
     return false;
+  }
+  if (Log) {
+    std::cout << "Receive: ";
+    LogBuffer(ReceiveData, GasmeterFirmware::ReceiveBufferSize);
   }
   if (!(Serial->Word(ReceiveData[5], ReceiveData[6]) ==
         Serial->Crc16Ccitt(ReceiveData, 5))) {
@@ -147,4 +151,13 @@ std::string GasmeterFirmware::TransmissionState(unsigned char id) {
   default:
     return "Unknown";
   }
+}
+
+void GasmeterFirmware::LogBuffer(const uint8_t *const buffer,
+                                 const int size) const {
+  for (int i = 0; i < size; ++i) {
+    std::cout << std::uppercase << std::hex << std::setfill('0') << std::setw(2)
+              << (((int)buffer[i]) & 0xFF) << " ";
+  }
+  std::cout << std::endl;
 }

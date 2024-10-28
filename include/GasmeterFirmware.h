@@ -37,6 +37,7 @@ private:
 
   bool Send(SendCommand cmd, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4,
             uint8_t b5);
+  void LogBuffer(const uint8_t *const buffer, const int size) const;
 };
 
 #endif

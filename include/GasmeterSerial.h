@@ -22,13 +22,6 @@ public:
     */
   ~GasmeterSerial(void);
 
-  /** @brief Set debug
-
-    Enables/disables debug output
-
-    */
-  void SetDebug(const bool &debug);
-
   /** @brief Begin communication
 
     Opens the serial port and sets communication parameters
@@ -108,7 +101,6 @@ public:
 private:
   int SerialPort;           ///< Serial port number
   std::string ErrorMessage; ///< Error message string
-  bool Log;                 ///< Debug flag
 };
 
 #endif
