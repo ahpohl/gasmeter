@@ -161,12 +161,12 @@ bool Gasmeter::Receive(void) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(GasData.RawIr,
-                              GasmeterFirmware::DspValue::RAW_IR)) {
-    ErrorMessage = Firmware->GetErrorMessage();
-    return false;
-  }
   if (RawMode) {
+    if (!Firmware->ReadDspValue(GasData.RawIr,
+                                GasmeterFirmware::DspValue::RAW_IR)) {
+      ErrorMessage = Firmware->GetErrorMessage();
+      return false;
+    }
     std::cout << (GasData.RawIr * 100) << " " << GasData.Volume << std::endl;
   }
 
