@@ -48,11 +48,6 @@ bool Gasmeter::Setup(const std::string &config) {
     return false;
   }
   this->SetLogLevel();
-  if (Cfg->KeyExists("raw_mode") &&
-      (StringTo<bool>(Cfg->GetValue("raw_mode")))) {
-    RawMode = true;
-    Log = 0;
-  }
   if (Log & static_cast<unsigned char>(LogLevel::CONFIG)) {
     Cfg->ShowConfig();
   }
@@ -84,6 +79,11 @@ bool Gasmeter::Setup(const std::string &config) {
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
+  if (Cfg->KeyExists("raw_mode") &&
+      (StringTo<bool>(Cfg->GetValue("raw_mode")))) {
+    RawMode = true;
+  }
+
   if (!Firmware->Setup(Cfg->GetValue("serial_device"))) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
@@ -169,6 +169,7 @@ bool Gasmeter::Receive(void) {
   if (RawMode) {
     std::cout << (GasData.RawIr * 100) << " " << GasData.Volume << std::endl;
   }
+
   return true;
 }
 
