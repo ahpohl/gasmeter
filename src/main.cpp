@@ -99,14 +99,14 @@ int main(int argc, char *argv[]) {
       } else {
         timeout = 0;
       }
-      if (!(meter->IsLogRaw())) {
+      if (!(meter->IsRawMode())) {
         if (!meter->Publish()) {
           std::cout << meter->GetErrorMessage() << std::endl;
         }
       }
       cv.wait_for(lock,
-                  (meter->IsLogRaw()) ? std::chrono::milliseconds(40)
-                                      : std::chrono::seconds(60),
+                  (meter->IsRawMode()) ? std::chrono::milliseconds(40)
+                                       : std::chrono::seconds(60),
                   [&]() { return shutdown_requested.load(); });
     }
     return shutdown_requested.load();

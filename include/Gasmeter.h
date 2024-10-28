@@ -15,11 +15,11 @@ public:
   bool Receive(void);
   bool Publish(void);
   std::string GetErrorMessage(void) const;
-  bool IsLogRaw(void) const;
   std::string GetPayload(void) const;
   float GetFlowRate(unsigned long long &current_time,
                     float &current_volume) const;
   bool GetState(float &current_volume) const;
+  bool IsRawMode(void) const;
 
 private:
   GasmeterFirmware *Firmware;
@@ -29,6 +29,7 @@ private:
   std::string Config;
   std::string ErrorMessage;
   unsigned char Log;
+  bool RawMode;
 
   template <typename T> T StringTo(const std::string &str) const;
   void SetLogLevel(void);
@@ -43,8 +44,7 @@ private:
     CONFIG = 0x01,
     JSON = 0x02,
     MQTT = 0x04,
-    SERIAL = 0x08,
-    RAW = 0x10
+    FIRMWARE = 0x08
   };
 };
 

@@ -10,12 +10,12 @@
 #include <vector>
 
 const std::set<std::string> Gasmeter::ValidKeys{
-    "mqtt_broker", "mqtt_password", "mqtt_port",   "mqtt_topic",
-    "mqtt_user",   "mqtt_cafile",   "mqtt_capath", "serial_device",
-    "gas_rate",    "gas_price",     "gas_factor",  "gas_meter",
-    "gas_force",   "log_level",     "level_low",   "level_high"};
+    "mqtt_broker", "mqtt_password", "mqtt_port",     "mqtt_topic", "mqtt_user",
+    "mqtt_cafile", "mqtt_capath",   "serial_device", "gas_rate",   "gas_price",
+    "gas_factor",  "gas_meter",     "gas_force",     "log_level",  "level_low",
+    "level_high",  "raw_mode"};
 
-Gasmeter::Gasmeter(void) : Log(false) {
+Gasmeter::Gasmeter(void) : Log(false), RawMode(false) {
   Cfg = new GasmeterConfig();
   Firmware = new GasmeterFirmware();
   Mqtt = new GasmeterMqtt();
@@ -79,12 +79,15 @@ bool Gasmeter::Setup(const std::string &config) {
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-
+  if (Cfg->KeyExists("raw_mode") &&
+      (StringTo<bool>(Cfg->GetValue("raw_mode")))) {
+    RawMode = true;
+  }
   if (!Firmware->Setup(Cfg->GetValue("serial_device"))) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (Log & static_cast<unsigned char>(LogLevel::SERIAL)) {
+  if (Log & static_cast<unsigned char>(LogLevel::FIRMWARE)) {
     Firmware->SetDebug(true);
   }
   if (StringTo<bool>(Cfg->GetValue("gas_force"))) {
@@ -151,38 +154,6 @@ bool Gasmeter::Setup(const std::string &config) {
   return true;
 }
 
-void Gasmeter::SetLogLevel(void) {
-  if (Cfg->KeyExists("log_level")) {
-    std::string line = Cfg->GetValue("log_level");
-    std::istringstream iss(line);
-    std::string token;
-    std::vector<std::string> log_level;
-
-    while (std::getline(iss, token, ',')) {
-      log_level.push_back(token);
-    }
-    for (auto it = log_level.cbegin(); it != log_level.cend(); ++it) {
-      if (!(*it).compare("config")) {
-        Log |= static_cast<unsigned char>(LogLevel::CONFIG);
-      } else if (!(*it).compare("json")) {
-        Log |= static_cast<unsigned char>(LogLevel::JSON);
-      } else if (!(*it).compare("mqtt")) {
-        Log |= static_cast<unsigned char>(LogLevel::MQTT);
-      } else if (!(*it).compare("serial")) {
-        Log |= static_cast<unsigned char>(LogLevel::SERIAL);
-      } else if (!(*it).compare("raw")) {
-        Log |= static_cast<unsigned char>(LogLevel::RAW);
-      }
-    }
-  } else {
-    Log = 0;
-  }
-}
-
-bool Gasmeter::IsLogRaw(void) const {
-  return Log & static_cast<unsigned char>(LogLevel::RAW);
-}
-
 bool Gasmeter::Receive(void) {
   if (!Firmware->ReadDspValue(GasData.Volume,
                               GasmeterFirmware::DspValue::GAS_VOLUME)) {
@@ -194,7 +165,7 @@ bool Gasmeter::Receive(void) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (Log & static_cast<unsigned char>(LogLevel::RAW)) {
+  if (RawMode) {
     std::cout << (GasData.RawIr * 100) << " " << GasData.Volume << std::endl;
   }
   return true;
@@ -255,6 +226,8 @@ bool Gasmeter::GetState(float &current_volume) const {
   return flame_on;
 }
 
+bool Gasmeter::IsRawMode(void) const { return RawMode; }
+
 template <typename T> T Gasmeter::StringTo(const std::string &str) const {
   T value;
   std::istringstream iss(str);
@@ -263,4 +236,30 @@ template <typename T> T Gasmeter::StringTo(const std::string &str) const {
     return T();
   }
   return value;
+}
+
+void Gasmeter::SetLogLevel(void) {
+  if (Cfg->KeyExists("log_level")) {
+    std::string line = Cfg->GetValue("log_level");
+    std::istringstream iss(line);
+    std::string token;
+    std::vector<std::string> log_level;
+
+    while (std::getline(iss, token, ',')) {
+      log_level.push_back(token);
+    }
+    for (auto it = log_level.cbegin(); it != log_level.cend(); ++it) {
+      if (!(*it).compare("config")) {
+        Log |= static_cast<unsigned char>(LogLevel::CONFIG);
+      } else if (!(*it).compare("json")) {
+        Log |= static_cast<unsigned char>(LogLevel::JSON);
+      } else if (!(*it).compare("mqtt")) {
+        Log |= static_cast<unsigned char>(LogLevel::MQTT);
+      } else if (!(*it).compare("firmware")) {
+        Log |= static_cast<unsigned char>(LogLevel::FIRMWARE);
+      }
+    }
+  } else {
+    Log = 0;
+  }
 }
