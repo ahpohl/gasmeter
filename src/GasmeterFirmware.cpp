@@ -19,11 +19,12 @@ GasmeterFirmware::~GasmeterFirmware(void) {
   }
 }
 
+void GasmeterFirmware::SetDebug(const bool &debug) { Log = debug; }
+
 bool GasmeterFirmware::Setup(const std::string &device,
                              const speed_t baudrate) {
   ReceiveData = new uint8_t[GasmeterFirmware::ReceiveBufferSize]();
   Serial = new GasmeterSerial();
-  Serial->SetDebug(Log);
   if (!Serial->Begin(device, baudrate)) {
     ErrorMessage = Serial->GetErrorMessage();
     return false;

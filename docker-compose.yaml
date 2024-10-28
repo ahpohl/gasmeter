@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ${PWD}/resources/config/gasmeter_example.conf:/etc/gasmeter.conf
+      - ${PWD}/gasmeter.conf:/etc/gasmeter.conf
     devices:
       - /dev/ttyUSB0
     # gasmeter:uucp

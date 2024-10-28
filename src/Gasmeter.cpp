@@ -84,6 +84,9 @@ bool Gasmeter::Setup(const std::string &config) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
+  if (Log & static_cast<unsigned char>(LogLevel::SERIAL)) {
+    Firmware->SetDebug(true);
+  }
   if (StringTo<bool>(Cfg->GetValue("gas_force"))) {
     if (!Firmware->ClearMeterVolume()) {
       ErrorMessage = Firmware->GetErrorMessage();
