@@ -1,6 +1,10 @@
 # Gasmeter changelog
 
-## v0.5-4 - 2023-xx-xx
+## v0.5.4 - 2024-10-xx
+* update documentation
+* add docker compose support
+* mqtt port optional argument
+* fix compile errors
 * calculate time buckets with local time zone
 
 ## v0.5.3 - 2023-03-24

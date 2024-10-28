@@ -11,10 +11,10 @@
 #include <vector>
 
 const std::set<std::string> Gasmeter::ValidKeys{
-    "mqtt_broker", "mqtt_password",   "mqtt_port",       "mqtt_topic",
-    "mqtt_user",   "mqtt_tls_cafile", "mqtt_tls_capath", "serial_device",
-    "gas_rate",    "gas_price",       "gas_factor",      "gas_meter",
-    "gas_force",   "log_level",       "level_low",       "level_high"};
+    "mqtt_broker", "mqtt_password", "mqtt_port",   "mqtt_topic",
+    "mqtt_user",   "mqtt_cafile",   "mqtt_capath", "serial_device",
+    "gas_rate",    "gas_price",     "gas_factor",  "gas_meter",
+    "gas_force",   "log_level",     "level_low",   "level_high"};
 
 Gasmeter::Gasmeter(void) {
   Cfg = new GasmeterConfig();
@@ -49,10 +49,12 @@ bool Gasmeter::Setup(const std::string &config) {
     return false;
   }
   this->SetLogLevel();
-  Firmware->SetLogLevel(Log);
-  Mqtt->SetLogLevel(Log);
-  if (Log & static_cast<unsigned char>(LogLevelEnum::CONFIG)) {
+  if (Log & static_cast<unsigned char>(LogLevel::CONFIG)) {
     Cfg->ShowConfig();
+  }
+  if (!(Cfg->KeyExists("serial_device"))) {
+    ErrorMessage = Cfg->GetErrorMessage();
+    return false;
   }
   if (!(Cfg->KeyExists("gas_rate"))) {
     ErrorMessage = Cfg->GetErrorMessage();
@@ -70,10 +72,7 @@ bool Gasmeter::Setup(const std::string &config) {
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
-  if (!(Cfg->KeyExists("serial_device"))) {
-    ErrorMessage = Cfg->GetErrorMessage();
-    return false;
-  }
+
   if (!Firmware->Setup(Cfg->GetValue("serial_device"))) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
@@ -94,11 +93,11 @@ bool Gasmeter::Setup(const std::string &config) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::GAS_VOLUME)) {
+  if (!Firmware->ReadDspValue(GasData.Volume, DspValue::GAS_VOLUME)) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  std::cout << "Current meter reading: " << Datagram.Volume << " m³"
+  std::cout << "Current meter reading: " << GasData.Volume << " m³"
             << std::endl;
 
   if (!Mqtt->Begin()) {
@@ -154,45 +153,37 @@ void Gasmeter::SetLogLevel(void) {
     }
     for (auto it = log_level.cbegin(); it != log_level.cend(); ++it) {
       if (!(*it).compare("config")) {
-        Log |= static_cast<unsigned char>(LogLevelEnum::CONFIG);
+        Log |= static_cast<unsigned char>(LogLevel::CONFIG);
       } else if (!(*it).compare("json")) {
-        Log |= static_cast<unsigned char>(LogLevelEnum::JSON);
-      } else if (!(*it).compare("mosquitto")) {
-        Log |= static_cast<unsigned char>(LogLevelEnum::MQTT);
+        Log |= static_cast<unsigned char>(LogLevel::JSON);
+      } else if (!(*it).compare("mqtt")) {
+        Log |= static_cast<unsigned char>(LogLevel::MQTT);
       } else if (!(*it).compare("serial")) {
-        Log |= static_cast<unsigned char>(LogLevelEnum::SERIAL);
+        Log |= static_cast<unsigned char>(LogLevel::SERIAL);
       } else if (!(*it).compare("raw")) {
-        Log |= static_cast<unsigned char>(LogLevelEnum::RAW);
+        Log |= static_cast<unsigned char>(LogLevel::RAW);
       }
     }
   } else {
     Log = 0;
   }
-  // std::cout << std::uppercase << std::hex << std::setfill('0') <<
-  // std::setw(2) << ((int)Log & 0xFF) << std::endl;
 }
 
-unsigned char Gasmeter::GetLogLevel(void) const { return Log; }
+bool Gasmeter::IsLogRaw(void) const {
+  return Log & static_cast<unsigned char>(LogLevel::RAW);
+}
 
 bool Gasmeter::Receive(void) {
-  // std::chrono::steady_clock::time_point begin =
-  // std::chrono::steady_clock::now();
-
-  if (!Firmware->ReadDspValue(Datagram.Volume, DspValueEnum::GAS_VOLUME)) {
+  if (!Firmware->ReadDspValue(GasData.Volume, DspValue::GAS_VOLUME)) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(Datagram.RawIr, DspValueEnum::RAW_IR)) {
+  if (!Firmware->ReadDspValue(GasData.RawIr, DspValue::RAW_IR)) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (Log & static_cast<unsigned char>(LogLevelEnum::RAW)) {
-    // std::chrono::steady_clock::time_point end =
-    // std::chrono::steady_clock::now(); std::cout << (Datagram.RawIr * 100) <<
-    // " " << Datagram.Volume << " " <<
-    // std::chrono::duration_cast<std::chrono::milliseconds>(end -
-    // begin).count()  << std::endl;
-    std::cout << (Datagram.RawIr * 100) << " " << Datagram.Volume << std::endl;
+  if (Log & static_cast<unsigned char>(LogLevel::RAW)) {
+    std::cout << (GasData.RawIr * 100) << " " << GasData.Volume << std::endl;
   }
   return true;
 }
@@ -209,8 +200,8 @@ bool Gasmeter::Publish(void) {
 
   Payload << "{"
           << "\"time\":" << now << ","
-          << "\"volume\":" << std::setprecision(2) << Datagram.Volume << ","
-          << "\"state\":" << (GetState(Datagram.Volume) ? "1" : "0") << ","
+          << "\"volume\":" << std::setprecision(2) << GasData.Volume << ","
+          << "\"state\":" << (GetState(GasData.Volume) ? "1" : "0") << ","
           << "\"rate\":" << Cfg->GetValue("gas_rate") << ","
           << "\"price\":" << Cfg->GetValue("gas_price") << ","
           << "\"factor\":" << Cfg->GetValue("gas_factor") << "}";
@@ -233,7 +224,7 @@ bool Gasmeter::Publish(void) {
     }
   }
 
-  if (Log & static_cast<unsigned char>(LogLevelEnum::JSON)) {
+  if (Log & static_cast<unsigned char>(LogLevel::JSON)) {
     std::cout << Payload.str() << std::endl;
   }
   Payload.flags(old_settings);
@@ -242,7 +233,6 @@ bool Gasmeter::Publish(void) {
 }
 
 std::string Gasmeter::GetErrorMessage(void) const { return ErrorMessage; }
-
 std::string Gasmeter::GetPayload(void) const { return Payload.str(); }
 
 bool Gasmeter::GetState(float &current_volume) const {

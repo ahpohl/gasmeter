@@ -1,5 +1,5 @@
 #include "GasmeterSerial.h"
-#include "GasmeterEnums.h"
+#include "Gasmeter.h"
 #include <cstring>
 #include <fcntl.h>
 #include <iomanip>
@@ -8,13 +8,15 @@
 #include <thread>
 #include <unistd.h>
 
-GasmeterSerial::GasmeterSerial(const unsigned char &log) : Log(log) {}
+GasmeterSerial::GasmeterSerial(void) : SerialPort(0), Log(false) {}
 
 GasmeterSerial::~GasmeterSerial(void) {
   if (SerialPort) {
     close(SerialPort);
   }
 }
+
+void GasmeterSerial::SetDebug(const bool &debug) { Log = debug; }
 
 bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate) {
   if (device.empty()) {
@@ -93,11 +95,6 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length) {
       break;
     iterations++;
   }
-  // std::chrono::steady_clock::time_point end =
-  // std::chrono::steady_clock::now(); std::cout << std::dec << "Time difference
-  // = " << std::chrono::duration_cast<std::chrono::microseconds>(end -
-  // begin).count() << "[µs]" << std::endl; std::cout << "Iterations: " <<
-  // iterations << std::endl;
 
   if (iterations == max_iterations) {
     ErrorMessage = "Timeout, gasmeter could not be reached";
@@ -110,7 +107,7 @@ int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length) {
     return -1;
   }
 
-  if (Log & static_cast<unsigned char>(LogLevelEnum::SERIAL)) {
+  if (Log) {
     std::cout << "Receive: ";
     for (int i = 0; i < length; ++i) {
       std::cout << std::uppercase << std::hex << std::setfill('0')
@@ -132,7 +129,7 @@ int GasmeterSerial::WriteBytes(uint8_t const *buffer, const int &length) {
   }
   tcdrain(SerialPort);
 
-  if (Log & static_cast<unsigned char>(LogLevelEnum::SERIAL)) {
+  if (Log) {
     std::cout << "Send: ";
     for (int i = 0; i < length; ++i) {
       std::cout << std::uppercase << std::hex << std::setfill('0')

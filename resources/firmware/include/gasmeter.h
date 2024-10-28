@@ -1,6 +1,8 @@
 #ifndef GASMETER_H
 #define GASMETER_H
 
+#include <stdint.h>
+
 #define UART_BUFFER_SIZE 8 // serial character buffer
 #define TX_SIZE 7          // fixed send message
 #define RX_SIZE 8          // fixed receive message

@@ -1,10 +1,11 @@
 #include "GasmeterMqtt.h"
-#include "GasmeterEnums.h"
 #include <chrono>
 #include <iostream>
+#include <mosquitto.h>
+#include <string>
 #include <thread>
 
-GasmeterMqtt::GasmeterMqtt(void) : Log(0) {
+GasmeterMqtt::GasmeterMqtt(void) : Mosq(nullptr), Log(false) {
   IsConnected = false;
   NotifyOnlineFlag = false;
 }
@@ -18,9 +19,7 @@ GasmeterMqtt::~GasmeterMqtt(void) {
   mosquitto_lib_cleanup();
 }
 
-void GasmeterMqtt::SetLogLevel(const unsigned char &log_level) {
-  Log = log_level;
-}
+void GasmeterMqtt::SetDebug(const bool &debug) { Log = debug; }
 
 bool GasmeterMqtt::Begin(void) {
   mosquitto_lib_init();
@@ -140,7 +139,7 @@ void GasmeterMqtt::OnConnectCallbackWrapper(struct mosquitto *mosq, void *obj,
 
 void GasmeterMqtt::LogCallback(struct mosquitto *mosq, void *obj, int level,
                                const char *str) {
-  if (Log & static_cast<unsigned char>(LogLevelEnum::MQTT)) {
+  if (Log) {
     std::cout << str << std::endl;
   }
 }
