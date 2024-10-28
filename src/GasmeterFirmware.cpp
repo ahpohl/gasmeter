@@ -60,6 +60,10 @@ bool GasmeterFirmware::Send(SendCommand cmd, uint8_t b1, uint8_t b2, uint8_t b3,
     Serial->Flush();
     return false;
   }
+  if (Log) {
+    std::cout << "Send: ";
+    LogBuffer(SendData, GasmeterFirmware::SendBufferSize);
+  }
   if (Serial->ReadBytes(ReceiveData, GasmeterFirmware::ReceiveBufferSize) < 0) {
     ErrorMessage =
         std::string("Read bytes failed: ") + Serial->GetErrorMessage();
