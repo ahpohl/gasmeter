@@ -1,5 +1,4 @@
 #include "GasmeterSerial.h"
-#include "Gasmeter.h"
 #include <cstring>
 #include <fcntl.h>
 #include <iomanip>
@@ -79,8 +78,6 @@ bool GasmeterSerial::Begin(const std::string &device, const speed_t &baudrate) {
 int GasmeterSerial::ReadBytes(uint8_t *buffer, const int &length) {
   int bytes_received, retval, iterations = 0;
   const int max_iterations = 500;
-  // std::chrono::steady_clock::time_point begin =
-  // std::chrono::steady_clock::now();
 
   while (iterations < max_iterations) {
     int bytes_available;

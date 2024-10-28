@@ -1,5 +1,4 @@
 #include "Gasmeter.h"
-#include "GasmeterEnums.h"
 #include <charconv>
 #include <chrono>
 #include <cstring>
@@ -16,7 +15,7 @@ const std::set<std::string> Gasmeter::ValidKeys{
     "gas_rate",    "gas_price",     "gas_factor",  "gas_meter",
     "gas_force",   "log_level",     "level_low",   "level_high"};
 
-Gasmeter::Gasmeter(void) {
+Gasmeter::Gasmeter(void) : Log(false) {
   Cfg = new GasmeterConfig();
   Firmware = new GasmeterFirmware();
   Mqtt = new GasmeterMqtt();
@@ -53,6 +52,14 @@ bool Gasmeter::Setup(const std::string &config) {
     Cfg->ShowConfig();
   }
   if (!(Cfg->KeyExists("serial_device"))) {
+    ErrorMessage = Cfg->GetErrorMessage();
+    return false;
+  }
+  if (!(Cfg->KeyExists("mqtt_broker"))) {
+    ErrorMessage = Cfg->GetErrorMessage();
+    return false;
+  }
+  if (!(Cfg->KeyExists("mqtt_topic"))) {
     ErrorMessage = Cfg->GetErrorMessage();
     return false;
   }
@@ -93,7 +100,8 @@ bool Gasmeter::Setup(const std::string &config) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(GasData.Volume, DspValue::GAS_VOLUME)) {
+  if (!Firmware->ReadDspValue(GasData.Volume,
+                              GasmeterFirmware::DspValue::GAS_VOLUME)) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
@@ -104,9 +112,8 @@ bool Gasmeter::Setup(const std::string &config) {
     ErrorMessage = Mqtt->GetErrorMessage();
     return false;
   }
-  if (!(Cfg->KeyExists("mqtt_topic"))) {
-    ErrorMessage = Cfg->GetErrorMessage();
-    return false;
+  if (Log & static_cast<unsigned char>(LogLevel::MQTT)) {
+    Mqtt->SetDebug(true);
   }
   if ((Cfg->KeyExists("mqtt_user") && Cfg->KeyExists("mqtt_password"))) {
     if (!Mqtt->SetUserPassAuth(Cfg->GetValue("mqtt_user"),
@@ -115,15 +122,21 @@ bool Gasmeter::Setup(const std::string &config) {
       return false;
     }
   }
-  if (Cfg->KeyExists("mqtt_tls_cafile") || Cfg->KeyExists("mqtt_tls_capath")) {
-    if (!Mqtt->SetTlsConnection(Cfg->GetValue("mqtt_tls_cafile"),
-                                Cfg->GetValue("mqtt_tls_capath"))) {
+  if (Cfg->KeyExists("mqtt_cafile") || Cfg->KeyExists("mqtt_capath")) {
+    if (!Mqtt->SetTlsConnection(Cfg->GetValue("mqtt_cafile"),
+                                Cfg->GetValue("mqtt_capath"))) {
       ErrorMessage = Mqtt->GetErrorMessage();
       return false;
     }
   }
-  if (!(Cfg->KeyExists("mqtt_broker")) || !(Cfg->KeyExists("mqtt_port"))) {
-    ErrorMessage = Cfg->GetErrorMessage();
+  if (Cfg->KeyExists("mqtt_broker") && Cfg->KeyExists("mqtt_port") &&
+      (!Mqtt->Connect(Cfg->GetValue("mqtt_broker"),
+                      StringTo<int>(Cfg->GetValue("mqtt_port")), 60))) {
+    ErrorMessage = Mqtt->GetErrorMessage();
+    return false;
+  } else if (Cfg->KeyExists("mqtt_broker") &&
+             (!Mqtt->Connect(Cfg->GetValue("mqtt_broker"), 1883, 60))) {
+    ErrorMessage = Mqtt->GetErrorMessage();
     return false;
   }
   if (!Mqtt->SetLastWillTestament(
@@ -131,12 +144,6 @@ bool Gasmeter::Setup(const std::string &config) {
     ErrorMessage = Mqtt->GetErrorMessage();
     return false;
   }
-  if (!Mqtt->Connect(Cfg->GetValue("mqtt_broker"),
-                     StringTo<double>(Cfg->GetValue("mqtt_port")), 60)) {
-    ErrorMessage = Mqtt->GetErrorMessage();
-    return false;
-  }
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
   return true;
 }
@@ -174,11 +181,13 @@ bool Gasmeter::IsLogRaw(void) const {
 }
 
 bool Gasmeter::Receive(void) {
-  if (!Firmware->ReadDspValue(GasData.Volume, DspValue::GAS_VOLUME)) {
+  if (!Firmware->ReadDspValue(GasData.Volume,
+                              GasmeterFirmware::DspValue::GAS_VOLUME)) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }
-  if (!Firmware->ReadDspValue(GasData.RawIr, DspValue::RAW_IR)) {
+  if (!Firmware->ReadDspValue(GasData.RawIr,
+                              GasmeterFirmware::DspValue::RAW_IR)) {
     ErrorMessage = Firmware->GetErrorMessage();
     return false;
   }

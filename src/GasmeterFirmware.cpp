@@ -1,6 +1,4 @@
-#include "Gasmeter.h"
-#include "GasmeterEnums.h"
-#include "GasmeterSerial.h"
+#include "GasmeterFirmware.h"
 #include <cstring>
 #include <ctime>
 #include <iostream>
