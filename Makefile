@@ -59,7 +59,7 @@ MAIN = gasmeter
 ### targets ###
 ###############
 
-.PHONY: build clean install firmware
+.PHONY: build clean install firmware upload
 
 all: build $(MAIN)
 
@@ -68,6 +68,9 @@ build:
 
 firmware: all
 	$(MAKE) -C ./resources/firmware
+
+upload: all
+	$(MAKE) -C ./resources/firmware upload
 
 $(MAIN): $(OBJS) 
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -o $(OBJ_DIR)/$(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
