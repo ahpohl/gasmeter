@@ -59,12 +59,15 @@ MAIN = gasmeter
 ### targets ###
 ###############
 
-.PHONY: build clean install
+.PHONY: build clean install firmware
 
 all: build $(MAIN)
 
 build:
 	-@ mkdir -p $(OBJ_DIR)
+
+firmware: all
+	$(MAKE) -C ./resources/firmware
 
 $(MAIN): $(OBJS) 
 	$(CPP) $(CPPFLAGS) $(INCLUDES) -o $(OBJ_DIR)/$(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
@@ -74,6 +77,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 clean:
 	-@ $(RM) $(OBJS) $(OBJ_DIR)/$(MAIN) *~
+	$(MAKE) -C ./resources/firmware clean
 
 # define install directories
 ifeq ($(PREFIX),)
