@@ -23,7 +23,7 @@ make install
 
 Alternatively, there is also an Arch Linux package called [gasmeter](https://aur.archlinux.org/packages/gasmeter) published in the AUR.
 
-The hardware dongle needs firmware for the Atmel microcontroller in order to communicate with the gasmeter program. To compile the firmware, first install the AVR toolchain through your package manager. On Arch Linux, install `avr-gcc` and `avr-bin` packages and then `make upload` to compile and upload the firwmare. On a new microcontroller, a bootloader needs to be flashed first to accept a firmware image via upload. The preparation of a new µC is described in the [wiki](https://github.com/ahpohl/gasmeter/wiki).
+The hardware dongle needs firmware for the Atmel microcontroller in order to communicate with the gasmeter program. To compile the firmware, first install the AVR toolchain through your package manager. On Arch Linux, install `avr-gcc` and `avr-libc` packages and then `make upload` to compile and upload the firwmare. On a new microcontroller, a bootloader needs to be flashed first to accept a firmware image via upload. The preparation of a new µC is described in the [wiki](https://github.com/ahpohl/gasmeter/wiki).
 
 ## Installation
 
