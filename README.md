@@ -55,13 +55,13 @@ The Gasmeter program is configured with a configuration file located in `/etc/ga
 On first run, the low and high threshold parameters need to be determined. For this, there is a special `raw_mode` option in the config file, which outputs the raw sensor values to the console. To record values create a log file with:
 
 ```
-gasmeter --config gasmeter.conf | tee ir.log
+gasmeter --config gasmeter.conf | tee raw_values.log
 ```
 
 Plotting the raw values gives a diagram like this (the gnuplot script is provided in the resources folder):
 
 ```
-gnuplot < sensor.gnuplot > ir.png
+gnuplot < sensor.gnuplot > threshold_levels.png
 ```
 
 ![Low and high threshold levels](resources/hardware/threshold_levels.png)
