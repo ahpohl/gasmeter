@@ -1,5 +1,8 @@
 # Gasmeter changelog
 
+## v0.5.5 - 2024-11-10
+* fix mqtt port config error
+
 ## v0.5.4 - 2024-10-30
 * update documentation
 * add docker compose support
